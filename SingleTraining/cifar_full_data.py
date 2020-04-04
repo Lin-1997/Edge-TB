@@ -67,8 +67,8 @@ sess = tf.Session(config=config)
 sess.run(tf.global_variables_initializer())
 
 for epoch in range(int(epoch_num)):
-    for iter in range(int(len(train_images) / batch_size)):
-        batch_data = sess.run(batch)
-        loss_val, _ = sess.run([cross_entropy, train_step], feed_dict={xs:batch_data[0], ys:batch_data[1], global_step:epoch})
-    print('epoch {}:loss={}'.format(epoch, loss_val))
-    # print('epoch {}:accuracy={}'.format(epoch, sess.run(accuracy, feed_dict={xs: test_images, ys: one_hot_test_labels})))
+	for iter in range(int(len(train_images) / batch_size)):
+		batch_data = sess.run(batch)
+		loss_val, _ = sess.run([cross_entropy, train_step], feed_dict={xs:batch_data[0], ys:batch_data[1], global_step:epoch})
+	print('epoch {}:loss={}'.format(epoch, loss_val))
+	# print('epoch {}:accuracy={}'.format(epoch, sess.run(accuracy, feed_dict={xs: test_images, ys: one_hot_test_labels})))

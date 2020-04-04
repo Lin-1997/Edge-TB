@@ -23,31 +23,31 @@ learning_rate = 0.5
 all_addresses = []
 
 try:
-    options, args = getopt.getopt(sys.argv[1:], "n:i:e:b:l::j:k", ["client_num=", "this_index=", "epoch_num=", "batch_size=",
-                                                               "local_epoch_num=",  "start_data_index=", "end_data_index="])
+	options, args = getopt.getopt(sys.argv[1:], "n:i:e:b:l::j:k", ["client_num=", "this_index=", "epoch_num=", "batch_size=",
+	                                                               "local_epoch_num=",  "start_data_index=", "end_data_index="])
 except getopt.GetoptError:
-    sys.exit()
+	sys.exit()
 
 for option, value in options:
-    if option in ("-n", "--client_num"):
-        client_num = int(value)
-    if option in ("-i", "--this_index"):
-        this_index = int(value)
-    if option in ("-e", "--epoch_name"):
-        epoch_num = int(value)
-    if option in ("-b", "--batch_size"):
-        batch_size = int(value)
-    if option in ("-l", "--local_epoch_num"):
-        local_epoch_num = int(value)
-    if option in ("-j", "--start_data_index"):
-        start_index = int(value)
-    if option in ("-k", "--end_data_index"):
-        end_index = int(value)
+	if option in ("-n", "--client_num"):
+		client_num = int(value)
+	if option in ("-i", "--this_index"):
+		this_index = int(value)
+	if option in ("-e", "--epoch_name"):
+		epoch_num = int(value)
+	if option in ("-b", "--batch_size"):
+		batch_size = int(value)
+	if option in ("-l", "--local_epoch_num"):
+		local_epoch_num = int(value)
+	if option in ("-j", "--start_data_index"):
+		start_index = int(value)
+	if option in ("-k", "--end_data_index"):
+		end_index = int(value)
 if len(args) > 0:
-    print("error args: {0}".format(args))
+	print("error args: {0}".format(args))
 
 for client_index in range(client_num):
-    all_addresses.append(start_port + client_index)
+	all_addresses.append(start_port + client_index)
 
 this_address = all_addresses[this_index]
 all_addresses.remove(this_address)
@@ -66,8 +66,8 @@ test_data_dir = "/home/se-lab/Desktop/Data/EdgeAI/cifar10/test_data/"
 data_x_list = []
 data_y_list = []
 for train_data_index in range(end_index - start_index):
-    data_x_list.append(np.load(train_data_dir + "train_images_" + str(start_index + train_data_index) + ".npy"))
-    data_y_list.append(np.load(train_data_dir + "train_labels_" + str(start_index + train_data_index) + ".npy"))
+	data_x_list.append(np.load(train_data_dir + "train_images_" + str(start_index + train_data_index) + ".npy"))
+	data_y_list.append(np.load(train_data_dir + "train_labels_" + str(start_index + train_data_index) + ".npy"))
 data_x = np.concatenate(tuple(data_x_list))
 data_y = np.concatenate(tuple(data_y_list))
 test_x = np.load(test_data_dir + "test_images.npy")
@@ -140,71 +140,71 @@ client_weights = io.BytesIO()
 received_client_weight = []
 
 def update_weight():
-    # print("final list: ", received_client_weight)
-    total_weight = received_client_weight[0]
-    if len(received_client_weight) == 1:
-        # avg_weight = [each_total_weight for each_total_weight in total_weight]
-        # print("final weights: ", avg_weight)
-        received_client_weight.clear()
-        # sess.run([tf.assign(t, e) for t, e in zip(weights, total_weight)])
-        return
-    for weight_index in range(1, len(received_client_weight)):
-        tmp_weight = []
-        this_weight = received_client_weight[weight_index]
-        for i in range(len(total_weight)):
-            tmp_weight.append(np.sum([total_weight[i], this_weight[i]], axis=0))
-        total_weight = tmp_weight
-    avg_weight = [each_total_weight / len(received_client_weight) for each_total_weight in total_weight]
-    # print("final weights: ", avg_weight)
-    received_client_weight.clear()
-    weight_placeholder_start_index = 2;
-    for w, r in zip(weight_assign_op_list, avg_weight):
-        sess.run(w, feed_dict={"Placeholder_" + str(weight_placeholder_start_index) + ":0": r})
-        weight_placeholder_start_index += 1
+	# print("final list: ", received_client_weight)
+	total_weight = received_client_weight[0]
+	if len(received_client_weight) == 1:
+		# avg_weight = [each_total_weight for each_total_weight in total_weight]
+		# print("final weights: ", avg_weight)
+		received_client_weight.clear()
+		# sess.run([tf.assign(t, e) for t, e in zip(weights, total_weight)])
+		return
+	for weight_index in range(1, len(received_client_weight)):
+		tmp_weight = []
+		this_weight = received_client_weight[weight_index]
+		for i in range(len(total_weight)):
+			tmp_weight.append(np.sum([total_weight[i], this_weight[i]], axis=0))
+		total_weight = tmp_weight
+	avg_weight = [each_total_weight / len(received_client_weight) for each_total_weight in total_weight]
+	# print("final weights: ", avg_weight)
+	received_client_weight.clear()
+	weight_placeholder_start_index = 2;
+	for w, r in zip(weight_assign_op_list, avg_weight):
+		sess.run(w, feed_dict={"Placeholder_" + str(weight_placeholder_start_index) + ":0": r})
+		weight_placeholder_start_index += 1
 
 def train():
-    for epoch in range(int(epoch_num / local_epoch_num)):
-        for local_epoch in range(local_epoch_num):
-            for iter in range(int(len(data_x) / batch_size)):
-                batch_data = sess.run(batch)
-                loss_val, _ = sess.run([cross_entropy, train_step], feed_dict={xs:batch_data[0], ys:batch_data[1]})
-            logging.info('client {} epoch {}:loss={}'.format(this_index, epoch, loss_val))
-            # logging.info('client {} epoch {}:accuracy={}'.format(this_index, epoch, sess.run(accuracy, feed_dict={xs: test_x, ys: test_y})))
-            updated_weights = sess.run(weights)
-            np.save(client_weights, updated_weights, allow_pickle=True)
-            client_weights.seek(0)
-            file = {'client_weights': client_weights}
-            requests.post("http://localhost:" + select_client() + "/receive_model", files=file)
-            client_weights.seek(0)
-            client_weights.truncate()
-            global lock
-            lock.acquire()
-            received_client_weight.append(updated_weights)
-            update_weight()
-            lock.release()
+	for epoch in range(int(epoch_num / local_epoch_num)):
+		for local_epoch in range(local_epoch_num):
+			for iter in range(int(len(data_x) / batch_size)):
+				batch_data = sess.run(batch)
+				loss_val, _ = sess.run([cross_entropy, train_step], feed_dict={xs:batch_data[0], ys:batch_data[1]})
+			logging.info('client {} epoch {}:loss={}'.format(this_index, epoch, loss_val))
+			# logging.info('client {} epoch {}:accuracy={}'.format(this_index, epoch, sess.run(accuracy, feed_dict={xs: test_x, ys: test_y})))
+			updated_weights = sess.run(weights)
+			np.save(client_weights, updated_weights, allow_pickle=True)
+			client_weights.seek(0)
+			file = {'client_weights': client_weights}
+			requests.post("http://localhost:" + select_client() + "/receive_model", files=file)
+			client_weights.seek(0)
+			client_weights.truncate()
+			global lock
+			lock.acquire()
+			received_client_weight.append(updated_weights)
+			update_weight()
+			lock.release()
 
 def select_client():
-    return str(all_addresses[random.randint(0, len(all_addresses) - 1)])
+	return str(all_addresses[random.randint(0, len(all_addresses) - 1)])
 
 @app.route('/start_training', methods=['POST'])
 def start_training():
-    training_thread = threading.Thread(target=train, daemon=True)
-    training_thread.start()
-    return "start training"
+	training_thread = threading.Thread(target=train, daemon=True)
+	training_thread.start()
+	return "start training"
 
 @app.route('/receive_model', methods=['POST'])
 def receive_model():
-    file = request.files.get('client_weights')
-    received_weights = np.load(file, allow_pickle=True)
-    global lock
-    lock.acquire()
-    received_client_weight.append(received_weights)
-    # print("received weights: ", received_weights)
-    lock.release()
-    return 'continue training'
+	file = request.files.get('client_weights')
+	received_weights = np.load(file, allow_pickle=True)
+	global lock
+	lock.acquire()
+	received_client_weight.append(received_weights)
+	# print("received weights: ", received_weights)
+	lock.release()
+	return 'continue training'
 
 @app.route('/heart_beat', methods=['GET'])
 def send_heart_beat():
-    return 'alive'
+	return 'alive'
 
 app.run(port=this_address, threaded=True)
