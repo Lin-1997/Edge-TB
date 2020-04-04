@@ -1,0 +1,3 @@
+requests
+flask
+tensorflow-gpu=1.15
