@@ -1,0 +1,10 @@
+--util               似乎有些什么add_layer之类的函数可以复用，还有广播参数更新的函数(w, [adresses])
+--nn_load --nn_cifar 各种模型
+          --nn_mnst
+          --nn-xxxx
+--train              如果模型从nn_load读取的话，剩下的训练代码是不是都一样的？？
+--router  --Gxx      接收别的G发过来的参数
+          --Wxx      接收聚合节点发回来的参数
+          --Axx      接收Worker发过来的参数
+--values             超参数
+--start

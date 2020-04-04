@@ -1,0 +1,449 @@
+2019-12-25 19:41:51,983 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From parameter_server.py:53: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+2019-12-25 19:41:51,985 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From parameter_server.py:58: The name tf.random_normal is deprecated. Please use tf.random.normal instead.
+
+2019-12-25 19:41:51,991 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From parameter_server.py:60: The name tf.assign is deprecated. Please use tf.compat.v1.assign instead.
+
+2019-12-25 19:41:52,021 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From parameter_server.py:78: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+2019-12-25 19:41:52,022 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From parameter_server.py:80: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+2019-12-25 19:42:00,402 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From parameter_server.py:81: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+2019-12-25 19:42:02,449 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO:  * Running on http://127.0.0.1:8888/ (Press CTRL+C to quit)
+2019-12-25 19:42:56,169 - parameter_server.py[line:143] - INFO: communication round 0: accuracy=0.09610000252723694
+2019-12-25 19:42:56,294 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:56] "[37mGET /start HTTP/1.1[0m" 200 -
+2019-12-25 19:42:57,071 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:57] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:57,091 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:57] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:57,110 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:57] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:57,121 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:57] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:57,139 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:57] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:57,168 - parameter_server.py[line:108] - INFO: communication round 2:accuracy=0.4893999993801117
+2019-12-25 19:42:57,168 - parameter_server.py[line:117] - INFO: client_1 selected
+2019-12-25 19:42:57,192 - parameter_server.py[line:117] - INFO: client_7 selected
+2019-12-25 19:42:57,210 - parameter_server.py[line:117] - INFO: client_46 selected
+2019-12-25 19:42:57,237 - parameter_server.py[line:117] - INFO: client_19 selected
+2019-12-25 19:42:57,264 - parameter_server.py[line:117] - INFO: client_31 selected
+2019-12-25 19:42:57,946 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:57] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:57,983 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:57] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:58,044 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:58] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:58,068 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:58] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:58,083 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:58] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:58,094 - parameter_server.py[line:108] - INFO: communication round 3:accuracy=0.6934999823570251
+2019-12-25 19:42:58,094 - parameter_server.py[line:117] - INFO: client_40 selected
+2019-12-25 19:42:58,122 - parameter_server.py[line:117] - INFO: client_30 selected
+2019-12-25 19:42:58,140 - parameter_server.py[line:117] - INFO: client_4 selected
+2019-12-25 19:42:58,165 - parameter_server.py[line:117] - INFO: client_49 selected
+2019-12-25 19:42:58,197 - parameter_server.py[line:117] - INFO: client_45 selected
+2019-12-25 19:42:58,846 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:58] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:58,963 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:58] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:58,984 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:58] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:59,004 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:59] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:59,029 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:59] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:59,039 - parameter_server.py[line:108] - INFO: communication round 4:accuracy=0.7541000247001648
+2019-12-25 19:42:59,039 - parameter_server.py[line:117] - INFO: client_19 selected
+2019-12-25 19:42:59,065 - parameter_server.py[line:117] - INFO: client_31 selected
+2019-12-25 19:42:59,086 - parameter_server.py[line:117] - INFO: client_15 selected
+2019-12-25 19:42:59,113 - parameter_server.py[line:117] - INFO: client_2 selected
+2019-12-25 19:42:59,131 - parameter_server.py[line:117] - INFO: client_6 selected
+2019-12-25 19:42:59,162 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:59] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:59,183 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:59] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:59,240 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:59] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:59,675 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:59] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:59,696 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:59] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:42:59,707 - parameter_server.py[line:108] - INFO: communication round 5:accuracy=0.7930999994277954
+2019-12-25 19:42:59,708 - parameter_server.py[line:117] - INFO: client_17 selected
+2019-12-25 19:42:59,735 - parameter_server.py[line:117] - INFO: client_36 selected
+2019-12-25 19:42:59,752 - parameter_server.py[line:117] - INFO: client_0 selected
+2019-12-25 19:42:59,777 - parameter_server.py[line:117] - INFO: client_23 selected
+2019-12-25 19:42:59,801 - parameter_server.py[line:117] - INFO: client_26 selected
+2019-12-25 19:43:00,586 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:00] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:00,607 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:00] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:00,628 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:00] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:00,639 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:00] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:00,660 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:00] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:00,671 - parameter_server.py[line:108] - INFO: communication round 6:accuracy=0.8001000285148621
+2019-12-25 19:43:00,671 - parameter_server.py[line:117] - INFO: client_48 selected
+2019-12-25 19:43:00,699 - parameter_server.py[line:117] - INFO: client_26 selected
+2019-12-25 19:43:00,724 - parameter_server.py[line:117] - INFO: client_25 selected
+2019-12-25 19:43:00,749 - parameter_server.py[line:117] - INFO: client_12 selected
+2019-12-25 19:43:00,777 - parameter_server.py[line:117] - INFO: client_38 selected
+2019-12-25 19:43:00,818 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:00] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:01,374 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:01] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:01,395 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:01] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:01,430 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:01] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:01,470 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:01] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:01,480 - parameter_server.py[line:108] - INFO: communication round 7:accuracy=0.8287000060081482
+2019-12-25 19:43:01,480 - parameter_server.py[line:117] - INFO: client_2 selected
+2019-12-25 19:43:01,502 - parameter_server.py[line:117] - INFO: client_40 selected
+2019-12-25 19:43:01,518 - parameter_server.py[line:117] - INFO: client_27 selected
+2019-12-25 19:43:01,535 - parameter_server.py[line:117] - INFO: client_20 selected
+2019-12-25 19:43:01,564 - parameter_server.py[line:117] - INFO: client_28 selected
+2019-12-25 19:43:01,598 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:01] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:01,615 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:01] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:01,679 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:01] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:02,061 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:02] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:02,081 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:02] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:02,091 - parameter_server.py[line:108] - INFO: communication round 8:accuracy=0.8327000141143799
+2019-12-25 19:43:02,092 - parameter_server.py[line:117] - INFO: client_36 selected
+2019-12-25 19:43:02,114 - parameter_server.py[line:117] - INFO: client_22 selected
+2019-12-25 19:43:02,139 - parameter_server.py[line:117] - INFO: client_0 selected
+2019-12-25 19:43:02,165 - parameter_server.py[line:117] - INFO: client_26 selected
+2019-12-25 19:43:02,189 - parameter_server.py[line:117] - INFO: client_5 selected
+2019-12-25 19:43:02,214 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:02] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:02,245 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:02] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:02,274 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:02] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:02,654 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:02] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:02,728 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:02] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:02,738 - parameter_server.py[line:108] - INFO: communication round 9:accuracy=0.838100016117096
+2019-12-25 19:43:02,739 - parameter_server.py[line:117] - INFO: client_41 selected
+2019-12-25 19:43:02,756 - parameter_server.py[line:117] - INFO: client_29 selected
+2019-12-25 19:43:02,775 - parameter_server.py[line:117] - INFO: client_44 selected
+2019-12-25 19:43:02,804 - parameter_server.py[line:117] - INFO: client_32 selected
+2019-12-25 19:43:02,823 - parameter_server.py[line:117] - INFO: client_48 selected
+2019-12-25 19:43:02,964 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:02] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:03,469 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:03] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:03,520 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:03] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:03,541 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:03] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:03,552 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:03] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:03,562 - parameter_server.py[line:108] - INFO: communication round 10:accuracy=0.8357999920845032
+2019-12-25 19:43:03,563 - parameter_server.py[line:117] - INFO: client_43 selected
+2019-12-25 19:43:03,589 - parameter_server.py[line:117] - INFO: client_48 selected
+2019-12-25 19:43:03,617 - parameter_server.py[line:117] - INFO: client_44 selected
+2019-12-25 19:43:03,636 - parameter_server.py[line:117] - INFO: client_6 selected
+2019-12-25 19:43:03,662 - parameter_server.py[line:117] - INFO: client_40 selected
+2019-12-25 19:43:03,725 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:03] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:03,748 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:03] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:03,768 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:03] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:03,789 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:03] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:04,049 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:04] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:04,059 - parameter_server.py[line:108] - INFO: communication round 11:accuracy=0.8522999882698059
+2019-12-25 19:43:04,059 - parameter_server.py[line:117] - INFO: client_2 selected
+2019-12-25 19:43:04,083 - parameter_server.py[line:117] - INFO: client_28 selected
+2019-12-25 19:43:04,100 - parameter_server.py[line:117] - INFO: client_46 selected
+2019-12-25 19:43:04,126 - parameter_server.py[line:117] - INFO: client_42 selected
+2019-12-25 19:43:04,161 - parameter_server.py[line:117] - INFO: client_7 selected
+2019-12-25 19:43:04,173 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:04] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:04,195 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:04] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:04,215 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:04] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:04,253 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:04] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:04,596 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:04] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:04,606 - parameter_server.py[line:108] - INFO: communication round 12:accuracy=0.8626999855041504
+2019-12-25 19:43:04,606 - parameter_server.py[line:117] - INFO: client_24 selected
+2019-12-25 19:43:04,633 - parameter_server.py[line:117] - INFO: client_20 selected
+2019-12-25 19:43:04,658 - parameter_server.py[line:117] - INFO: client_33 selected
+2019-12-25 19:43:04,677 - parameter_server.py[line:117] - INFO: client_36 selected
+2019-12-25 19:43:04,694 - parameter_server.py[line:117] - INFO: client_37 selected
+2019-12-25 19:43:04,728 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:04] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:04,768 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:04] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:04,788 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:04] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,138 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,207 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,218 - parameter_server.py[line:108] - INFO: communication round 13:accuracy=0.8666999936103821
+2019-12-25 19:43:05,219 - parameter_server.py[line:117] - INFO: client_41 selected
+2019-12-25 19:43:05,242 - parameter_server.py[line:117] - INFO: client_49 selected
+2019-12-25 19:43:05,261 - parameter_server.py[line:117] - INFO: client_7 selected
+2019-12-25 19:43:05,279 - parameter_server.py[line:117] - INFO: client_43 selected
+2019-12-25 19:43:05,295 - parameter_server.py[line:117] - INFO: client_28 selected
+2019-12-25 19:43:05,347 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,366 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,389 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,406 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,425 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,435 - parameter_server.py[line:108] - INFO: communication round 14:accuracy=0.8646000027656555
+2019-12-25 19:43:05,436 - parameter_server.py[line:117] - INFO: client_2 selected
+2019-12-25 19:43:05,462 - parameter_server.py[line:117] - INFO: client_29 selected
+2019-12-25 19:43:05,477 - parameter_server.py[line:117] - INFO: client_41 selected
+2019-12-25 19:43:05,498 - parameter_server.py[line:117] - INFO: client_1 selected
+2019-12-25 19:43:05,514 - parameter_server.py[line:117] - INFO: client_40 selected
+2019-12-25 19:43:05,556 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,585 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,607 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,618 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,638 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,648 - parameter_server.py[line:108] - INFO: communication round 15:accuracy=0.8708000183105469
+2019-12-25 19:43:05,649 - parameter_server.py[line:117] - INFO: client_47 selected
+2019-12-25 19:43:05,673 - parameter_server.py[line:117] - INFO: client_25 selected
+2019-12-25 19:43:05,690 - parameter_server.py[line:117] - INFO: client_20 selected
+2019-12-25 19:43:05,715 - parameter_server.py[line:117] - INFO: client_14 selected
+2019-12-25 19:43:05,742 - parameter_server.py[line:117] - INFO: client_16 selected
+2019-12-25 19:43:05,783 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,813 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,860 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:06,172 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:06] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:06,241 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:06] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:06,253 - parameter_server.py[line:108] - INFO: communication round 16:accuracy=0.8723999857902527
+2019-12-25 19:43:06,253 - parameter_server.py[line:117] - INFO: client_45 selected
+2019-12-25 19:43:06,280 - parameter_server.py[line:117] - INFO: client_13 selected
+2019-12-25 19:43:06,304 - parameter_server.py[line:117] - INFO: client_14 selected
+2019-12-25 19:43:06,330 - parameter_server.py[line:117] - INFO: client_33 selected
+2019-12-25 19:43:06,346 - parameter_server.py[line:117] - INFO: client_25 selected
+2019-12-25 19:43:06,372 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:06] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:06,420 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:06] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:06,438 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:06] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:06,460 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:06] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:06,761 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:06] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:06,772 - parameter_server.py[line:108] - INFO: communication round 17:accuracy=0.8741999864578247
+2019-12-25 19:43:06,773 - parameter_server.py[line:117] - INFO: client_25 selected
+2019-12-25 19:43:06,797 - parameter_server.py[line:117] - INFO: client_9 selected
+2019-12-25 19:43:06,817 - parameter_server.py[line:117] - INFO: client_40 selected
+2019-12-25 19:43:06,844 - parameter_server.py[line:117] - INFO: client_1 selected
+2019-12-25 19:43:06,868 - parameter_server.py[line:117] - INFO: client_47 selected
+2019-12-25 19:43:06,870 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:06] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:06,926 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:06] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:06,948 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:06] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:06,972 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:06] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,274 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,285 - parameter_server.py[line:108] - INFO: communication round 18:accuracy=0.8788999915122986
+2019-12-25 19:43:07,285 - parameter_server.py[line:117] - INFO: client_45 selected
+2019-12-25 19:43:07,311 - parameter_server.py[line:117] - INFO: client_44 selected
+2019-12-25 19:43:07,335 - parameter_server.py[line:117] - INFO: client_11 selected
+2019-12-25 19:43:07,363 - parameter_server.py[line:117] - INFO: client_41 selected
+2019-12-25 19:43:07,397 - parameter_server.py[line:117] - INFO: client_46 selected
+2019-12-25 19:43:07,413 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,439 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,462 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,480 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,525 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,536 - parameter_server.py[line:108] - INFO: communication round 19:accuracy=0.8848000168800354
+2019-12-25 19:43:07,537 - parameter_server.py[line:117] - INFO: client_11 selected
+2019-12-25 19:43:07,559 - parameter_server.py[line:117] - INFO: client_22 selected
+2019-12-25 19:43:07,585 - parameter_server.py[line:117] - INFO: client_33 selected
+2019-12-25 19:43:07,608 - parameter_server.py[line:117] - INFO: client_49 selected
+2019-12-25 19:43:07,637 - parameter_server.py[line:117] - INFO: client_45 selected
+2019-12-25 19:43:07,662 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,680 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,701 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,725 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,742 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,753 - parameter_server.py[line:108] - INFO: communication round 20:accuracy=0.8766000270843506
+2019-12-25 19:43:07,754 - parameter_server.py[line:117] - INFO: client_9 selected
+2019-12-25 19:43:07,777 - parameter_server.py[line:117] - INFO: client_4 selected
+2019-12-25 19:43:07,803 - parameter_server.py[line:117] - INFO: client_13 selected
+2019-12-25 19:43:07,826 - parameter_server.py[line:117] - INFO: client_20 selected
+2019-12-25 19:43:07,851 - parameter_server.py[line:117] - INFO: client_7 selected
+2019-12-25 19:43:07,875 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,896 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,929 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,954 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,972 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:07] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:07,982 - parameter_server.py[line:108] - INFO: communication round 21:accuracy=0.8805999755859375
+2019-12-25 19:43:07,983 - parameter_server.py[line:117] - INFO: client_48 selected
+2019-12-25 19:43:08,009 - parameter_server.py[line:117] - INFO: client_0 selected
+2019-12-25 19:43:08,024 - parameter_server.py[line:117] - INFO: client_28 selected
+2019-12-25 19:43:08,048 - parameter_server.py[line:117] - INFO: client_34 selected
+2019-12-25 19:43:08,069 - parameter_server.py[line:117] - INFO: client_4 selected
+2019-12-25 19:43:08,114 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,137 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,157 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,175 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,526 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,536 - parameter_server.py[line:108] - INFO: communication round 22:accuracy=0.8841000199317932
+2019-12-25 19:43:08,537 - parameter_server.py[line:117] - INFO: client_17 selected
+2019-12-25 19:43:08,562 - parameter_server.py[line:117] - INFO: client_7 selected
+2019-12-25 19:43:08,587 - parameter_server.py[line:117] - INFO: client_33 selected
+2019-12-25 19:43:08,601 - parameter_server.py[line:117] - INFO: client_40 selected
+2019-12-25 19:43:08,619 - parameter_server.py[line:117] - INFO: client_5 selected
+2019-12-25 19:43:08,655 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,683 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,707 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,727 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,745 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,756 - parameter_server.py[line:108] - INFO: communication round 23:accuracy=0.8866000175476074
+2019-12-25 19:43:08,757 - parameter_server.py[line:117] - INFO: client_33 selected
+2019-12-25 19:43:08,781 - parameter_server.py[line:117] - INFO: client_11 selected
+2019-12-25 19:43:08,799 - parameter_server.py[line:117] - INFO: client_15 selected
+2019-12-25 19:43:08,818 - parameter_server.py[line:117] - INFO: client_25 selected
+2019-12-25 19:43:08,844 - parameter_server.py[line:117] - INFO: client_31 selected
+2019-12-25 19:43:08,871 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,891 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,915 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,936 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,966 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:08] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:08,976 - parameter_server.py[line:108] - INFO: communication round 24:accuracy=0.88919997215271
+2019-12-25 19:43:08,976 - parameter_server.py[line:117] - INFO: client_7 selected
+2019-12-25 19:43:09,001 - parameter_server.py[line:117] - INFO: client_35 selected
+2019-12-25 19:43:09,026 - parameter_server.py[line:117] - INFO: client_48 selected
+2019-12-25 19:43:09,051 - parameter_server.py[line:117] - INFO: client_39 selected
+2019-12-25 19:43:09,080 - parameter_server.py[line:117] - INFO: client_32 selected
+2019-12-25 19:43:09,086 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:09] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:09,138 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:09] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:09,192 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:09] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:09,564 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:09] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:09,601 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:09] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:09,611 - parameter_server.py[line:108] - INFO: communication round 25:accuracy=0.8930000066757202
+2019-12-25 19:43:09,612 - parameter_server.py[line:117] - INFO: client_19 selected
+2019-12-25 19:43:09,630 - parameter_server.py[line:117] - INFO: client_28 selected
+2019-12-25 19:43:09,645 - parameter_server.py[line:117] - INFO: client_35 selected
+2019-12-25 19:43:09,662 - parameter_server.py[line:117] - INFO: client_9 selected
+2019-12-25 19:43:09,687 - parameter_server.py[line:117] - INFO: client_39 selected
+2019-12-25 19:43:09,723 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:09] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:09,745 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:09] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:09,768 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:09] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:09,789 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:09] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:09,809 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:09] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:09,820 - parameter_server.py[line:108] - INFO: communication round 26:accuracy=0.8919000029563904
+2019-12-25 19:43:09,820 - parameter_server.py[line:117] - INFO: client_27 selected
+2019-12-25 19:43:09,843 - parameter_server.py[line:117] - INFO: client_2 selected
+2019-12-25 19:43:09,868 - parameter_server.py[line:117] - INFO: client_12 selected
+2019-12-25 19:43:09,891 - parameter_server.py[line:117] - INFO: client_22 selected
+2019-12-25 19:43:09,907 - parameter_server.py[line:117] - INFO: client_17 selected
+2019-12-25 19:43:09,935 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:09] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:09,973 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:09] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,000 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,019 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,039 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,050 - parameter_server.py[line:108] - INFO: communication round 27:accuracy=0.894599974155426
+2019-12-25 19:43:10,051 - parameter_server.py[line:117] - INFO: client_36 selected
+2019-12-25 19:43:10,072 - parameter_server.py[line:117] - INFO: client_0 selected
+2019-12-25 19:43:10,086 - parameter_server.py[line:117] - INFO: client_5 selected
+2019-12-25 19:43:10,112 - parameter_server.py[line:117] - INFO: client_2 selected
+2019-12-25 19:43:10,131 - parameter_server.py[line:117] - INFO: client_25 selected
+2019-12-25 19:43:10,150 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,183 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,224 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,242 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,258 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,269 - parameter_server.py[line:108] - INFO: communication round 28:accuracy=0.8944000005722046
+2019-12-25 19:43:10,269 - parameter_server.py[line:117] - INFO: client_27 selected
+2019-12-25 19:43:10,287 - parameter_server.py[line:117] - INFO: client_2 selected
+2019-12-25 19:43:10,302 - parameter_server.py[line:117] - INFO: client_7 selected
+2019-12-25 19:43:10,323 - parameter_server.py[line:117] - INFO: client_22 selected
+2019-12-25 19:43:10,351 - parameter_server.py[line:117] - INFO: client_12 selected
+2019-12-25 19:43:10,384 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,404 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,423 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,452 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,472 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,483 - parameter_server.py[line:108] - INFO: communication round 29:accuracy=0.8956000208854675
+2019-12-25 19:43:10,484 - parameter_server.py[line:117] - INFO: client_15 selected
+2019-12-25 19:43:10,505 - parameter_server.py[line:117] - INFO: client_20 selected
+2019-12-25 19:43:10,522 - parameter_server.py[line:117] - INFO: client_28 selected
+2019-12-25 19:43:10,550 - parameter_server.py[line:117] - INFO: client_40 selected
+2019-12-25 19:43:10,576 - parameter_server.py[line:117] - INFO: client_1 selected
+2019-12-25 19:43:10,604 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,617 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,651 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,673 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,692 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,703 - parameter_server.py[line:108] - INFO: communication round 30:accuracy=0.896399974822998
+2019-12-25 19:43:10,704 - parameter_server.py[line:117] - INFO: client_41 selected
+2019-12-25 19:43:10,724 - parameter_server.py[line:117] - INFO: client_18 selected
+2019-12-25 19:43:10,744 - parameter_server.py[line:117] - INFO: client_43 selected
+2019-12-25 19:43:10,767 - parameter_server.py[line:117] - INFO: client_17 selected
+2019-12-25 19:43:10,796 - parameter_server.py[line:117] - INFO: client_23 selected
+2019-12-25 19:43:10,813 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,851 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,882 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,907 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:11,197 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:11] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:11,208 - parameter_server.py[line:108] - INFO: communication round 31:accuracy=0.8932999968528748
+2019-12-25 19:43:11,209 - parameter_server.py[line:117] - INFO: client_7 selected
+2019-12-25 19:43:11,224 - parameter_server.py[line:117] - INFO: client_11 selected
+2019-12-25 19:43:11,250 - parameter_server.py[line:117] - INFO: client_3 selected
+2019-12-25 19:43:11,273 - parameter_server.py[line:117] - INFO: client_20 selected
+2019-12-25 19:43:11,296 - parameter_server.py[line:117] - INFO: client_16 selected
+2019-12-25 19:43:11,321 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:11] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:11,352 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:11] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:11,388 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:11] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:11,412 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:11] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:11,720 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:11] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:11,731 - parameter_server.py[line:108] - INFO: communication round 32:accuracy=0.8998000025749207
+2019-12-25 19:43:11,732 - parameter_server.py[line:117] - INFO: client_0 selected
+2019-12-25 19:43:11,757 - parameter_server.py[line:117] - INFO: client_26 selected
+2019-12-25 19:43:11,782 - parameter_server.py[line:117] - INFO: client_34 selected
+2019-12-25 19:43:11,806 - parameter_server.py[line:117] - INFO: client_36 selected
+2019-12-25 19:43:11,829 - parameter_server.py[line:117] - INFO: client_8 selected
+2019-12-25 19:43:11,845 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:11] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:11,880 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:11] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:11,899 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:11] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:11,921 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:11] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,320 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,331 - parameter_server.py[line:108] - INFO: communication round 33:accuracy=0.8962000012397766
+2019-12-25 19:43:12,331 - parameter_server.py[line:117] - INFO: client_6 selected
+2019-12-25 19:43:12,356 - parameter_server.py[line:117] - INFO: client_42 selected
+2019-12-25 19:43:12,382 - parameter_server.py[line:117] - INFO: client_19 selected
+2019-12-25 19:43:12,406 - parameter_server.py[line:117] - INFO: client_39 selected
+2019-12-25 19:43:12,431 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,434 - parameter_server.py[line:117] - INFO: client_22 selected
+2019-12-25 19:43:12,465 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,489 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,504 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,533 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,544 - parameter_server.py[line:108] - INFO: communication round 34:accuracy=0.9021999835968018
+2019-12-25 19:43:12,544 - parameter_server.py[line:117] - INFO: client_15 selected
+2019-12-25 19:43:12,569 - parameter_server.py[line:117] - INFO: client_42 selected
+2019-12-25 19:43:12,595 - parameter_server.py[line:117] - INFO: client_25 selected
+2019-12-25 19:43:12,620 - parameter_server.py[line:117] - INFO: client_27 selected
+2019-12-25 19:43:12,644 - parameter_server.py[line:117] - INFO: client_14 selected
+2019-12-25 19:43:12,651 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,692 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,724 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,746 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,764 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,775 - parameter_server.py[line:108] - INFO: communication round 35:accuracy=0.9041000008583069
+2019-12-25 19:43:12,776 - parameter_server.py[line:117] - INFO: client_0 selected
+2019-12-25 19:43:12,796 - parameter_server.py[line:117] - INFO: client_33 selected
+2019-12-25 19:43:12,822 - parameter_server.py[line:117] - INFO: client_31 selected
+2019-12-25 19:43:12,838 - parameter_server.py[line:117] - INFO: client_4 selected
+2019-12-25 19:43:12,861 - parameter_server.py[line:117] - INFO: client_36 selected
+2019-12-25 19:43:12,885 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,915 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,947 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,962 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,988 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:12] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:12,998 - parameter_server.py[line:108] - INFO: communication round 36:accuracy=0.9024999737739563
+2019-12-25 19:43:12,998 - parameter_server.py[line:117] - INFO: client_28 selected
+2019-12-25 19:43:13,012 - parameter_server.py[line:117] - INFO: client_2 selected
+2019-12-25 19:43:13,028 - parameter_server.py[line:117] - INFO: client_41 selected
+2019-12-25 19:43:13,044 - parameter_server.py[line:117] - INFO: client_42 selected
+2019-12-25 19:43:13,071 - parameter_server.py[line:117] - INFO: client_11 selected
+2019-12-25 19:43:13,100 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,119 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,149 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,161 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,177 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,188 - parameter_server.py[line:108] - INFO: communication round 37:accuracy=0.9045000076293945
+2019-12-25 19:43:13,189 - parameter_server.py[line:117] - INFO: client_27 selected
+2019-12-25 19:43:13,215 - parameter_server.py[line:117] - INFO: client_31 selected
+2019-12-25 19:43:13,239 - parameter_server.py[line:117] - INFO: client_5 selected
+2019-12-25 19:43:13,256 - parameter_server.py[line:117] - INFO: client_48 selected
+2019-12-25 19:43:13,281 - parameter_server.py[line:117] - INFO: client_34 selected
+2019-12-25 19:43:13,306 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,331 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,351 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,390 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,412 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,423 - parameter_server.py[line:108] - INFO: communication round 38:accuracy=0.9010000228881836
+2019-12-25 19:43:13,424 - parameter_server.py[line:117] - INFO: client_6 selected
+2019-12-25 19:43:13,445 - parameter_server.py[line:117] - INFO: client_33 selected
+2019-12-25 19:43:13,471 - parameter_server.py[line:117] - INFO: client_27 selected
+2019-12-25 19:43:13,494 - parameter_server.py[line:117] - INFO: client_41 selected
+2019-12-25 19:43:13,512 - parameter_server.py[line:117] - INFO: client_31 selected
+2019-12-25 19:43:13,541 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,578 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,598 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,621 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,641 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,651 - parameter_server.py[line:108] - INFO: communication round 39:accuracy=0.8974000215530396
+2019-12-25 19:43:13,651 - parameter_server.py[line:117] - INFO: client_27 selected
+2019-12-25 19:43:13,674 - parameter_server.py[line:117] - INFO: client_42 selected
+2019-12-25 19:43:13,699 - parameter_server.py[line:117] - INFO: client_2 selected
+2019-12-25 19:43:13,726 - parameter_server.py[line:117] - INFO: client_5 selected
+2019-12-25 19:43:13,753 - parameter_server.py[line:117] - INFO: client_44 selected
+2019-12-25 19:43:13,769 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,793 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,812 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,845 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,863 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,874 - parameter_server.py[line:108] - INFO: communication round 40:accuracy=0.902999997138977
+2019-12-25 19:43:13,875 - parameter_server.py[line:117] - INFO: client_24 selected
+2019-12-25 19:43:13,895 - parameter_server.py[line:117] - INFO: client_39 selected
+2019-12-25 19:43:13,921 - parameter_server.py[line:117] - INFO: client_18 selected
+2019-12-25 19:43:13,938 - parameter_server.py[line:117] - INFO: client_1 selected
+2019-12-25 19:43:13,957 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,962 - parameter_server.py[line:117] - INFO: client_37 selected
+2019-12-25 19:43:13,987 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:14,022 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:14] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:14,036 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:14] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -
+2019-12-25 19:43:14,055 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:14] "[37mPOST /combine_weight HTTP/1.1[0m" 200 -

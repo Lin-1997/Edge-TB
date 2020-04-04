@@ -1,0 +1,133 @@
+2019-12-25 20:28:43,397 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/deprecation.py[line:323] - WARNING: From client.py:79: DatasetV1.make_one_shot_iterator (from tensorflow.python.data.ops.dataset_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use `for ... in dataset:` to iterate over a dataset. If using `tf.estimator`, return the `Dataset` object directly from your input function. As a last resort, you can use `tf.compat.v1.data.make_one_shot_iterator(dataset)`.
+2019-12-25 20:28:43,825 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:84: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+2019-12-25 20:28:43,826 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:89: The name tf.random_normal is deprecated. Please use tf.random.normal instead.
+
+2019-12-25 20:28:43,868 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:91: The name tf.assign is deprecated. Please use tf.compat.v1.assign instead.
+
+2019-12-25 20:28:44,101 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:107: The name tf.log is deprecated. Please use tf.math.log instead.
+
+2019-12-25 20:28:44,137 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:109: The name tf.train.GradientDescentOptimizer is deprecated. Please use tf.compat.v1.train.GradientDescentOptimizer instead.
+
+2019-12-25 20:28:44,639 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:114: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+2019-12-25 20:28:44,639 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:116: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+2019-12-25 20:28:53,963 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:117: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+2019-12-25 20:28:56,103 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO:  * Running on http://127.0.0.1:10007/ (Press CTRL+C to quit)
+2019-12-25 20:29:19,071 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:19] "[37mPOST /start_training HTTP/1.1[0m" 200 -
+2019-12-25 20:29:23,671 - client.py[line:153] - INFO: client 17 epoch 0:loss=6.957472324371338
+2019-12-25 20:29:23,854 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:23] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:24,062 - client.py[line:154] - INFO: client 17 epoch 0:accuracy=0.4099000096321106
+2019-12-25 20:29:26,988 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:26] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:27,357 - client.py[line:153] - INFO: client 17 epoch 1:loss=1.5117464065551758
+2019-12-25 20:29:27,377 - client.py[line:154] - INFO: client 17 epoch 1:accuracy=0.6439999938011169
+2019-12-25 20:29:27,978 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:27] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:28,126 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:28] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:28,200 - client.py[line:153] - INFO: client 17 epoch 2:loss=2.4931704998016357
+2019-12-25 20:29:28,212 - client.py[line:154] - INFO: client 17 epoch 2:accuracy=0.6107000112533569
+2019-12-25 20:29:28,760 - client.py[line:153] - INFO: client 17 epoch 3:loss=1.0760778188705444
+2019-12-25 20:29:28,797 - client.py[line:154] - INFO: client 17 epoch 3:accuracy=0.77920001745224
+2019-12-25 20:29:28,820 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:28] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:29,331 - client.py[line:153] - INFO: client 17 epoch 4:loss=0.8222624063491821
+2019-12-25 20:29:29,350 - client.py[line:154] - INFO: client 17 epoch 4:accuracy=0.7924000024795532
+2019-12-25 20:29:29,711 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:29] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:29,784 - client.py[line:153] - INFO: client 17 epoch 5:loss=0.479627788066864
+2019-12-25 20:29:29,795 - client.py[line:154] - INFO: client 17 epoch 5:accuracy=0.8364999890327454
+2019-12-25 20:29:30,329 - client.py[line:153] - INFO: client 17 epoch 6:loss=0.851279616355896
+2019-12-25 20:29:30,339 - client.py[line:154] - INFO: client 17 epoch 6:accuracy=0.7784000039100647
+2019-12-25 20:29:30,857 - client.py[line:153] - INFO: client 17 epoch 7:loss=0.522257924079895
+2019-12-25 20:29:30,868 - client.py[line:154] - INFO: client 17 epoch 7:accuracy=0.8424999713897705
+2019-12-25 20:29:31,251 - client.py[line:153] - INFO: client 17 epoch 8:loss=0.2648106813430786
+2019-12-25 20:29:31,259 - client.py[line:154] - INFO: client 17 epoch 8:accuracy=0.8809999823570251
+2019-12-25 20:29:31,781 - client.py[line:153] - INFO: client 17 epoch 9:loss=0.3154958486557007
+2019-12-25 20:29:31,812 - client.py[line:154] - INFO: client 17 epoch 9:accuracy=0.8865000009536743
+2019-12-25 20:29:31,923 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:31] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:32,212 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:32] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:32,356 - client.py[line:153] - INFO: client 17 epoch 10:loss=0.428528368473053
+2019-12-25 20:29:32,365 - client.py[line:154] - INFO: client 17 epoch 10:accuracy=0.8062000274658203
+2019-12-25 20:29:32,407 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:32] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:32,495 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:32] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:32,811 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:32] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:32,936 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:32] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:33,056 - client.py[line:153] - INFO: client 17 epoch 11:loss=0.40258434414863586
+2019-12-25 20:29:33,089 - client.py[line:154] - INFO: client 17 epoch 11:accuracy=0.824400007724762
+2019-12-25 20:29:33,078 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:33] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:33,580 - client.py[line:153] - INFO: client 17 epoch 12:loss=0.7726352214813232
+2019-12-25 20:29:33,601 - client.py[line:154] - INFO: client 17 epoch 12:accuracy=0.8424999713897705
+2019-12-25 20:29:33,966 - client.py[line:153] - INFO: client 17 epoch 13:loss=0.23982807993888855
+2019-12-25 20:29:33,987 - client.py[line:154] - INFO: client 17 epoch 13:accuracy=0.8500000238418579
+2019-12-25 20:29:34,105 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:34] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:34,455 - client.py[line:153] - INFO: client 17 epoch 14:loss=0.4743291139602661
+2019-12-25 20:29:34,472 - client.py[line:154] - INFO: client 17 epoch 14:accuracy=0.8640000224113464
+2019-12-25 20:29:35,008 - client.py[line:153] - INFO: client 17 epoch 15:loss=0.33740416169166565
+2019-12-25 20:29:35,021 - client.py[line:154] - INFO: client 17 epoch 15:accuracy=0.8938999772071838
+2019-12-25 20:29:35,392 - client.py[line:153] - INFO: client 17 epoch 16:loss=0.31145045161247253
+2019-12-25 20:29:35,415 - client.py[line:154] - INFO: client 17 epoch 16:accuracy=0.8787000179290771
+2019-12-25 20:29:35,748 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:35] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:35,864 - client.py[line:153] - INFO: client 17 epoch 17:loss=0.35735583305358887
+2019-12-25 20:29:35,880 - client.py[line:154] - INFO: client 17 epoch 17:accuracy=0.8837000131607056
+2019-12-25 20:29:36,064 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:36] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:36,625 - client.py[line:153] - INFO: client 17 epoch 18:loss=0.3941921293735504
+2019-12-25 20:29:36,631 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:36] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:36,637 - client.py[line:154] - INFO: client 17 epoch 18:accuracy=0.8939999938011169
+2019-12-25 20:29:36,673 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:36] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:36,684 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:36] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:36,899 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:36] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:37,062 - client.py[line:153] - INFO: client 17 epoch 19:loss=0.33045831322669983
+2019-12-25 20:29:37,070 - client.py[line:154] - INFO: client 17 epoch 19:accuracy=0.8743000030517578
+2019-12-25 20:29:37,326 - client.py[line:153] - INFO: client 17 epoch 20:loss=0.23138147592544556
+2019-12-25 20:29:37,337 - client.py[line:154] - INFO: client 17 epoch 20:accuracy=0.8646000027656555
+2019-12-25 20:29:37,762 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:37] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:37,836 - client.py[line:153] - INFO: client 17 epoch 21:loss=0.4222259521484375
+2019-12-25 20:29:37,861 - client.py[line:154] - INFO: client 17 epoch 21:accuracy=0.9004999995231628
+2019-12-25 20:29:38,497 - client.py[line:153] - INFO: client 17 epoch 22:loss=0.26094067096710205
+2019-12-25 20:29:38,515 - client.py[line:154] - INFO: client 17 epoch 22:accuracy=0.9009000062942505
+2019-12-25 20:29:38,944 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:38] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:39,092 - client.py[line:153] - INFO: client 17 epoch 23:loss=0.16498510539531708
+2019-12-25 20:29:39,102 - client.py[line:154] - INFO: client 17 epoch 23:accuracy=0.8920000195503235
+2019-12-25 20:29:39,493 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:39] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:39,674 - client.py[line:153] - INFO: client 17 epoch 24:loss=0.16518157720565796
+2019-12-25 20:29:39,689 - client.py[line:154] - INFO: client 17 epoch 24:accuracy=0.9110000133514404
+2019-12-25 20:29:39,973 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:39] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:40,136 - client.py[line:153] - INFO: client 17 epoch 25:loss=0.20068961381912231
+2019-12-25 20:29:40,149 - client.py[line:154] - INFO: client 17 epoch 25:accuracy=0.9068999886512756
+2019-12-25 20:29:40,622 - client.py[line:153] - INFO: client 17 epoch 26:loss=0.3010441064834595
+2019-12-25 20:29:40,637 - client.py[line:154] - INFO: client 17 epoch 26:accuracy=0.9072999954223633
+2019-12-25 20:29:40,885 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:40] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:41,061 - client.py[line:153] - INFO: client 17 epoch 27:loss=0.2790180742740631
+2019-12-25 20:29:41,071 - client.py[line:154] - INFO: client 17 epoch 27:accuracy=0.8939999938011169
+2019-12-25 20:29:41,533 - client.py[line:153] - INFO: client 17 epoch 28:loss=0.12129579484462738
+2019-12-25 20:29:41,541 - client.py[line:154] - INFO: client 17 epoch 28:accuracy=0.9101999998092651
+2019-12-25 20:29:42,126 - client.py[line:153] - INFO: client 17 epoch 29:loss=0.41583162546157837
+2019-12-25 20:29:42,144 - client.py[line:154] - INFO: client 17 epoch 29:accuracy=0.9161999821662903
+2019-12-25 20:29:42,498 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:42] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:42,847 - client.py[line:153] - INFO: client 17 epoch 30:loss=0.11984223127365112
+2019-12-25 20:29:42,873 - client.py[line:154] - INFO: client 17 epoch 30:accuracy=0.9014999866485596
+2019-12-25 20:29:43,057 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:43] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:43,270 - client.py[line:153] - INFO: client 17 epoch 31:loss=0.29201382398605347
+2019-12-25 20:29:43,277 - client.py[line:154] - INFO: client 17 epoch 31:accuracy=0.9108999967575073
+2019-12-25 20:29:43,281 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:43] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:43,774 - client.py[line:153] - INFO: client 17 epoch 32:loss=0.3054426908493042
+2019-12-25 20:29:43,785 - client.py[line:154] - INFO: client 17 epoch 32:accuracy=0.9193000197410583
+2019-12-25 20:29:44,330 - client.py[line:153] - INFO: client 17 epoch 33:loss=0.08934152871370316
+2019-12-25 20:29:44,343 - client.py[line:154] - INFO: client 17 epoch 33:accuracy=0.9133999943733215
+2019-12-25 20:29:45,023 - client.py[line:153] - INFO: client 17 epoch 34:loss=0.06661218404769897
+2019-12-25 20:29:45,039 - client.py[line:154] - INFO: client 17 epoch 34:accuracy=0.914900004863739
+2019-12-25 20:29:45,448 - client.py[line:153] - INFO: client 17 epoch 35:loss=0.11493274569511414
+2019-12-25 20:29:45,462 - client.py[line:154] - INFO: client 17 epoch 35:accuracy=0.9111999869346619
+2019-12-25 20:29:45,653 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:45] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:46,079 - client.py[line:153] - INFO: client 17 epoch 36:loss=0.20002581179141998
+2019-12-25 20:29:46,097 - client.py[line:154] - INFO: client 17 epoch 36:accuracy=0.9139000177383423
+2019-12-25 20:29:46,173 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:46] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:46,398 - client.py[line:153] - INFO: client 17 epoch 37:loss=0.6283264756202698
+2019-12-25 20:29:46,408 - client.py[line:154] - INFO: client 17 epoch 37:accuracy=0.8885999917984009
+2019-12-25 20:29:46,639 - client.py[line:153] - INFO: client 17 epoch 38:loss=0.15389806032180786
+2019-12-25 20:29:46,656 - client.py[line:154] - INFO: client 17 epoch 38:accuracy=0.9243999719619751
+2019-12-25 20:29:46,829 - client.py[line:153] - INFO: client 17 epoch 39:loss=0.22694724798202515
+2019-12-25 20:29:46,841 - client.py[line:154] - INFO: client 17 epoch 39:accuracy=0.9169999957084656
+2019-12-25 20:29:47,069 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:47] "[37mPOST /receive_model HTTP/1.1[0m" 200 -
+2019-12-25 20:29:47,342 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 20:29:47] "[37mPOST /receive_model HTTP/1.1[0m" 200 -

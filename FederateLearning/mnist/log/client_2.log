@@ -1,0 +1,38 @@
+2019-12-25 19:41:50,544 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/deprecation.py[line:323] - WARNING: From client.py:70: DatasetV1.make_one_shot_iterator (from tensorflow.python.data.ops.dataset_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use `for ... in dataset:` to iterate over a dataset. If using `tf.estimator`, return the `Dataset` object directly from your input function. As a last resort, you can use `tf.compat.v1.data.make_one_shot_iterator(dataset)`.
+2019-12-25 19:41:51,025 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:73: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+2019-12-25 19:41:51,036 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:78: The name tf.random_normal is deprecated. Please use tf.random.normal instead.
+
+2019-12-25 19:41:51,085 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:80: The name tf.assign is deprecated. Please use tf.compat.v1.assign instead.
+
+2019-12-25 19:41:51,363 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:95: The name tf.log is deprecated. Please use tf.math.log instead.
+
+2019-12-25 19:41:51,374 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:97: The name tf.train.GradientDescentOptimizer is deprecated. Please use tf.compat.v1.train.GradientDescentOptimizer instead.
+
+2019-12-25 19:41:51,506 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:102: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+2019-12-25 19:41:51,509 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:104: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+2019-12-25 19:41:59,896 - /home/se-lab/anaconda3/lib/python3.7/site-packages/tensorflow_core/python/util/module_wrapper.py[line:139] - WARNING: From client.py:105: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+2019-12-25 19:42:01,716 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO:  * Running on http://127.0.0.1:9992/ (Press CTRL+C to quit)
+2019-12-25 19:42:59,129 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:42:59] "[37mPOST /update_weights_then_training HTTP/1.1[0m" 200 -
+2019-12-25 19:42:59,621 - client.py[line:123] - INFO: client 2 epoch 0:loss=1.6370134353637695
+2019-12-25 19:43:01,501 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:01] "[37mPOST /update_weights_then_training HTTP/1.1[0m" 200 -
+2019-12-25 19:43:01,566 - client.py[line:123] - INFO: client 2 epoch 0:loss=1.1366194486618042
+2019-12-25 19:43:04,082 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:04] "[37mPOST /update_weights_then_training HTTP/1.1[0m" 200 -
+2019-12-25 19:43:04,142 - client.py[line:123] - INFO: client 2 epoch 0:loss=0.6611046195030212
+2019-12-25 19:43:05,461 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:05] "[37mPOST /update_weights_then_training HTTP/1.1[0m" 200 -
+2019-12-25 19:43:05,527 - client.py[line:123] - INFO: client 2 epoch 0:loss=0.15173858404159546
+2019-12-25 19:43:09,868 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:09] "[37mPOST /update_weights_then_training HTTP/1.1[0m" 200 -
+2019-12-25 19:43:09,947 - client.py[line:123] - INFO: client 2 epoch 0:loss=1.1243760585784912
+2019-12-25 19:43:10,129 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /update_weights_then_training HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,206 - client.py[line:123] - INFO: client 2 epoch 0:loss=0.4892212152481079
+2019-12-25 19:43:10,301 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:10] "[37mPOST /update_weights_then_training HTTP/1.1[0m" 200 -
+2019-12-25 19:43:10,377 - client.py[line:123] - INFO: client 2 epoch 0:loss=0.28770262002944946
+2019-12-25 19:43:13,027 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /update_weights_then_training HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,087 - client.py[line:123] - INFO: client 2 epoch 0:loss=0.20477502048015594
+2019-12-25 19:43:13,726 - /home/se-lab/anaconda3/lib/python3.7/site-packages/werkzeug/_internal.py[line:122] - INFO: 127.0.0.1 - - [25/Dec/2019 19:43:13] "[37mPOST /update_weights_then_training HTTP/1.1[0m" 200 -
+2019-12-25 19:43:13,792 - client.py[line:123] - INFO: client 2 epoch 0:loss=0.2683437168598175
