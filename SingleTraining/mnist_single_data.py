@@ -20,8 +20,8 @@ data_y_list = []
 start_index = 0
 end_index = each_client_iid_data_num
 for train_data_index in range(end_index - start_index):
-	data_x_list.append(np.load(train_data_dir + "train_images_" + str(start_index + train_data_index) + ".npy"))
-	data_y_list.append(np.load(train_data_dir + "train_labels_" + str(start_index + train_data_index) + ".npy"))
+    data_x_list.append(np.load(train_data_dir + "train_images_" + str(start_index + train_data_index) + ".npy"))
+    data_y_list.append(np.load(train_data_dir + "train_labels_" + str(start_index + train_data_index) + ".npy"))
 data_x = np.concatenate(tuple(data_x_list))
 data_y = np.concatenate(tuple(data_y_list))
 test_x = np.load(test_data_dir + "test_images.npy")
@@ -37,14 +37,14 @@ xs = tf.placeholder(tf.float32, [None, 784])
 ys = tf.placeholder(tf.float32, [None, 10])
 
 def add_layer(inputs, in_size, out_size, activation_function=None,):
-	Weights = tf.Variable(tf.random_normal([in_size, out_size]))
-	biases = tf.Variable(tf.zeros([1, out_size]) + 0.1,)
-	Wx_plus_b = tf.matmul(inputs, Weights) + biases
-	if activation_function is None:
-		outputs = Wx_plus_b
-	else:
-		outputs = activation_function(Wx_plus_b,)
-	return outputs
+    Weights = tf.Variable(tf.random_normal([in_size, out_size]))
+    biases = tf.Variable(tf.zeros([1, out_size]) + 0.1,)
+    Wx_plus_b = tf.matmul(inputs, Weights) + biases
+    if activation_function is None:
+        outputs = Wx_plus_b
+    else:
+        outputs = activation_function(Wx_plus_b,)
+    return outputs
 
 first_layer = add_layer(xs, 784, 200, activation_function=tf.nn.sigmoid)
 second_layer = add_layer(first_layer, 200, 200, activation_function=tf.nn.sigmoid)
@@ -62,8 +62,8 @@ sess = tf.Session(config=config)
 sess.run(tf.global_variables_initializer())
 
 for epoch in range(int(epoch_num)):
-	for iter in range(int(len(data_x) / batch_size)):
-		batch_data = sess.run(batch)
-		loss_val, _ = sess.run([cross_entropy, train_step], feed_dict={xs:batch_data[0], ys:batch_data[1]})
-	print('epoch {}:loss={}'.format(epoch, loss_val))
-	print('epoch {}:accuracy={}'.format(epoch, sess.run(accuracy, feed_dict={xs: test_x, ys: test_y})))
+    for iter in range(int(len(data_x) / batch_size)):
+        batch_data = sess.run(batch)
+        loss_val, _ = sess.run([cross_entropy, train_step], feed_dict={xs:batch_data[0], ys:batch_data[1]})
+    print('epoch {}:loss={}'.format(epoch, loss_val))
+    print('epoch {}:accuracy={}'.format(epoch, sess.run(accuracy, feed_dict={xs: test_x, ys: test_y})))
