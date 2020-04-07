@@ -8,7 +8,7 @@ import io
 from flask import Flask, request
 from concurrent.futures import ThreadPoolExecutor
 
-from log.util import add_layer
+import util
 
 config = tf.ConfigProto ()
 # config.gpu_options.allow_growth = True
@@ -53,6 +53,7 @@ logging.basicConfig (level=logging.INFO,
                      )
 
 this_address = start_port + this_index
+print ("this is client " + str (this_index))
 
 # train_data_dir = "/home/se-lab/Desktop/Data/EdgeAI/mnist/iid/"
 # test_data_dir = "/home/se-lab/Desktop/Data/EdgeAI/mnist/test_data/"
@@ -79,7 +80,7 @@ this_address = start_port + this_index
 data_x = np.array (
 	[-0.99, -0.89, -0.79, -0.69, -0.59, -0.49, -0.39, -0.29, -0.19, -0.09, 0.09, 0.19, 0.29, 0.39, 0.49, 0.59,
 	 0.69, 0.79, 0.89, 0.99]) [:, np.newaxis]
-noise = np.random.normal(0, 0.05, data_x.shape).astype(np.float32)
+noise = np.random.normal (0, 0.05, data_x.shape).astype (np.float32)
 data_y = np.square (data_x) - 0.5 + noise
 
 train_data = tf.data.Dataset.from_tensor_slices ((data_x, data_y))
@@ -94,16 +95,6 @@ ys = tf.placeholder (tf.float32, [None, 1])
 
 weight_assign_op_list = []
 
-# add hidden layer
-l1 = add_layer (weight_assign_op_list, xs, 1, 2, activation_function=tf.nn.relu)
-# add output layer
-prediction = add_layer (weight_assign_op_list, l1, 2, 1, activation_function=None)
-
-# the error between prediction and real data
-# 先叫一下cross_entropy方便下面的代码
-cross_entropy = tf.reduce_mean (tf.reduce_sum (tf.square (ys - prediction), reduction_indices=[1]))
-train_step = tf.train.GradientDescentOptimizer (learning_rate).minimize (cross_entropy)
-
 # def add_layer(inputs, in_size, out_size, activation_function=None):
 # 	Weights = tf.Variable(tf.random_normal([in_size, out_size]))
 # 	weight_holder = tf.placeholder(tf.float32, [in_size, out_size])
@@ -117,6 +108,18 @@ train_step = tf.train.GradientDescentOptimizer (learning_rate).minimize (cross_e
 # 	else:
 # 		outputs = activation_function(Wx_plus_b)
 # 	return outputs
+
+# add hidden layer
+l1 = util.add_layer (weight_assign_op_list, xs, 1, 2, activation_function=tf.nn.relu)
+# l1 = add_layer (xs, 1, 2, activation_function=tf.nn.relu)
+# add output layer
+prediction = util.add_layer (weight_assign_op_list, l1, 2, 1, activation_function=None)
+# prediction = add_layer (l1, 2, 1, activation_function=None)
+
+# the error between prediction and real data
+# 先叫一下cross_entropy方便下面的代码
+cross_entropy = tf.reduce_mean (tf.reduce_sum (tf.square (ys - prediction), reduction_indices=[1]))
+train_step = tf.train.GradientDescentOptimizer (learning_rate).minimize (cross_entropy)
 
 # first_layer = add_layer (weight_assign_op_list, xs, 784, 200, activation_function=tf.nn.sigmoid)
 # second_layer = add_layer (weight_assign_op_list, first_layer, 200, 200, activation_function=tf.nn.sigmoid)
@@ -137,6 +140,7 @@ sess.run (tf.global_variables_initializer ())
 app = Flask (__name__)
 executor = ThreadPoolExecutor (1)
 client_weights = io.BytesIO ()
+
 
 def train (received_central_weights):
 	logging.debug ("before {}".format (sess.run (weights [1])))

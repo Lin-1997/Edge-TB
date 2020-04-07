@@ -4,17 +4,17 @@ import threading
 # client_num = 50
 client_num = 2
 iid_data_num = 100
-fraction_ratio = 0.1
+fraction_ratio = 0.5
 gpu_num = 2
 
 each_client_iid_data_num = int (iid_data_num / client_num)
 client_num_per_gpu = client_num / gpu_num
 
 
-def create_client (gpu_index, index, start_data_idnex, end_data_index):
+def create_client (gpu_index, index, start_data_index, end_data_index):
 	# os.system("CUDA_VISIBLE_DEVICES=" + str(gpu_index) + " python client.py -i " + str(index) + " --start_data_index=" + str(start_data_idnex) + " --end_data_index=" + str(end_data_index))
 	os.system ("python client.py -i " + str (index) + " --start_data_index=" + str (
-		start_data_idnex) + " --end_data_index=" + str (end_data_index))
+		start_data_index) + " --end_data_index=" + str (end_data_index))
 
 
 def create_parameter_server (client_num, fraction_ratio):

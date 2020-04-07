@@ -1,4 +1,4 @@
---util               似乎有些什么add_layer之类的函数可以复用，还有广播参数更新的函数(w, [adresses])
+--util               似乎有些什么add_layer之类的函数可以复用，还有广播参数更新的函数(w, [addresses])
 --nn_load --nn_cifar 各种模型
           --nn_mnst
           --nn-xxxx
