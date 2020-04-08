@@ -1,5 +1,6 @@
-/FederateLearning
-/GossipLearning
-/SingleTraining
-/Test
+#/FederateLearning
+#/GossipLearning
+#/SingleTraining
+#/Test
 /log
+/__pycache__

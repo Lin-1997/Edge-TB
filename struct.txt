@@ -1,10 +1,38 @@
---util               似乎有些什么add_layer之类的函数可以复用，还有广播参数更新的函数(w, [addresses])
---nn_load --nn_cifar 各种模型
-          --nn_mnst
-          --nn-xxxx
---train              如果模型从nn_load读取的话，剩下的训练代码是不是都一样的？？
---router  --Gxx      接收别的G发过来的参数
-          --Wxx      接收聚合节点发回来的参数
-          --Axx      接收Worker发过来的参数
---values             超参数
+--util --似乎有些什么add_layer之类的函数可以复用，还有广播参数更新的函数(w, [addresses])
+--nn_load --nn_a_cifar --各种节点的模型
+                 --nn_w_cifar
+                 --nn_g_cifar
+                 --nn_a_mnist
+                 --nn_w_mnist
+                 --nn_g_mnist
+                 --nn_a_xxxx
+                 --nn_w_xxxx
+                 --nn_g_xx
+--a --聚合节点flask
+--w --训练节点flask
+--g --GL节点flask
+--values_a --聚合节点的参数
+--values_w --训练节点的参数
+--values_g --GL节点的参数
 --start
+
+
+import 似乎自带单例
+其他跨文件的数据全丢到values
+
+数据结构
+nn_test->test_x
+                test_y
+                xs
+                ys
+                assign_list
+                accuracy
+
+nn_train->data_x
+                 data_y
+                 xs
+                 ys
+                 assign_list
+                 loss
+                 accuracy
+                 train
