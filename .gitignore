@@ -2,5 +2,6 @@
 #/GossipLearning
 #/SingleTraining
 #/Test
-/log
-/__pycache__
+**/log/*
+!**/log/.keep
+__pycache__/

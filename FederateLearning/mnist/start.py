@@ -1,29 +1,29 @@
 import os
 import threading
 
-# client_num = 50
-client_num = 2
+# worker_num = 50
+worker_num = 2
 iid_data_num = 100
-fraction_ratio = 0.5
+fraction = 0.5
 gpu_num = 2
 
-each_client_iid_data_num = int (iid_data_num / client_num)
-client_num_per_gpu = client_num / gpu_num
+each_worker_iid_data_num = int (iid_data_num / worker_num)
+worker_num_per_gpu = worker_num / gpu_num
 
 
-def create_client (gpu_index, index, start_data_index, end_data_index):
+def create_worker (gpu_index, index, start_data_index, end_data_index):
 	# os.system("CUDA_VISIBLE_DEVICES=" + str(gpu_index) + " python client.py -i " + str(index) + " --start_data_index=" + str(start_data_idnex) + " --end_data_index=" + str(end_data_index))
 	os.system ("python client.py -i " + str (index) + " --start_data_index=" + str (
 		start_data_index) + " --end_data_index=" + str (end_data_index))
 
 
-def create_parameter_server (client_num, fraction_ratio):
-	# os.system ("CUDA_VISIBLE_DEVICES=0 python parameter_server.py -n " + str (client_num) + " -c " + str (fraction_ratio))
-	os.system ("python parameter_server.py -n " + str (client_num) + " -c " + str (fraction_ratio))
+def create_parameter_server (worker_num, fraction):
+	# os.system ("CUDA_VISIBLE_DEVICES=0 python parameter_server.py -n " + str (worker_num) + " -f " + str (fraction))
+	os.system ("python parameter_server.py -n " + str (worker_num) + " -f " + str (fraction))
 
 
-for client_index in range (client_num):
-	threading.Thread (target=create_client, args=(
-		int (client_index / client_num_per_gpu), client_index, client_index * each_client_iid_data_num,
-		(client_index + 1) * each_client_iid_data_num)).start ()
-threading.Thread (target=create_parameter_server, args=(client_num, fraction_ratio)).start ()
+for worker_index in range (worker_num):
+	threading.Thread (target=create_worker, args=(
+		int (worker_index / worker_num_per_gpu), worker_index, worker_index * each_worker_iid_data_num,
+		(worker_index + 1) * each_worker_iid_data_num)).start ()
+threading.Thread (target=create_parameter_server, args=(worker_num, fraction)).start ()

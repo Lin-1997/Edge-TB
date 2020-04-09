@@ -1,60 +1,67 @@
 import getopt
+import io
 import logging
 import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor
+
 from flask import Flask, request
 
-import nn_test_lr
+import nn_lr
 import util
 import values_a
 
+nn = nn_lr.get_nn ()
 v = values_a.get_values ()
-nn = nn_test_lr.get_nn ()
 
 logging.basicConfig (level=logging.INFO, filename='log/parameter_server.log', filemode='w',
                      format='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s')
 
-lock = threading.Lock ()
-
 try:
-	options, args = getopt.getopt (sys.argv [1:], "n:c:r:", ["client_num=", "fraction=", "round="])
+	options, args = getopt.getopt (sys.argv [1:], "n:f:r:", ["worker_num=", "fraction=", "round="])
 except getopt.GetoptError:
 	sys.exit ()
 
 for option, value in options:
-	if option in ("-n", "--client_num"):
-		v ['client_num'] = int (value)
-	elif option in ("-c", "--fraction"):
+	if option in ("-n", "--worker_num"):
+		v ['worker_num'] = int (value)
+	elif option in ("-f", "--fraction"):
 		v ['fraction'] = float (value)
 	elif option in ("-r", "--round"):
 		v ['round'] = int (value)
 if len (args) > 0:
 	print ("error args: {0}".format (args))
 
-for client_index in range (v ['client_num']):
-	v ['addr'].append (v ['start_port'] + client_index)
+for worker_index in range (v ['worker_num']):
+	v ['worker_addr_list'].append ('http://localhost:' + str (v ['worker_port'] + worker_index))
 
+lock = threading.Lock ()
 app = Flask (__name__)
 executor = ThreadPoolExecutor (1)
+write = io.BytesIO ()
+
+
+@app.route ('/start', methods=['GET'])
+def start ():
+	logging.info ('round 0: accuracy={}'.format (nn ['sess'].run (nn ['accuracy'], feed_dict={
+		nn ['xs']: nn ['test_x'], nn ['ys']: nn ['test_y']})))
+	initial_weights = nn ['sess'].run (nn ['weights'])
+	selected_index = util.index_random (v ['worker_num'], v ['fraction'])
+	util.send_weight_down (write, initial_weights, selected_index, v ['worker_addr_list'])
+	return 'start\n'
 
 
 @app.route ('/combine_weight', methods=['POST'])
 def receive_weight ():
 	# 接收参数并存起来
-	if v ['current_round'] == v ['round']:
-		print (
-			"=============================================================training ended====================================================================")
-		return "training ended"
 	global lock
 	lock.acquire ()
-	# 追加client的参数到received_client_weight
-	util.save_received_weight (v ['received_weight'], request.files.get ('client_weights'))
-	# logging.info("received weights: {}".format(received_weight[0]))
+	# 追加worker的参数到received_weight
+	v ['received_weight'].append (util.parse_received_weight (request.files.get ('weights')))
 	v ['received_count'] += 1
 	lock.release ()
 	# 判断一下接收够了没有
-	if v ['received_count'] == int (v ['client_num'] * v ['fraction']):
+	if v ['received_count'] == int (v ['worker_num'] * v ['fraction']):
 		executor.submit (on_receive_weight)
 	return "server gets local weight"
 
@@ -64,23 +71,18 @@ def on_receive_weight ():
 	v ['received_weight'].clear ()
 	v ['received_count'] = 0
 	util.assignment (nn ['assign_list'], avg_weight, nn ['sess'])
+	v ['current_round'] += 1
 	# 测试一下效果，写日志，清缓存
 	logging.info ('round {}:accuracy={}'.format (v ['current_round'], nn ['sess'].run (nn ['accuracy'], feed_dict={
 		nn ['xs']: nn ['test_x'], nn ['ys']: nn ['test_y']})))
-	client_list = util.client_list_random (v ['client_num'], v ['fraction'])
-	util.send_weight (avg_weight, client_list, v ['addr'])
-	v ['current_round'] += 1
+
+	if v ['current_round'] == v ['round']:
+		print (
+			"=============================================================training ended====================================================================")
+		return "training ended"
+
+	selected_index = util.index_random (v ['worker_num'], v ['fraction'])
+	util.send_weight_down (write, avg_weight, selected_index, v ['worker_addr_list'])
 
 
-@app.route ('/start', methods=['GET'])
-def start ():
-	logging.info ('round 0: accuracy={}'.format (nn ['sess'].run (nn ['accuracy'], feed_dict={
-		nn ['xs']: nn ['test_x'], nn ['ys']: nn ['test_y']})))
-	initial_weights = nn ['sess'].run (nn ['weights'])
-	client_list = util.client_list_random (v ['client_num'], v ['fraction'])
-	util.send_weight (initial_weights, client_list, v ['addr'])
-	v ['current_round'] += 1
-	return 'start\n'
-
-
-app.run (port=8888, threaded=True)
+app.run (port=v ['self_port'], threaded=True)

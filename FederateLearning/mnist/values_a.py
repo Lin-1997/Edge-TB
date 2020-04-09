@@ -1,18 +1,19 @@
 values = {}
 
-# default values
-values ['client_num'] = 2
-values ['fraction'] = 0.5
+values ['self_port'] = 8888
+
+values ['worker_addr_list'] = []
+values ['worker_port'] = 9990
+values ['worker_num'] = 2
+
 values ['round'] = 40
 values ['current_round'] = 0
+values ['fraction'] = 0.5
 
-# 已回传参数的客户端数量
+# 已回传参数的数量
 values ['received_count'] = 0
-# 存放各客户端回传参数的列表
+# 存放各回传参数的列表
 values ['received_weight'] = []
-
-values ['start_port'] = 9990
-values ['addr'] = []
 
 
 def get_values ():
