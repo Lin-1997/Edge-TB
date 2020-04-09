@@ -1,32 +1,11 @@
 --util --似乎有些什么add_layer之类的函数可以复用，还有广播参数更新的函数(w, [addresses])
---nn_load --nn_cifar --各种节点的模型
-                 --nn_mnist
-                 --nn_xxxx
+--nn --nn_cifar --各种节点的模型
+        --nn_mnist
+        --nn_xxxx
 --a --聚合节点flask
 --w --训练节点flask
 --g --GL节点flask
---values_a --聚合节点的参数
---values_w --训练节点的参数
---values_g --GL节点的参数
+--values --values_a --聚合节点的参数
+              --values_w --训练节点的参数
+              --values_g --GL节点的参数
 --start
-
-
-import 似乎自带单例
-其他跨文件的数据全丢到values
-
-数据结构
-nn_test->test_x
-                test_y
-                xs
-                ys
-                assign_list
-                accuracy
-
-nn_train->data_x
-                 data_y
-                 xs
-                 ys
-                 assign_list
-                 loss
-                 accuracy
-                 train
