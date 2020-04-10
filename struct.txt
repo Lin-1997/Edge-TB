@@ -1,11 +1,18 @@
---util --似乎有些什么add_layer之类的函数可以复用，还有广播参数更新的函数(w, [addresses])
---nn --nn_cifar --各种节点的模型
-        --nn_mnist
-        --nn_xxxx
---a --聚合节点flask
---w --训练节点flask
---g --GL节点flask
---values --values_a --聚合节点的参数
-              --values_w --训练节点的参数
-              --values_g --GL节点的参数
---start
+.
+├── worker.py		--flask server for worker
+├── aggregator.py	--flask server for aggregator
+├── gossip.py		--flask server for gossip
+├── values
+│   ├── values_w.py	--values used in worker
+│   ├── values_a.py	--values used in aggregator
+│   └── values_g.py	--values used in gossip
+├── nn
+│   ├── nn_cifar.py	--neural networks of cifar
+│   ├── nn_mnist.py	--neural networks of mnist
+│   └── nn_lr.py   	--neural networks of linear regression
+├── log
+├── start.py       	--shell launcher, will be replaced by yml launcher in docker
+└── util.py        	--collection of functions
+
+
+对log加功能 提供接口parse .log文件
