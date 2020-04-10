@@ -5,3 +5,4 @@
 **/log/*
 !**/log/.keep
 __pycache__/
+venv/
