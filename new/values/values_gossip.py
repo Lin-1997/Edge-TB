@@ -8,7 +8,7 @@ values['client_num'] = 3
 values['local_epoch_num'] = 1
 values['learning_rate'] = 0.5
 values['all_addresses'] = []
-values['received_client_weight'] = []
+values['new_weights_list'] = []
 
 
 def get_values():
