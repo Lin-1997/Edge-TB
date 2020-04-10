@@ -1,4 +1,5 @@
 import logging
+import math
 import numpy as np
 import requests
 import tensorflow as tf
@@ -84,4 +85,4 @@ def send_weight_up (write, w, addr_a):
 
 
 def index_random (worker_num, fraction):
-	return np.random.choice (worker_num, int (worker_num * fraction), replace=False)
+	return np.random.choice (worker_num, int(math.ceil(float(worker_num) * fraction)), replace=False)
