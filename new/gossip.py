@@ -7,9 +7,9 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 from flask import Flask, request
 
-from . import util
-from .nn import nn_lr
-from .values import values_gossip
+import util
+from nn import nn_lr
+from values import values_gossip
 
 nn = nn_lr.get_nn()
 v = values_gossip.get_values()
@@ -48,6 +48,11 @@ if len(args) > 0:
 # Port的设置
 this_port = v['start_port'] + this_index
 print("This is node %s" % this_index)
+
+# 生成地址列表
+for client_index in range(v['client_num']):
+    v['all_addresses'].append('http://localhost:' + str(v['start_port'] + client_index))
+
 # 除本节点以外其他所有节点的地址列表
 v['other_addresses'] = v['all_addresses'].copy()
 del v['other_addresses'][this_index]
@@ -110,5 +115,6 @@ def on_receive_weight(received_w):
 @app.route('/heart_beat', methods=['GET'])
 def send_heart_beat():
     return 'alive'
+
 
 app.run(port=this_port, threaded=True)
