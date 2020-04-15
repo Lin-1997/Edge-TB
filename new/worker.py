@@ -7,10 +7,10 @@ from concurrent.futures import ThreadPoolExecutor
 from flask import Flask, request
 
 import util
-from values import values_w
+from values import values_worker
 from nn import nn_lr
 
-v = values_w.get_values ()
+v = values_worker.get_values ()
 nn = nn_lr.get_nn ()
 
 try:

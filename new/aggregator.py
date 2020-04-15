@@ -9,10 +9,10 @@ from flask import Flask, request
 
 import util
 from nn import nn_lr
-from values import values_a
+from values import values_aggregator
 
 nn = nn_lr.get_nn ()
-v = values_a.get_values ()
+v = values_aggregator.get_values ()
 
 logging.basicConfig (level=logging.INFO, filename='log/parameter_server.log', filemode='w',
                      format='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s')
