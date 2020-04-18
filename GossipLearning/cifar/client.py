@@ -61,8 +61,11 @@ logging.basicConfig(level=logging.INFO,
 
 lock = threading.Lock()
 
-train_data_dir = "/home/se-lab/Desktop/Data/EdgeAI/cifar10/iid/"
 test_data_dir = "/home/se-lab/Desktop/Data/EdgeAI/cifar10/test_data/"
+test_x = np.load(test_data_dir + "test_images.npy")
+test_y = np.load(test_data_dir + "test_labels.npy")
+
+train_data_dir = "/home/se-lab/Desktop/Data/EdgeAI/cifar10/iid/"
 data_x_list = []
 data_y_list = []
 for train_data_index in range(end_index - start_index):
@@ -70,12 +73,9 @@ for train_data_index in range(end_index - start_index):
 	data_y_list.append(np.load(train_data_dir + "train_labels_" + str(start_index + train_data_index) + ".npy"))
 data_x = np.concatenate(tuple(data_x_list))
 data_y = np.concatenate(tuple(data_y_list))
-test_x = np.load(test_data_dir + "test_images.npy")
-test_y = np.load(test_data_dir + "test_labels.npy")
 
 one_hot_encoder = np.eye(10)
 one_hot_train_labels = one_hot_encoder[data_y.astype("int")][:, 0]
-one_hot_test_labels = one_hot_encoder[test_y][:, 0]
 
 train_data = tf.data.Dataset.from_tensor_slices((data_x, one_hot_train_labels))
 train_data = train_data.shuffle(buffer_size=10000)

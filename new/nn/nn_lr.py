@@ -48,8 +48,8 @@ nn ['sess'] = sess
 def get_nn ():
 	return nn
 
-
-def set_train_data_batch (bs, r):
+# start_index, end_index are useless in LR
+def set_train_data_batch (bs, r, start_index, end_index):
 	train_data = tf.data.Dataset.from_tensor_slices ((train_x, train_y))
 	train_data = train_data.shuffle (buffer_size=10000)
 	train_data = train_data.batch (bs).repeat (r)

@@ -53,7 +53,6 @@ logging.basicConfig(level=logging.INFO,
 this_address = start_port + this_index
 
 train_data_dir = "/home/se-lab/Desktop/Data/EdgeAI/cifar10/iid/"
-test_data_dir = "/home/se-lab/Desktop/Data/EdgeAI/cifar10/test_data/"
 data_x_list = []
 data_y_list = []
 for train_data_index in range(end_index - start_index):

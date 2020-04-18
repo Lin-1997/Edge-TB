@@ -37,7 +37,7 @@ for option, value in options:
 if len (args) > 0:
 	print ("error args: {0}".format (args))
 
-nn_lr.set_train_data_batch (v ['batch_size'], v ['round'])
+nn_lr.set_train_data_batch (v ['batch_size'], v ['round'], 0, 0)
 nn_lr.set_train_lr (v ['learning_rate'])
 
 logging.basicConfig (level=logging.INFO, filename='log/worker_' + str (self_index) + '.log', filemode='w',
