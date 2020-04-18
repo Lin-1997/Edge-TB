@@ -121,4 +121,4 @@ def send_heart_beat():
     return 'alive'
 
 
-app.run(port=this_port, threaded=True)
+app.run(host='0.0.0.0', port=this_port, threaded=True)

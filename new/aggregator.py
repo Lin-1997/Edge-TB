@@ -84,5 +84,4 @@ def on_receive_weight ():
 	selected_index = util.index_random (v ['worker_num'], v ['fraction'])
 	util.send_weight_down (write, avg_weight, selected_index, v ['worker_addr_list'])
 
-
-app.run (port=v ['self_port'], threaded=True)
+app.run (host='0.0.0.0', port=v ['self_port'], threaded=True, )
