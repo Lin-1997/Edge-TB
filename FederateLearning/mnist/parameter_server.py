@@ -11,6 +11,8 @@ import util
 from nn import nn_lr
 from values import values_a
 
+from FederateLearning.mnist.proxy import logact
+
 nn = nn_lr.get_nn ()
 v = values_a.get_values ()
 
@@ -79,6 +81,8 @@ def on_receive_weight ():
 	if v ['current_round'] == v ['round']:
 		print (
 			"=============================================================training ended====================================================================")
+		logact().star3()
+		logact().star4()
 		return "training ended"
 
 	selected_index = util.index_random (v ['worker_num'], v ['fraction'])
