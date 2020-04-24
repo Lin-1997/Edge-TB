@@ -1,6 +1,7 @@
 values = {}
 
-values ['addr_a'] = 'http://localhost:8888'
+values ['self_id'] = 0
+values ['up_addr'] = 'http://localhost:8888'
 values ['start_port'] = 9990
 
 values ['round'] = 40

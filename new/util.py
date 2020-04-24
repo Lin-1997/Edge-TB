@@ -62,27 +62,60 @@ def assignment (assign_list, w, sess):
 		weight_placeholder_start_index += 1
 
 
-def send_weight_down (write, w, selected_index, addr_list):
-	np.save (write, w, allow_pickle=True)
-	for i in selected_index:
-		logging.info ("worker_{} selected".format (i))
+def send_weight_down_replace (write, w, addr_list, layer, is_file=0):
+	# w为file
+	if is_file == 1:
+		for addr in addr_list:
+			file = {'weights': w}
+			path = str (addr) + '/replace?layer=' + str (layer)
+			requests.post (str (path), files=file)
+			w.seek (0)
+
+	# w不为file，用write
+	else:
+		np.save (write, w, allow_pickle=True)
 		write.seek (0)
-		file = {'weights': write}
-		path = str (addr_list [i]) + '/update_weights'
-		requests.post (str (path), files=file)
-	write.seek (0)
-	write.truncate ()
+		for addr in addr_list:
+			file = {'weights': write}
+			path = str (addr) + '/replace?layer=' + str (layer)
+			requests.post (str (path), files=file)
+			write.seek (0)
+		write.truncate ()
 
 
-def send_weight_up (write, w, addr_a):
+def send_weight_down_train (write, w, selected_index, addr_list, is_file=0):
+	if is_file == 1:
+		for i in selected_index:
+			logging.info ("worker_{} selected".format (i))
+			file = {'weights': w}
+			path = str (addr_list [i]) + '/train'
+			requests.post (str (path), files=file)
+			w.seek (0)
+	else:
+		np.save (write, w, allow_pickle=True)
+		write.seek (0)
+		for i in selected_index:
+			logging.info ("worker_{} selected".format (i))
+			file = {'weights': write}
+			path = str (addr_list [i]) + '/train'
+			requests.post (str (path), files=file)
+			write.seek (0)
+		write.truncate ()
+
+
+def send_weight_up_combine (write, w, addr, layer=1):
 	np.save (write, w, allow_pickle=True)
 	write.seek (0)
 	file = {'weights': write}
-	path = str (addr_a) + '/combine_weight'
+	path = str (addr) + '/combine?layer=' + str (layer)
 	requests.post (str (path), files=file)
 	write.seek (0)
 	write.truncate ()
 
 
 def index_random (worker_num, fraction):
-	return np.random.choice (worker_num, int(math.ceil(float(worker_num) * fraction)), replace=False)
+	return np.random.choice (worker_num, int (math.ceil (float (worker_num) * fraction)), replace=False)
+
+
+def index_full (length):
+	return range (length)

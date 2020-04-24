@@ -9,11 +9,10 @@ from flask import Flask, request
 
 import util
 from nn import nn_lr
-from values import values_gossip
-from ..FederateLearning.mnist.proxy import logact
+from values import values_g
 
 nn = nn_lr.get_nn()
-v = values_gossip.get_values()
+v = values_g.get_values()
 
 # 启动参数获取
 parser = argparse.ArgumentParser("Gossip Learning Node Starter")
@@ -92,7 +91,7 @@ def node_train():
         list_lock.release()
         other_nodes_num = v['client_num'] - 1
         indices = util.index_random(other_nodes_num , 1.0 / float(other_nodes_num))
-        util.send_weight_down(client_weights, avg_weights, indices, v['other_addresses'])
+        util.send_weight_down_train(client_weights, avg_weights, indices, v['other_addresses'])
 
 
 @app.route('/start_training', methods=['POST'])
@@ -102,7 +101,7 @@ def start_training():
     return "start training"
 
 
-@app.route('/update_weights', methods=['POST'])
+@app.route('/train', methods=['POST'])
 def update_weights():
     new_weights = util.parse_received_weight(request.files.get('weights'))
     executor.submit(on_receive_weight, new_weights)

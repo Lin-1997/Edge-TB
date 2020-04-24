@@ -11,7 +11,7 @@ import util
 from nn import nn_lr
 from values import values_a
 
-from FederateLearning.mnist.proxy import logact
+from proxy import logact
 
 nn = nn_lr.get_nn ()
 v = values_a.get_values ()
