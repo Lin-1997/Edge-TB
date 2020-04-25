@@ -15,15 +15,14 @@ values ['layer_count'] = 0
 # TODO: 每层的下层节点地址
 # values ['down_addr'] = [[] for i in range (l_c)]
 
-# TODO: 考虑把values ['round']放在values ['sync']的最后一个中
-#  values ['up_addr']的最后一个为'top'时，意味着是顶层节点
-# 总共的训练轮次，EL中似乎只有最顶层的节点需要用上
+# TODO: 最顶层节点聚合多少次结束训练，该功能已被values ['sync']替代
+#  目前的作用好像是用来将训练数据划分成一定数量的batch，考虑换个名称
 values ['round'] = 20
 # TODO: 每层的当前轮次
 # values ['current_round'] = [] * l_c
 
-# 聚合节点
-# FL中选择下一次训练的节点数量比例，在EL中应该设置为1
+# 聚合用
+# TODO: FL中选择下一次训练的节点数量比例，在EL中应该设置为1
 values ['fraction'] = 1
 # TODO: EL中每层的同步频率
 # values ['sync'] = [] * l_c
@@ -32,7 +31,7 @@ values ['fraction'] = 1
 # TODO: 每层接收到的参数
 # values ['received_weight'] = [[] for i in range (l_c)]
 
-# 训练节点
+# 训练用
 values ['batch_size'] = 1
 values ['local_epoch_num'] = 1
 values ['learning_rate'] = 0.1

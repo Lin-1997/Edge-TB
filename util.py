@@ -1,5 +1,5 @@
-import logging
 import math
+
 import numpy as np
 import requests
 import tensorflow as tf
@@ -63,54 +63,75 @@ def assignment (assign_list, w, sess):
 
 
 def send_weight_down_replace (write, w, addr_list, layer, is_file=0):
+	self = 0
 	# w为file
 	if is_file == 1:
 		for addr in addr_list:
+			# 需要发给自己
+			if addr == 'self':
+				self = 1
+				continue
 			file = {'weights': w}
-			path = str (addr) + '/replace?layer=' + str (layer)
-			requests.post (str (path), files=file)
+			path = addr + '/replace?layer=' + str (layer)
+			requests.post (path, files=file)
 			w.seek (0)
+		return self
 
 	# w不为file，用write
 	else:
 		np.save (write, w, allow_pickle=True)
 		write.seek (0)
 		for addr in addr_list:
+			if addr == 'self':
+				self = 1
+				continue
 			file = {'weights': write}
-			path = str (addr) + '/replace?layer=' + str (layer)
-			requests.post (str (path), files=file)
+			path = addr + '/replace?layer=' + str (layer)
+			requests.post (path, files=file)
 			write.seek (0)
 		write.truncate ()
+		return self
 
 
 def send_weight_down_train (write, w, selected_index, addr_list, is_file=0):
+	self = 0
 	if is_file == 1:
 		for i in selected_index:
-			logging.info ("worker_{} selected".format (i))
+			if addr_list [i] == 'self':
+				self = 1
+				continue
 			file = {'weights': w}
-			path = str (addr_list [i]) + '/train'
-			requests.post (str (path), files=file)
+			path = addr_list [i] + '/train'
+			requests.post (path, files=file)
 			w.seek (0)
+		return self
+
 	else:
 		np.save (write, w, allow_pickle=True)
 		write.seek (0)
 		for i in selected_index:
-			logging.info ("worker_{} selected".format (i))
+			if addr_list [i] == 'self':
+				self = 1
+				continue
 			file = {'weights': write}
-			path = str (addr_list [i]) + '/train'
-			requests.post (str (path), files=file)
+			path = addr_list [i] + '/train'
+			requests.post (path, files=file)
 			write.seek (0)
 		write.truncate ()
+		return self
 
 
 def send_weight_up_combine (write, w, addr, layer=1):
+	if addr == 'self':
+		return 1
 	np.save (write, w, allow_pickle=True)
 	write.seek (0)
 	file = {'weights': write}
-	path = str (addr) + '/combine?layer=' + str (layer)
-	requests.post (str (path), files=file)
+	path = addr + '/combine?layer=' + str (layer)
+	requests.post (path, files=file)
 	write.seek (0)
 	write.truncate ()
+	return 0
 
 
 def index_random (worker_num, fraction):

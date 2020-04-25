@@ -1,11 +1,7 @@
 .
-├── worker.py		--flask server in both FL and EL, only train, will be deleted when complete hybrid
-├── aggregator.py	--flask server in both FL and EL, only aggregate, will be deleted when complete hybrid
 ├── hybrid.py		--flask server in both FL and EL, both train and aggregate
 ├── gossip.py		--flask server in GL
 ├── values
-│   ├── values_w.py	--values used in worker, will be deleted when complete hybrid
-│   ├── values_a.py	--values used in aggregator, will be deleted when complete hybrid
 │   ├── values_h.py	--values used in hybrid
 │   └── values_g.py	--values used in gossip
 ├── nn
@@ -16,9 +12,4 @@
 ├── proxy.py       	--to parse .log file
 ├── start.py       	--shell launcher, will be replaced by yml launcher in docker
 └── util.py        	--collection of functions
-
-将worker和aggregator整合到hybrid中，依靠type来判断工作模式，
-写完hybrid后，worker和aggregator以及相关的代码全部会被删除
-
-
 

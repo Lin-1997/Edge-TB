@@ -1,7 +1,3 @@
-#/FederateLearning
-#/GossipLearning
-#/SingleTraining
-#/Test
 **/log/*
 !**/log/.keep
 __pycache__/
