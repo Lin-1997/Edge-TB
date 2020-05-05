@@ -1,0 +1,11 @@
+version: '3'
+services:
+  etree:
+    image: etree
+    ports:
+      - "8888:8888"
+    volumes:
+    - ./:/home/ETree
+    container_name: test
+    stdin_open: true
+    tty: true

@@ -1,5 +1,5 @@
-requests
 flask
-tensorflow-gpu==1.15.0
 numpy
+requests
 matplotlib
+tensorflow-gpu==1.15.0
