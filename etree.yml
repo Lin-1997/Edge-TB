@@ -1,0 +1,11 @@
+version: "2"
+services:
+  etree:
+    image: etree
+    expose:
+      - "8888"
+    volumes:
+      - ./:/home/ETree
+    stdin_open: true
+    tty: true
+    command: ["python", "hybrid.py"]

@@ -1,11 +1,32 @@
-version: '3'
+version: "2"
 services:
-  etree:
-    image: etree
+  "0":
+    extends:
+      file: ./etree.yml
+      service: etree
+    container_name: "node0"
+    env_file:
+      - env/0.env
     ports:
       - "8888:8888"
-    volumes:
-    - ./:/home/ETree
-    container_name: test
-    stdin_open: true
-    tty: true
+  "1":
+    extends:
+      file: ./etree.yml
+      service: etree
+    container_name: "node1"
+    env_file:
+      - env/1.env
+  "2":
+    extends:
+      file: ./etree.yml
+      service: etree
+    container_name: "node2"
+    env_file:
+      - env/2.env
+  "3":
+    extends:
+      file: ./etree.yml
+      service: etree
+    container_name: "node3"
+    env_file:
+      - env/3.env

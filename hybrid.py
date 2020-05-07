@@ -1,7 +1,5 @@
-import getopt
 import io
 import logging
-import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
@@ -14,85 +12,6 @@ from values import values_h
 
 nn = nn_lr.get_nn ()
 v = values_h.get_values ()
-
-# TODO: 从yml文件中读环境变量，设置v的一堆东西
-#  这些都换掉==============
-try:
-	options, args = getopt.getopt (sys.argv [1:], 'i:', ['id='])
-except getopt.GetoptError:
-	sys.exit ()
-
-for option, value in options:
-	# TODO: 要定义测试网络，修改这里，并修改start.py中的number
-	#  参数定义见values/values_h.py
-
-	#         0
-	#   ------↓------
-	#   ↓           ↓
-	#   0           2
-	# --↓--       --↓--
-	# ↓    ↓      ↓    ↓
-	# 0    1      2    3
-
-	if option in ('-i', '--id'):
-		if int (value) == 0:
-			v ['id'] = 0
-			v ['port'] = 8888
-			v ['type'] = 0
-			# TODO: 当v ['type'] = 0时不可以修改v ['fraction']，必须确保其为values_h的默认值1
-			v ['layer_count'] = 3
-			v ['layer'] = [1, 2, 3]
-			# 'self'意为上层或下层节点仍为自己 ，top意味着没有上层节点了
-			v ['up_addr'] = ['self', 'self', 'top']
-			v ['down_count'] = [0, 2, 2]
-			v ['down_addr'] = [[], ['self', 'http://localhost:8889'], ['self', 'http://localhost:8890']]
-			v ['round'] = 20
-			v ['current_round'] = [0, 0, 0]
-			v ['sync'] = [0, 2, 10]
-			v ['received_count'] = [0, 0, 0]
-			v ['received_weight'] = [[], [], []]
-		elif int (value) == 1:
-			v ['id'] = 1
-			v ['port'] = 8889
-			v ['type'] = 0
-			v ['layer_count'] = 1
-			v ['layer'] = [1]
-			v ['up_addr'] = ['http://localhost:8888']
-			v ['down_count'] = [0]
-			v ['round'] = 20
-			v ['current_round'] = [0]
-			v ['sync'] = [0]
-		elif int (value) == 2:
-			v ['id'] = 2
-			v ['port'] = 8890
-			v ['type'] = 0
-			v ['layer_count'] = 2
-			v ['layer'] = [1, 2]
-			v ['up_addr'] = ['self', 'http://localhost:8888']
-			v ['down_count'] = [0, 2]
-			v ['down_addr'] = [[], ['self', 'http://localhost:8891']]
-			v ['round'] = 20
-			v ['current_round'] = [0, 0]
-			v ['sync'] = [0, 2]
-			v ['received_count'] = [0, 0]
-			v ['received_weight'] = [[], []]
-		elif int (value) == 3:
-			v ['id'] = 3
-			v ['port'] = 8891
-			v ['type'] = 0
-			v ['layer_count'] = 1
-			v ['layer'] = [1]
-			v ['up_addr'] = ['http://localhost:8890']
-			v ['down_count'] = [0]
-			v ['round'] = 20
-			v ['current_round'] = [0]
-			v ['sync'] = [0]
-if len (args) > 0:
-	print ('error args: {0}'.format (args))
-# TODO: 这些都换掉==============
-
-# logging.basicConfig (level=logging.INFO, filename='log/node' + str (v ['id']) + '.log', filemode='w',
-# 	format='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s')
 
 logging.basicConfig (level=logging.INFO, filename='log/node' + str (v ['id']) + '.log', filemode='w',
 	format='%(message)s')
@@ -227,8 +146,8 @@ def async_combine_weight (layer_index):
 	else:
 		# 训练完
 		if v ['current_round'] [layer_index] == v ['sync'] [0]:
-			logact ().star3 ()
-			logact ().star4 ()
+			# logact ().star3 ()
+			# logact ().star4 ()
 			print ('===================training ended===================')
 
 		# 没训练完
@@ -265,10 +184,9 @@ def on_route_train (received_w, is_file=0):
 		on_route_combine (latest_weights, 1)
 
 
-# 训练
-@app.route ('/heart_beat', methods=['GET'])
-def route_heart_beat ():
-	return 'alive'
+@app.route ('/hi', methods=['GET'])
+def route_hi ():
+	return 'What\'s up?'
 
 
-app.run (host='0.0.0.0', port=v ['port'], threaded=True, )
+app.run (host='0.0.0.0', port=v ['port'], threaded=True)

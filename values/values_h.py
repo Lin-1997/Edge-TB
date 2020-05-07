@@ -1,36 +1,34 @@
+import json
+import os
+
 values = {}
 
-values ['id'] = 0
-values ['port'] = 8888
-# type=0-EL 1-FL
-values ['type'] = 0
-# 同时处于多少层
-values ['layer_count'] = 0
-# TODO: 分别属于哪些层
-# values ['layer'] = [] * l_c
-# TODO: 每层的上层节点地址
-# values ['up_addr'] = [] * l_c
-# TODO: 每层的下层节点数量
-# values ['down_count'] = [] * l_c
-# TODO: 每层的下层节点地址
-# values ['down_addr'] = [[] for i in range (l_c)]
-
+values ['id'] = int (os.getenv ('id'), 0)
+values ['port'] = int (os.getenv ('port'), 0)
+values ['type'] = int (os.getenv ('type'), 0)
 # TODO: 最顶层节点聚合多少次结束训练，该功能已被values ['sync']替代
 #  目前的作用好像是用来将训练数据划分成一定数量的batch，考虑换个名称
-values ['round'] = 20
-# TODO: 每层的当前轮次
-# values ['current_round'] = [] * l_c
+values ['round'] = int (os.getenv ('round'))
+# 每层的当前轮次
+values ['layer_count'] = int (os.getenv ('layer_count', 0))
+values ['layer'] = (json.loads (os.getenv ('layer'))) ['data']
+values ['up_addr'] = (json.loads (os.getenv ('up_addr'))) ['data']
+values ['down_count'] = (json.loads (os.getenv ('down_count'))) ['data']
+if not (values ['layer_count'] == 1 and values ['layer'] [0] == 1):
+	values ['down_addr'] = (json.loads (os.getenv ('down_addr'))) ['data']
+values ['current_round'] = [0] * values ['layer_count']
 
 # 聚合用
-# TODO: FL中选择下一次训练的节点数量比例，在EL中应该设置为1
+# FL中选择下一次训练的节点数量比例，在EL中应该设置为1
 values ['fraction'] = 1
-# TODO: EL中每层的同步频率
-# values ['sync'] = [] * l_c
-# TODO: 每层接收到的参数数量
-# values ['received_count'] = [] * l_c
-# TODO: 每层接收到的参数
-# values ['received_weight'] = [[] for i in range (l_c)]
+# EL中每层的同步频率
+values ['sync'] = (json.loads (os.getenv ('sync'))) ['data']
+# 每层接收到的参数数量
+values ['received_count'] = [0] * values ['layer_count']
+# 每层接收到的参数
+values ['received_weight'] = [[] for i in range (values ['layer_count'])]
 
+# TODO: 还没写到env
 # 训练用
 values ['batch_size'] = 1
 values ['local_epoch_num'] = 1
