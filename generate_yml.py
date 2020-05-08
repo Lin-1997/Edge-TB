@@ -14,17 +14,17 @@ for option, value in options:
 string = \
 	"version: \"2\"\r\n" \
 	+ "services:\r\n" \
-	+ "  \"0\":\r\n" \
+	+ "  \"1\":\r\n" \
 	+ "    extends:\r\n" \
 	+ "      file: ./etree.yml\r\n" \
 	+ "      service: etree\r\n" \
-	+ "    container_name: \"n0\"\r\n" \
-	+ "    environment:" \
-	+ "      HOSTNAME: \"n0\"" \
+	+ "    container_name: \"n1\"\r\n" \
+	+ "    environment:\r\n" \
+	+ "      HOSTNAME: \"n1\"\r\n" \
 	+ "    ports:\r\n" \
 	+ "      - \"8888:8888\"\r\n"
 
-for i in range (1, n):
+for i in range (2, n + 1):
 	string += "  \"" + str (i) + "\":\r\n" \
 	          + "    extends:\r\n" \
 	          + "      file: ./etree.yml\r\n" \

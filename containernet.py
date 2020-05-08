@@ -1,3 +1,4 @@
+import os
 from mininet.net import Containernet
 from mininet.node import Controller
 from mininet.cli import CLI
@@ -5,19 +6,21 @@ from mininet.link import TCLink
 from mininet.log import info, setLogLevel
 
 setLogLevel ('info')
+from_path = os.path.abspath (os.path.dirname (__file__))
+to_path = ':/home/ETree'
 
 net = Containernet (controller=Controller)
 info ('*** Adding controller\n')
 net.addController ('c0')
 info ('*** Adding docker containers\n')
 n1 = net.addDocker ('n1', ip='10.0.0.1', dimage="etree", dcmd="python hybrid.py",
-	volumes=["/home/lin/ETree/:/home/ETree"], ports=[8888], port_bindings={8888: 8888})
+	volumes=[from_path + to_path], ports=[8888], port_bindings={8888: 8888})
 n2 = net.addDocker ('n2', ip='10.0.0.2', dimage="etree", dcmd="python hybrid.py",
-	volumes=["/home/lin/ETree/:/home/ETree"])
+	volumes=[from_path + to_path])
 n3 = net.addDocker ('n3', ip='10.0.0.3', dimage="etree", dcmd="python hybrid.py",
-	volumes=["/home/lin/ETree/:/home/ETree"])
+	volumes=[from_path + to_path])
 n4 = net.addDocker ('n4', ip='10.0.0.4', dimage="etree", dcmd="python hybrid.py",
-	volumes=["/home/lin/ETree/:/home/ETree"])
+	volumes=[from_path + to_path])
 info ('*** Adding switches\n')
 s1 = net.addSwitch ('s1')
 # s2 = net.addSwitch ('s2')

@@ -1,14 +1,5 @@
 version: "2"
 services:
-  "0":
-    extends:
-      file: ./etree.yml
-      service: etree
-    container_name: "n0"
-    environment:
-      HOSTNAME: "n0"
-    ports:
-      - "8888:8888"
   "1":
     extends:
       file: ./etree.yml
@@ -16,6 +7,8 @@ services:
     container_name: "n1"
     environment:
       HOSTNAME: "n1"
+    ports:
+      - "8888:8888"
   "2":
     extends:
       file: ./etree.yml
@@ -30,3 +23,10 @@ services:
     container_name: "n3"
     environment:
       HOSTNAME: "n3"
+  "4":
+    extends:
+      file: ./etree.yml
+      service: etree
+    container_name: "n4"
+    environment:
+      HOSTNAME: "n4"
