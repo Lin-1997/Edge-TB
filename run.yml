@@ -4,29 +4,29 @@ services:
     extends:
       file: ./etree.yml
       service: etree
-    container_name: "node0"
-    env_file:
-      - env/0.env
+    container_name: "n0"
+    environment:
+      HOSTNAME: "n0"
     ports:
       - "8888:8888"
   "1":
     extends:
       file: ./etree.yml
       service: etree
-    container_name: "node1"
-    env_file:
-      - env/1.env
+    container_name: "n1"
+    environment:
+      HOSTNAME: "n1"
   "2":
     extends:
       file: ./etree.yml
       service: etree
-    container_name: "node2"
-    env_file:
-      - env/2.env
+    container_name: "n2"
+    environment:
+      HOSTNAME: "n2"
   "3":
     extends:
       file: ./etree.yml
       service: etree
-    container_name: "node3"
-    env_file:
-      - env/3.env
+    container_name: "n3"
+    environment:
+      HOSTNAME: "n3"

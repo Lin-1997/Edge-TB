@@ -12,26 +12,26 @@ for option, value in options:
 		n = int (value)
 
 string = \
-	"version: \"2\"\n" \
-	+ "services:\n" \
-	+ "  \"0\":\n" \
-	+ "    extends:\n" \
-	+ "      file: ./etree.yml\n" \
-	+ "      service: etree\n" \
-	+ "    container_name: \"node0\"\n" \
-	+ "    env_file:\n" \
-	+ "      - env/0.env\n" \
-	+ "    ports:\n" \
-	+ "      - \"8888:8888\"\n"
+	"version: \"2\"\r\n" \
+	+ "services:\r\n" \
+	+ "  \"0\":\r\n" \
+	+ "    extends:\r\n" \
+	+ "      file: ./etree.yml\r\n" \
+	+ "      service: etree\r\n" \
+	+ "    container_name: \"n0\"\r\n" \
+	+ "    environment:" \
+	+ "      HOSTNAME: \"n0\"" \
+	+ "    ports:\r\n" \
+	+ "      - \"8888:8888\"\r\n"
 
 for i in range (1, n):
-	string += "  \"" + str (i) + "\":\n" \
-	          + "    extends:\n" \
-	          + "      file: ./etree.yml\n" \
-	          + "      service: etree\n" \
-	          + "    container_name: \"node" + str (i) + "\"\n" \
-	          + "    env_file:\n" \
-	          + "      - env/" + str (i) + ".env\n"
+	string += "  \"" + str (i) + "\":\r\n" \
+	          + "    extends:\r\n" \
+	          + "      file: ./etree.yml\r\n" \
+	          + "      service: etree\r\n" \
+	          + "    container_name: \"n" + str (i) + "\"\r\n" \
+	          + "    environment:\r\n" \
+	          + "      HOSTNAME: \"n" + str (i) + "\"\r\n"
 
 with open ('run.yml', 'w') as f:
 	f.write (string)

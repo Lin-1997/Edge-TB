@@ -13,7 +13,7 @@ from values import values_h
 nn = nn_lr.get_nn ()
 v = values_h.get_values ()
 
-logging.basicConfig (level=logging.INFO, filename='log/node' + str (v ['id']) + '.log', filemode='w',
+logging.basicConfig (level=logging.INFO, filename='log/n' + str (v ['id']) + '.log', filemode='w',
 	format='%(message)s')
 
 nn_lr.set_train_data_batch (v ['batch_size'], v ['round'], v ['start_index'], v ['end_index'])
