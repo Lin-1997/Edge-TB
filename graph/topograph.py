@@ -18,7 +18,7 @@ class TopoGraph(JSONable):
         if dst_name not in self._node_list:
             self.add_node(dst_name, dst_type)
 
-        if src_name not in self._node_list and dst_name not in self._node_list:
+        if src_name in self._node_list and dst_name in self._node_list:
             src_node = self._node_list.get(src_name)
             # dst_node = self._node_list.get(dst_name)
             link = Edge(src_name, dst_name, link_attributes)
@@ -40,11 +40,22 @@ class TopoGraph(JSONable):
             node.from_json(value)
             self._node_list[key] = node
 
+    def build(self, net, name2ip, docker_info):
+        """
+        Build the mininet according to the topology graph
+        :param net: the object of mininet
+        :param name2ip: the mapping of node name and ip (except the switches)
+        :param docker_info: the parameter for setting docker container
+        :return:
+        """
+        net_nodes = self.build_nodes(net, name2ip, docker_info)
+        self.build_edges(net, net_nodes)
+
     def build_nodes(self, net, name2ip, docker_info):
         net_node_list = {}
         for node_name, node in self._node_list.items():
             if node.type == TYPE_HOST:
-                host = net.addDocker(node_name, name2ip[node_name], **docker_info)
+                host = net.addDocker(node_name, ip=name2ip[node_name], **docker_info)
                 net_node_list[node_name] = host
             elif node.type == TYPE_SW:
                 sw = net.addSwitch(node_name)
@@ -52,7 +63,7 @@ class TopoGraph(JSONable):
             else:
                 # log error
                 pass
-        self.build_edges(net, net_node_list)
+        return net_node_list
 
     def build_edges(self, net, node_name2node):
         for node in self._node_list.values():
@@ -93,7 +104,7 @@ class Edge(JSONable):
     def __init__(self, src_node_name=None, dst_node_name=None, link_attributes=None):
         if link_attributes is None:
             link_attributes = {}
-        self.edge_id = uuid.uuid4()
+        self.edge_id = uuid.uuid4().__str__()
         self.src_node_name = src_node_name
         self.dst_node_name = dst_node_name
         self.link_attributes = link_attributes
