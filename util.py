@@ -1,8 +1,18 @@
-import math
+import logging
 
+import math
 import numpy as np
 import requests
 import tensorflow as tf
+
+
+def set_log (node_id):
+	logging.basicConfig (level=logging.INFO, filename='log/n' + node_id + '.log', filemode='w',
+		format='%(message)s')
+
+
+def log (message):
+	logging.info (message)
 
 
 def add_layer (assign_list, inputs, in_size, out_size, activation_function=None):

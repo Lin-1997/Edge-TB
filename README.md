@@ -9,7 +9,7 @@
 containernet.py load .env = done
 ###安装说明
 0. Install docker >= v19.03
-0. Install docker-compose >= v1.25 (docker-compose启动)
+0. Install docker-compose >= v1.25 (docker-compose启动)   
 0. Bare-metal install Containernet >= master branch 7ad907e (ContainerNet启动)
 0. ```bash setup.sh```
 0. Wait and have a coffee

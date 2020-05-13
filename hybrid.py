@@ -1,5 +1,4 @@
 import io
-import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
@@ -7,22 +6,19 @@ from flask import Flask, request
 
 import util
 from nn import nn_lr
-from proxy import logact
 from values import values_h
 
 nn = nn_lr.get_nn ()
 v = values_h.get_values ()
 
-logging.basicConfig (level=logging.INFO, filename='log/n' + str (v ['id']) + '.log', filemode='w',
-	format='%(message)s')
-
-nn_lr.set_train_data_batch (v ['batch_size'], v ['round'], v ['start_index'], v ['end_index'])
+util.set_log (str (v ['id']))
 nn_lr.set_train_lr (v ['learning_rate'])
+nn_lr.set_train_data_batch (v ['batch_size'], v ['round'], v ['start_index'], v ['end_index'])
 
-lock = threading.Lock ()
-app = Flask (__name__)
-executor = ThreadPoolExecutor (1)
 write = io.BytesIO ()
+app = Flask (__name__)
+lock = threading.Lock ()
+executor = ThreadPoolExecutor (1)
 
 
 # 聚合
@@ -108,7 +104,7 @@ def async_combine_weight (layer_index):
 	util.assignment (nn ['assign_list'], avg_weight, nn ['sess'])
 	v ['current_round'] [layer_index] += 1
 	# 测试一下效果，写日志，清缓存
-	logging.info ('Aggregate: layer={}, round={}, sync={}, accuracy={}'.format (
+	util.log ('Aggregate: layer={}, round={}, sync={}, accuracy={}'.format (
 		v ['layer'] [layer_index], v ['current_round'] [layer_index], v ['sync'] [layer_index],
 		nn ['sess'].run (nn ['accuracy'], feed_dict={nn ['xs']: nn ['test_x'], nn ['ys']: nn ['test_y']})))
 
@@ -176,7 +172,7 @@ def on_route_train (received_w, is_file=0):
 
 	# 训练的时候肯定是作为最底层的节点
 	v ['current_round'] [0] += 1
-	logging.info ('Train: round={}:loss={}'.format (v ['current_round'] [0], final_loss))
+	util.log ('Train: round={}:loss={}'.format (v ['current_round'] [0], final_loss))
 
 	latest_weights = nn ['sess'].run (nn ['weights'])
 	send_self = util.send_weight_up_combine (write, latest_weights, v ['up_addr'] [0])
