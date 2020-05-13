@@ -12,8 +12,7 @@ def mn_test(topo_g):
     net = Containernet(controller=Controller)
     net.addController("c0")
     name2ip = {"n1": "10.0.0.1", "n2": "10.0.0.2"}
-    docker_info = {"dimage": "ubuntu:trusty"}
-    topo_g.build(net, name2ip, docker_info)
+    topo_g.build(net, name2ip)
     net.start()
     CLI(net)
     net.stop()
@@ -21,8 +20,12 @@ def mn_test(topo_g):
 
 if __name__ == '__main__':
     g = TopoGraph()
-    g.connect('n1', TYPE_HOST, 's1', TYPE_SW, None)
-    g.connect('n2', TYPE_HOST, 's1', TYPE_SW, None)
+    docker_info = {"dimage": "ubuntu:trusty"}
+    g.add_node('n1', TYPE_HOST, docker_info)
+    g.add_node('n2', TYPE_HOST, docker_info)
+    g.add_node('s1', TYPE_SW)
+    g.connect('n1', 's1', None)
+    g.connect('n2', 's1', None)
     json_str = g.to_json()
     g_tmp = TopoGraph()
     g_tmp.from_json(json_str)
