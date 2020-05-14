@@ -8,7 +8,10 @@ from graph import *
 
 def get_info(ele):
     if isinstance(ele, Node):
-        return json.dumps(get_host_info(ele))
+        if ele.type == TYPE_SW:
+            return json.dumps({})
+        else:
+            return json.dumps(get_host_info(ele))
     elif isinstance(ele, Edge):
         return json.dumps(get_link_info(ele))
     else:
@@ -20,7 +23,7 @@ def get_host_info(host_node):
     if host_node.type == TYPE_HOST:
         node_info['type'] = 'host'
         node_info['cpu'] = host_node.get_cpu_limit()
-        node_info['memory'] = host_node.get_memory_limit()
+        node_info['memory'] = host_node.get_mem_limit()
     elif host_node.type == TYPE_SW:
         node_info['type'] = 'switch'
     else:
@@ -30,6 +33,7 @@ def get_host_info(host_node):
 
 def get_link_info(link_edge):
     edge_info = {'edge_id': link_edge.edge_id, 'delay': link_edge.get_delay(), 'bw': link_edge.get_bw()}
+    return edge_info
 
 
 class TopoGraph(JSONable):
@@ -70,16 +74,16 @@ class TopoGraph(JSONable):
         src_node = self._node_list.get(src_node_name)
         # BFS to find the shortest path
         visited = {src_node_name}
-        queue = deque([(src_node_name, src_node.get_neighbor_edge())])
+        queue = deque([(src_node_name, src_node.get_neighbors())])
         tree = {}
         while queue:
             parent, children = queue.pop()
             next_children = []
-            for child, edge in children:
-                if child not in visited:
-                    next_children.append(child)
-                    visited.add(child)
-                    queue.append((child, child.get_neighbor_edge))
+            for child_name in children:
+                if child_name not in visited:
+                    next_children.append(child_name)
+                    visited.add(child_name)
+                    queue.append((child_name, self._node_list[child_name].get_neighbors()))
             if next_children:
                 tree[parent] = next_children
 
@@ -113,15 +117,16 @@ class TopoGraph(JSONable):
                 else:
                     return True
 
-        pruned_tree = dfs(tree, src_node_name, [dst_node_name])
+        pruned_tree = tree.copy()
+        dfs(pruned_tree, src_node_name, [dst_node_name])
 
         # Fill the route_path with the information of nodes and links
         route_path = []
         cur_name = src_node_name
         route_path.append(self._node_list[cur_name])
         while cur_name in pruned_tree:
-            next_name = pruned_tree[src_node_name]
-            route_path.append(src_node.get_edge_by_neighbor(next_name))
+            next_name = pruned_tree[cur_name][0]
+            route_path.append(self._node_list[cur_name].get_edge_by_neighbor(next_name))
             route_path.append(self._node_list[next_name])
             cur_name = next_name
 
@@ -167,7 +172,7 @@ class TopoGraph(JSONable):
 
     def build_edges(self, net, node_name2node):
         for node in self._node_list.values():
-            for edge in node.out_edges.values():
+            for edge in node.edges.values():
                 src = edge.src_node_name
                 dst = edge.dst_node_name
                 if src == node.name:  # Only when the edge is started from `node`, the edge will be added to net.
@@ -181,7 +186,7 @@ class Node(JSONable):
         self.name = sw_name
         self.type = node_type
         self.edges = {}
-        self.docker_info = docker_info
+        self.docker_info = merge_info({}, docker_info)
         self._neighbor_name_to_edge_id = {}
         self._neighbors = []
 
@@ -190,7 +195,7 @@ class Node(JSONable):
 
     def get_neighbors(self):
         if not self._neighbors:
-            for edge in self.edges:
+            for id, edge in self.edges.items():
                 if edge.dst_node_name != self.name:
                     self._neighbors.append(edge.dst_node_name)
                 else:
@@ -199,7 +204,7 @@ class Node(JSONable):
         return self._neighbors
 
     def _init_neighbor_name_to_edge_id(self):
-        for edge in self.edges:
+        for edge in self.edges.values():
             if edge.dst_node_name != self.name:
                 self._neighbor_name_to_edge_id[edge.dst_node_name] = edge
             else:
@@ -209,13 +214,13 @@ class Node(JSONable):
         if not self._neighbor_name_to_edge_id:
             # Lazy initialization
             self._init_neighbor_name_to_edge_id()
-        return self._neighbor_name_to_edge_id.get(neighbor_name, default=None)
+        return self._neighbor_name_to_edge_id.get(neighbor_name, None)
 
     def get_cpu_limit(self):
-        return self.docker_info.get('cpu_quota', default=-1)
+        return self.docker_info.get('cpu_quota', -1)
 
     def get_mem_limit(self):
-        return self.docker_info.get('mem_limit', default=None)
+        return self.docker_info.get('mem_limit', None)
 
     def to_json(self):
         json_obj = {'name': self.name, 'type': self.type, 'edges': {}}
@@ -240,7 +245,7 @@ class Edge(JSONable):
         self.edge_id = uuid.uuid4().__str__()
         self.src_node_name = src_node_name
         self.dst_node_name = dst_node_name
-        self.link_attributes = link_attributes
+        self.link_attributes = merge_info({}, link_attributes)
 
     def get_bw(self):
         return float(self.link_attributes.get('bw', float('Inf')))
@@ -286,16 +291,16 @@ class RandomAttributesGenerator:
         return rnd_values[index]
 
 
-def random_graph(host_num, switch_num, docker_info):
+def random_graph(host_num, switch_num, docker_info=None):
     attr_generator = RandomAttributesGenerator(optional_random_bandwidths, optional_random_delays,
                                                optional_cpu_quotas, optional_mem_limits)
     graph, sw_names = tree_graph(switch_num, attr_generator)
     host_names = []
     for i in range(host_num):
-        host_names[i] = "h%s" % (i+1)
+        host_names.append("h%s" % (i+1))
         sw_to_connect = random.randint(0, switch_num-1)
         graph.add_node(host_names[i], TYPE_HOST,
-                       merge_docker_info(attr_generator.get_random_host_resources(), docker_info))
+                       merge_info(attr_generator.get_random_host_resources(), docker_info))
         link_attributes = attr_generator.get_random_link_attribute()
         graph.connect(host_names[i], sw_names[sw_to_connect], link_attributes)
     return graph, host_names
@@ -306,11 +311,11 @@ def tree_graph(switch_num, attr_generator):
 
     sw_names = []
     for i in range(switch_num):
-        sw_names[i] = "s%s" % (i+1)
+        sw_names.append("s%s" % (i+1))
         tgraph.add_node(sw_names[i], TYPE_SW)
 
     for i in reversed(range(switch_num)):
-        src_index = (i-1) / 2
+        src_index = int((i-1) / 2)
         src_name = sw_names[src_index]
         dst_name = sw_names[i]
         link_attributes = attr_generator.get_random_link_attribute()
@@ -318,7 +323,14 @@ def tree_graph(switch_num, attr_generator):
     return tgraph, sw_names
 
 
-def merge_docker_info(info1, info2):
+def merge_info(info1, info2):
+    if not info1 and not info2:
+        return {}
+    elif not info1:
+        return info2
+    elif not info2:
+        return info1
+
     info = info1.copy()
     for key, value in info2.items():
         info1[key] = value

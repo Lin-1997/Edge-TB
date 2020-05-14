@@ -4,7 +4,7 @@ from mininet.cli import CLI
 from mininet.net import Containernet
 from mininet.node import Controller
 
-from graph.topograph import TopoGraph
+from graph.topograph import TopoGraph, random_graph
 from graph import TYPE_HOST, TYPE_SW
 
 
@@ -31,4 +31,8 @@ if __name__ == '__main__':
     g_tmp.from_json(json_str)
     print("g_tmp")
     print(g_tmp.to_json())
-    mn_test(g)
+    print(g_tmp.route_path('n1', 'n2'))
+    rg, host_names = random_graph(10, 6)
+    print(rg.to_json())
+    print(rg.route_path(host_names[0], host_names[3]))
+    #mn_test(g)
