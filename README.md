@@ -6,11 +6,11 @@
 ###待完成部分
 - 全连接裁剪 成init网络 CPU 内存
 - init网络输入he.py，输入gan.py 输出.env
-containernet.py load .env = done
 ###安装说明
+0. Linux required
 0. Install docker >= v19.03
-0. Install docker-compose >= v1.25 (docker-compose启动)   
-0. Bare-metal install Containernet >= master branch 7ad907e (ContainerNet启动)
+0. Install docker-compose >= v1.25 (docker-compose启动，仅测试代码，不能指定节点资源，网络资源)   
+0. Bare-metal install Containernet >= master branch 7ad907e (ContainerNet启动，Testbed，能指定节点资源，网络资源，推荐使用)
 0. ```bash setup.sh```
 0. Wait and have a coffee
 ###docker-compose启动说明
