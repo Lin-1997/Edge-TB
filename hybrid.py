@@ -12,8 +12,9 @@ nn = nn_lr.get_nn ()
 v = values_h.get_values ()
 
 util.set_log (str (v ['id']))
-nn_lr.set_train_lr (v ['learning_rate'])
-nn_lr.set_train_data_batch (v ['batch_size'], v ['round'], v ['start_index'], v ['end_index'])
+if 'learning_rate' in v:
+	nn_lr.set_train_lr (v ['learning_rate'])
+	nn_lr.set_train_data_batch (v ['batch_size'], v ['round'], v ['start_index'], v ['end_index'])
 
 write = io.BytesIO ()
 app = Flask (__name__)
@@ -37,7 +38,7 @@ def start ():
 
 	# 从0来，证明自己是FL的根节点，往下随机发，send_weight_down_to_train
 	elif from_layer == 0:
-		i_random = util.index_random (v ['down_count'] [0], v ['fraction'])
+		i_random = util.index_random (v ['down_count'] [0], v ['worker_fraction'])
 		util.send_weight_down_train (write, initial_weights, i_random, v ['down_addr'] [0])
 		return 'start FL\n'
 
@@ -91,8 +92,8 @@ def on_route_combine (w, from_layer):
 	v ['received_count'] [layer_index] += 1
 	lock.release ()
 
-	# 在EL中要确保v ['fraction'] = 1
-	if v ['received_count'] [layer_index] == int (v ['down_count'] [layer_index] * v ['fraction']):
+	# 在EL中要确保v ['worker_fraction'] = 1
+	if v ['received_count'] [layer_index] == int (v ['down_count'] [layer_index] * v ['worker_fraction']):
 		executor.submit (async_combine_weight, layer_index)
 
 
@@ -148,7 +149,7 @@ def async_combine_weight (layer_index):
 
 		# 没训练完
 		else:
-			i_random = util.index_random (v ['down_count'] [0], v ['fraction'])
+			i_random = util.index_random (v ['down_count'] [0], v ['worker_fraction'])
 			util.send_weight_down_train (write, avg_weight, i_random, v ['down_addr'] [0])
 
 

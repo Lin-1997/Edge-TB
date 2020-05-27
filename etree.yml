@@ -10,4 +10,4 @@ services:
       FROMYML: 1
     stdin_open: true
     tty: true
-    command: ["python", "hybrid.py"]
+    command: ["python3", "hybrid.py"]

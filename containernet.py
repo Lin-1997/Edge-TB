@@ -13,13 +13,13 @@ net = Containernet (controller=Controller)
 info ('*** Adding controller\n')
 net.addController ('c0')
 info ('*** Adding docker containers\n')
-n1 = net.addDocker ('n1', ip='10.0.0.1', dimage="etree", dcmd="python hybrid.py",
+n1 = net.addDocker ('n1', ip='10.0.0.1', dimage="etree", dcmd="python3 hybrid.py",
 	volumes=[from_path + to_path], ports=[8888], port_bindings={8888: 8888})
-n2 = net.addDocker ('n2', ip='10.0.0.2', dimage="etree", dcmd="python hybrid.py",
+n2 = net.addDocker ('n2', ip='10.0.0.2', dimage="etree", dcmd="python3 hybrid.py",
 	volumes=[from_path + to_path])
-n3 = net.addDocker ('n3', ip='10.0.0.3', dimage="etree", dcmd="python hybrid.py",
+n3 = net.addDocker ('n3', ip='10.0.0.3', dimage="etree", dcmd="python3 hybrid.py",
 	volumes=[from_path + to_path])
-n4 = net.addDocker ('n4', ip='10.0.0.4', dimage="etree", dcmd="python hybrid.py",
+n4 = net.addDocker ('n4', ip='10.0.0.4', dimage="etree", dcmd="python3 hybrid.py",
 	volumes=[from_path + to_path])
 info ('*** Adding switches\n')
 s1 = net.addSwitch ('s1')
