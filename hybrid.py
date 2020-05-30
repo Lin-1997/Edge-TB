@@ -99,7 +99,7 @@ def on_route_combine (w, from_layer):
 
 # 聚合
 def async_combine_weight (layer_index):
-	avg_weight = util.calculate_avg_weight (v ['received_weight'], v ['received_count'])
+	avg_weight = util.calculate_avg_weight (v ['received_weight'] [layer_index], v ['received_count'] [layer_index])
 	v ['received_weight'] [layer_index].clear ()
 	v ['received_count'] [layer_index] = 0
 	util.assignment (nn ['assign_list'], avg_weight, nn ['sess'])

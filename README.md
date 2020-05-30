@@ -21,7 +21,8 @@
     0. 务必将节点1作为最上层的节点
 0. ```docker-compose -f run.yml &```
 0. 等到显示N个Serving Flask app "hybrid" (lazy loading)
-0. ```curl localhost:8888/start```
+0. EL->```curl localhost:8888/start```
+0. FL->```curl localhost:8888/start?layer=0```
 0. 显示training ended后可在.log/查看训练情况
 ### Containernet启动说明
 0. 如果要自定义网络
@@ -29,5 +30,6 @@
     0. 在./env中编写1.env~n.env，格式说明参见./env/README.md
     0. 务必将节点1作为最上层的节点
 0. ```sudo python3 containernet.py``` 
-0. 换一个控制台```curl localhost:8888/start```
-0. (这东西似乎没有任何输出，不知道什么时候才算训练完)，自己看.log/查看训练情况
+0. EL->换一个控制台```curl localhost:8888/start```
+0. FL->换一个控制台```curl localhost:8888/start?layer=0```
+0. (在containernet中 print() 不会显示出来，不知道什么时候才算训练完)，自己看.log/查看训练情况

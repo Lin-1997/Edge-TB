@@ -46,7 +46,7 @@ def parse_received_weight (new_w):
 def calculate_avg_weight (received_w, received_count):
 	# 先存下第0个worker的参数|W|，顺便初始化格式
 	total_w = received_w [0]
-	for w_index in range (1, len (received_w)):
+	for w_index in range (1, received_count):
 		tmp_w = []
 		# 依次取出从1开始的worker的参数|W|
 		w = received_w [w_index]
