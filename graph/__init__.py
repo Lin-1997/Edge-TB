@@ -10,7 +10,8 @@ TYPE_SW = 1
 TYPE_HOST = 2
 TYPE_PH = 0
 
+min_quota = 10000  # 10ms
 optional_random_bandwidths = [1, 10, 100, 1000]
 optional_random_delays = ["0ms", "10ms", "100ms", "200ms"]
-optional_cpu_quotas = [1, 2, 3, 4]
+optional_cpu_weights = [1, 2, 3, 4]
 optional_mem_limits = ["1G", "2G", "4G"]

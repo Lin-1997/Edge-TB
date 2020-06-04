@@ -39,11 +39,15 @@ def get_link_info(link_edge):
 class TopoGraph(JSONable):
     def __init__(self):
         self._node_list = {}
+        self._docker_host_list = {}
+        self._cpu_percentage_is_set = False
 
     def add_node(self, name, node_type, docker_info=None):
         if name not in self._node_list:
             if node_type == TYPE_HOST:
+                self._cpu_percentage_is_set = False
                 self._node_list[name] = Node(name, node_type, docker_info)
+                self._docker_host_list[name] = self._node_list[name]
             else:
                 self._node_list[name] = Node(name, node_type, None)
 
@@ -65,6 +69,9 @@ class TopoGraph(JSONable):
         :param dst_node_name: the name of the destination node.
         :return: a JSON array string, the sequence in the array is the sequence of the links and nodes in the path.
         """
+        if not self._cpu_percentage_is_set:  # In case that the cpu percentage is not precise.
+            self.cal_cpu_percentage()
+
         if src_node_name not in self._node_list:
             # log error
             return []
@@ -145,6 +152,8 @@ class TopoGraph(JSONable):
             node = Node()
             node.from_json(value)
             self._node_list[key] = node
+            if node.type == TYPE_HOST:
+                self._docker_host_list[key] = node
 
     def build(self, net, name2ip):
         """
@@ -158,6 +167,9 @@ class TopoGraph(JSONable):
 
     def build_nodes(self, net, name2ip):
         net_node_list = {}
+        if not self._cpu_percentage_is_set:
+            self.cal_cpu_percentage()
+
         for node_name, node in self._node_list.items():
             if node.type == TYPE_HOST:
                 host = net.addDocker(node_name, ip=name2ip[node_name], **node.docker_info)
@@ -180,13 +192,33 @@ class TopoGraph(JSONable):
                     dst_node = node_name2node[dst]
                     net.addLink(src_node, dst_node, **edge.link_attributes)
 
+    def cal_cpu_percentage(self):
+        weight_sum = 0
+        for n in self._docker_host_list.values():
+            w = n.cpu_weight
+            weight_sum += w
+
+        period = weight_sum * min_quota
+        for n in self._docker_host_list.values():
+            n.docker_info['cpu_period'] = period
+            n.docker_info['cpu_quota'] = min_quota * n.cpu_weight
+
+        self._cpu_percentage_is_set = True
+
+    def get_host_names(self):
+        return [host.name for host in self._docker_host_list.values()]
+
 
 class Node(JSONable):
-    def __init__(self, sw_name=None, node_type=TYPE_PH, docker_info=None):
-        self.name = sw_name
+    def __init__(self, name=None, node_type=TYPE_PH, docker_info=None):
+        self.name = name
         self.type = node_type
         self.edges = {}
         self.docker_info = merge_info({}, docker_info)
+        if 'cpu_weight' in self.docker_info:
+            self.cpu_weight = self.docker_info.pop('cpu_weight')
+        else:
+            self.cpu_weight = 1
         self._neighbor_name_to_edge_id = {}
         self._neighbors = []
 
@@ -217,13 +249,20 @@ class Node(JSONable):
         return self._neighbor_name_to_edge_id.get(neighbor_name, None)
 
     def get_cpu_limit(self):
-        return self.docker_info.get('cpu_quota', -1)
+        period = self.docker_info.get('cpu_period', 1)
+        quota = self.docker_info.get('cpu_quota', 1)
+        return quota / period
 
     def get_mem_limit(self):
         return self.docker_info.get('mem_limit', None)
 
     def to_json(self):
-        json_obj = {'name': self.name, 'type': self.type, 'edges': {}}
+        json_obj = {'name': self.name, 'type': self.type, 'edges': {},
+                    # 'cpu_period': self.docker_info.get('cpu_period', -1),
+                    # 'cpu_quota': self.docker_info.get('cpu_quota', -1),
+                    'mem_limit': self.docker_info.get('mem_limit', '-1')}
+        if self.cpu_weight:
+            json_obj['cpu_weight'] = self.cpu_weight
         for key, value in self.edges.items():
             json_obj['edges'][key] = value.to_json()
         return json.dumps(json_obj)
@@ -232,6 +271,22 @@ class Node(JSONable):
         json_obj = json.loads(json_str)
         self.name = json_obj['name']
         self.type = json_obj['type']
+        self.cpu_weight = json_obj.get('cpu_weight', 1)
+
+        '''
+        if json_obj['cpu_period'] is not -1:
+            if not self.docker_info['cpu_period']:
+                self.docker_info['cpu_period'] = json_obj['cpu_period']
+
+        if json_obj['cpu_quota'] is not -1:
+            if not self.docker_info['cpu_quota']:
+                self.docker_info['cpu_quota'] = json_obj['cpu_quota']
+        '''
+
+        if json_obj['mem_limit'] is not '-1':
+            if 'mem_limit' in self.docker_info:
+                self.docker_info['mem_limit'] = json_obj['mem_limit']
+
         for key, value in json_obj['edges'].items():
             link = Edge()
             link.from_json(value)
@@ -282,7 +337,7 @@ class RandomAttributesGenerator:
     def get_random_host_resources(self):
         rnd_cpu = RandomAttributesGenerator.random_in(self.optional_cpu)
         rnd_mem = RandomAttributesGenerator.random_in(self.optional_mem)
-        return {"cpu_quota": rnd_cpu, "mem_limit": rnd_mem}
+        return {"cpu_weight": rnd_cpu, "mem_limit": rnd_mem}
 
     @staticmethod
     def random_in(rnd_values):
@@ -293,17 +348,27 @@ class RandomAttributesGenerator:
 
 def random_graph(host_num, switch_num, docker_info=None):
     attr_generator = RandomAttributesGenerator(optional_random_bandwidths, optional_random_delays,
-                                               optional_cpu_quotas, optional_mem_limits)
+                                               optional_cpu_weights, optional_mem_limits)
     graph, sw_names = tree_graph(switch_num, attr_generator)
     host_names = []
     for i in range(host_num):
-        host_names.append("h%s" % (i+1))
+        host_names.append("host%s" % (i+1))
         sw_to_connect = random.randint(0, switch_num-1)
         graph.add_node(host_names[i], TYPE_HOST,
                        merge_info(attr_generator.get_random_host_resources(), docker_info))
         link_attributes = attr_generator.get_random_link_attribute()
         graph.connect(host_names[i], sw_names[sw_to_connect], link_attributes)
     return graph, host_names
+
+
+def generate_ip_for_hosts(host_names):
+    import ipaddress
+    start_ip = int(ipaddress.IPv4Address('10.0.0.1'))
+    num_host = len(host_names)
+    host_name_to_ip = {}
+    for i in range(num_host):
+        host_name_to_ip[host_names[i]] = str(ipaddress.IPv4Address(start_ip+i))
+    return host_name_to_ip
 
 
 def tree_graph(switch_num, attr_generator):
@@ -314,11 +379,12 @@ def tree_graph(switch_num, attr_generator):
         sw_names.append("s%s" % (i+1))
         tgraph.add_node(sw_names[i], TYPE_SW)
 
-    for i in reversed(range(switch_num)):
+    for i in reversed(range(1, switch_num)):
         src_index = int((i-1) / 2)
         src_name = sw_names[src_index]
         dst_name = sw_names[i]
         link_attributes = attr_generator.get_random_link_attribute()
+        print("src: %s, dst: %s" % (src_name, dst_name))
         tgraph.connect(src_name, dst_name, link_attributes)
     return tgraph, sw_names
 
@@ -333,5 +399,5 @@ def merge_info(info1, info2):
 
     info = info1.copy()
     for key, value in info2.items():
-        info1[key] = value
+        info[key] = value
     return info
