@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:1.15.0-gpu-py3
+FROM tensorflow/tensorflow:1.15.0-py3
 WORKDIR /home/ETree
 COPY ./requirements.txt /home/ETree
 RUN apt install net-tools iproute2 iputils-ping -y

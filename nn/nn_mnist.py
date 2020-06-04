@@ -8,6 +8,7 @@ nn = {}
 assign_list = []
 
 test_data_dir = "/home/se-lab/Desktop/Data/EdgeAI/mnist/test_data/"
+# 下面还有个train_data_dir也要改
 test_x = np.load (test_data_dir + "test_images.npy")
 test_y = np.load (test_data_dir + "test_labels.npy")
 

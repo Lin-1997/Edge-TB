@@ -4,14 +4,13 @@
 - docker-compose
 - ContainerNet
 ### 待完成部分
-- 全连接裁剪 成init网络 CPU 内存
-- init网络输入he.py，输入gan.py 输出.env
+- ??
 ### 安装说明
 0. Linux required
 0. Install docker >= v19.03
 0. Install docker-compose >= v1.25 (docker-compose启动，仅测试代码，不能指定节点资源，网络资源)   
 0. Bare-metal install Containernet >= master branch 7ad907e (ContainerNet启动，Testbed，能指定节点资源，网络资源，推荐使用)
-0. ```bash setup.sh```
+0. ```sudo bash setup.sh```
 0. Wait and have a coffee
 ### docker-compose启动说明
 0. 如果要自定义网络
@@ -33,3 +32,5 @@
 0. EL->换一个控制台```curl localhost:8888/start```
 0. FL->换一个控制台```curl localhost:8888/start?layer=0```
 0. (在containernet中 print() 不会显示出来，不知道什么时候才算训练完)，自己看.log/查看训练情况
+### 关于数据集
+如果要用minst或者cifar数据集，请自行下载到etree目录下，然后修改nn/nn_minst或者nn/nn_cifar中涉及到数据集地址的代码，留意不要把数据集commit到git上
