@@ -104,5 +104,19 @@ optional_mem_limits = ["1G", "2G", "4G"]
     g_tmp = TopoGraph()
     g_tmp.from_json(g_json)
 ```
+
+## 获取两个docker hosts之间的链路信息
+调用TopoGraph的实例方法`route_path(src_node_name, dst_node_name)`
+- src_node_name: 源节点名称。
+- dst_node_name: 终节点名称。
+返回值：
+- 从src_node 到dst_node 的路由路径上所有docker host节点信息（包括CPU和内存信息）以及经过的链路的信息（包括带宽和延迟）。
+    - 注：docker host节点信息中，CPU资源的表示情况以可占用物理机CPU资源的最大百分比呈现。
+
+## 获取TopoGraph中所有docker hosts的资源情况
+调用TopoGraph的实例方法`get_host_res_info()`
+
+返回值：所有docker host的CPU和内存信息，以dict的列表形式返回，包括三个重要字段：name、cpu、memory。
 # 结语
-比较推荐使用`random_graph`函数来快速创建TopoGraph。每次`random_graph`函数都会重新生成新的TopoGraph。若想要重新利用上次实验所使用的TopoGraph，可以把TopoGraph转换成json格式的字符串并将该字符串保存到文件中，下次启动的时候把json字符串从文件中读取然后调用`from_json`函数。
+比较推荐使用`random_graph`函数来快速创建TopoGraph。每次`random_graph`函数都会重新生成新的TopoGraph。
+若想要重新利用上次实验所使用的TopoGraph，可以把TopoGraph转换成json格式的字符串并将该字符串保存到文件中，下次启动的时候把json字符串从文件中读取然后调用`from_json`函数。

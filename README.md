@@ -34,3 +34,5 @@
 0. (在containernet中 print() 不会显示出来，不知道什么时候才算训练完)，自己看.log/查看训练情况
 ### 关于数据集
 如果要用minst或者cifar数据集，请自行下载到etree目录下，然后修改nn/nn_minst或者nn/nn_cifar中涉及到数据集地址的代码，留意不要把数据集commit到git上
+### 物理网络拓扑图信息
+详情可参考`./graph/README.md`

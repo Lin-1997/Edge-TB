@@ -208,6 +208,9 @@ class TopoGraph(JSONable):
     def get_host_names(self):
         return [host.name for host in self._docker_host_list.values()]
 
+    def get_host_res_info(self):
+        return [get_host_info(host) for host in self._docker_host_list.values()]
+
 
 class Node(JSONable):
     def __init__(self, name=None, node_type=TYPE_PH, docker_info=None):
