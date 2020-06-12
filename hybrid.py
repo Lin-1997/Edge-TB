@@ -116,6 +116,9 @@ def async_combine_weight (layer_index):
 		if v ['current_round'] [layer_index] % v ['sync'] [layer_index] == 0:
 			# 是最高层
 			if v ['up_addr'] [layer_index] == 'top':
+				# 用没有GUI的云服务器下面两句代码会卡死
+				# 用有GUI的设备可以正常使用
+				# 输出训练的accuracy和loss图像
 				# logact ().star3 ()
 				# logact ().star4 ()
 				print ('===================training ended===================')
