@@ -4,21 +4,7 @@
 *三个参数：*
 1. host的数量
 2. switch的数量
-3. 一些其他相关docker参数（除cpu和memory）（以python dict的形式传入）
 
-|   字段   | 类型    |  必选  |
-| --------   | ---------------   | :----: |
-| dimage  | str      |   true    |
-| volumes | list of strs |       |
-| dcmd    | str      |       |
-
-```
-{
-    "dimage": "etree",
-    "dcmd": "python3 hybrid.py",
-    "volumes":["/home/usrname/workspace:/home/ETree"]
-}
-```
 *random_graph的返回值*
 
 1. 一个随机生成的TopoGraph
@@ -80,9 +66,24 @@ optional_mem_limits = ["1G", "2G", "4G"]
 ```
 
 ## 使用TopoGraph建立仿真网络
-可以调用TopoGraph的实例方法`build(net, name_to_ip)`
+可以调用TopoGraph的实例方法`build(net, name_to_ip, docker_info)`
 - net: Containernet的实例。
 - name_to_ip: docker host名称与其ip的映射（python dict）。
+- 一些其他相关docker参数（除cpu和memory）（以python dict的形式传入）。
+
+|   字段   | 类型    |  必选  |
+| --------   | ---------------   | :----: |
+| dimage  | str      |   true    |
+| volumes | list of strs |       |
+| dcmd    | str      |       |
+
+```
+{
+    "dimage": "etree",
+    "dcmd": "python3 hybrid.py",
+    "volumes":["/home/usrname/workspace:/home/ETree"]
+}
+```
 
 以上述例子中的`g`为例
 1. `host_names = g.get_host_names()` 该函数可以获取TopoGraph中所有docker host的名称列表

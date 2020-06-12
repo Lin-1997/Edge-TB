@@ -155,24 +155,28 @@ class TopoGraph(JSONable):
             if node.type == TYPE_HOST:
                 self._docker_host_list[key] = node
 
-    def build(self, net, name2ip):
+    def build(self, net, name2ip, docker_info=None):
         """
         Build the mininet according to the topology graph
         :param net: the object of mininet
         :param name2ip: the mapping of node name and ip (except the switches)
         :return:
         """
-        net_nodes = self.build_nodes(net, name2ip)
-        self.build_edges(net, net_nodes)
+        if docker_info and "dimage" in docker_info:
+            net_nodes = self.build_nodes(net, name2ip, docker_info)
+            self.build_edges(net, net_nodes)
+        else:
+            print("Error: \'dimage\' is needed in docker_info.")
 
-    def build_nodes(self, net, name2ip):
+    def build_nodes(self, net, name2ip, docker_info):
         net_node_list = {}
         if not self._cpu_percentage_is_set:
             self.cal_cpu_percentage()
 
         for node_name, node in self._node_list.items():
             if node.type == TYPE_HOST:
-                host = net.addDocker(node_name, ip=name2ip[node_name], **node.docker_info)
+                host = net.addDocker(node_name, ip=name2ip[node_name],
+                                     **merge_info(node.docker_info, docker_info))
                 net_node_list[node_name] = host
             elif node.type == TYPE_SW:
                 sw = net.addSwitch(node_name)
@@ -349,7 +353,7 @@ class RandomAttributesGenerator:
         return rnd_values[index]
 
 
-def random_graph(host_num, switch_num, docker_info=None):
+def random_graph(host_num, switch_num):
     attr_generator = RandomAttributesGenerator(optional_random_bandwidths, optional_random_delays,
                                                optional_cpu_weights, optional_mem_limits)
     graph, sw_names = tree_graph(switch_num, attr_generator)
@@ -358,7 +362,7 @@ def random_graph(host_num, switch_num, docker_info=None):
         host_names.append("host%s" % (i+1))
         sw_to_connect = random.randint(0, switch_num-1)
         graph.add_node(host_names[i], TYPE_HOST,
-                       merge_info(attr_generator.get_random_host_resources(), docker_info))
+                       attr_generator.get_random_host_resources())
         link_attributes = attr_generator.get_random_link_attribute()
         graph.connect(host_names[i], sw_names[sw_to_connect], link_attributes)
     return graph, host_names

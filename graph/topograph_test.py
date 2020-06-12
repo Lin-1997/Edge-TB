@@ -8,11 +8,11 @@ from graph.topograph import TopoGraph, random_graph, generate_ip_for_hosts
 from graph import TYPE_HOST, TYPE_SW
 
 
-def mn_test(topo_g):
+def mn_test(topo_g, docker_info_tmp):
     net = Containernet(controller=Controller)
     net.addController("c0")
     name2ip = generate_ip_for_hosts(topo_g.get_host_names())
-    topo_g.build(net, name2ip)
+    topo_g.build(net, name2ip, docker_info_tmp)
     net.start()
     CLI(net)
     net.stop()
@@ -32,8 +32,8 @@ if __name__ == '__main__':
     print("g_tmp")
     print(g_tmp.to_json())
     print(g_tmp.route_path('n1', 'n2'))
-    rg, host_names = random_graph(10, 6, docker_info)
+    rg, host_names = random_graph(10, 6)
     print(rg.to_json())
     print(rg.route_path(host_names[0], host_names[3]))
     print(generate_ip_for_hosts(host_names))
-    mn_test(rg)
+    mn_test(rg, docker_info)
