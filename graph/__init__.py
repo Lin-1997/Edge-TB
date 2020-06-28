@@ -1,9 +1,9 @@
 class JSONable:
-    def to_json(self):
-        pass
+	def to_json (self):
+		pass
 
-    def from_json(self, json_str):
-        pass
+	def from_json (self, json_str):
+		pass
 
 
 TYPE_SW = 1

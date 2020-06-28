@@ -1,1 +1,1 @@
-docker build -t etree .
+docker build -t etree:v1.0 .

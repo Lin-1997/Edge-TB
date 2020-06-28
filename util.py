@@ -6,9 +6,8 @@ import requests
 import tensorflow as tf
 
 
-def set_log (node_id):
-	logging.basicConfig (level=logging.INFO, filename='log/n' + node_id + '.log', filemode='w',
-		format='%(message)s')
+def set_log (hostname):
+	logging.basicConfig (level=logging.INFO, filename='log/' + hostname + '.log', filemode='w', format='%(message)s')
 
 
 def log (message):

@@ -5,9 +5,7 @@ services:
     expose:
       - "8888"
     volumes:
-      - ./:/home/ETree
-    environment:
-      FROMYML: 1
+      - ./:/home/etree
     stdin_open: true
     tty: true
     command: ["python3", "hybrid.py"]

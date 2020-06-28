@@ -2,10 +2,6 @@
 ![网络结构](../default_network.png)
 
 #### env文件说明
-- id，要和该env的名字一致  
-```"id": 1```
-- 端口号，统一8888  
-```"port": 8888```
 - 类型，0: EL，1: FL  
 ```"type": 0```
 - 同时处于多少层  
@@ -19,22 +15,19 @@
 - 节点位于每层的上层节点地址  
 ```"up_addr": ["self","self","top"]```  
 当节点同时处于多层，且上层节点仍为自己时，用self代替完全的地址  
-当节点处于最顶层时，该层up_addr置为top
+当节点处于最顶层时，该层up_addr置为top  
+其他情况和down_addr类似
 - 节点位于每层的下层节点数量  
 ```"down_count": [0,2,2]```  
 当节点处于最底层为训练节点时，该层的down_count置为0  
 - 节点位于每层的下层节点地址  
-```"down_addr": [[],["self","http://10.0.0.2:8888"],["self","http://10.0.0.3:8888"]]```  
-```"down_addr_host": [[],["self","http://n2:8888"],["self","http://n3:8888"]]```  
-当节点仅仅处于最底层时可以不写down_addr和down_addr_host  
-当节点同时处于最底层和其他层时，最底层要留一个空的[ ]，如上  
-当节点同时处于多层，且下层节包含自己时，用self代替完全的地址，如上  
-当节点只处于一层时，也要用[[ ]]，如下  
-```"down_addr": [["self","http://10.0.0.2:8888"]]```  
-```"down_addr_host": [["self","http://n2:8888"]]```  
-down_addr是containernet用的，down_addr_host是docker-compose用的  
-区别在于一个是containernet.py里面的ip，一个是run.yml里面的HOSTNAME  
-可以只写使用到的一种
+```"down_addr": [[],["self","http://s-etree:8888"],["self","http://s-etree:8888"]]```  
+s-etree是k8s中自定义的service的名字，并不固定  
+当节点仅仅处于最底层时可以不写down_addr  
+当节点同时处于最底层和其他层时，最底层要留一个空的[ ]  
+当节点同时处于多层，且下层节包含自己时，用self代替完全的地址  
+当节点只处于一层时，也要用[[ ]]  
+```"down_addr": [["self","http://s-etree:8888"]]```  
 - EL中每层的同步频率  
 ```"sync": [0,2,10]```  
 当节点处于最底层为训练节点时，该层的sync置为0  

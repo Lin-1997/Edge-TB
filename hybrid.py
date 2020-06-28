@@ -1,17 +1,18 @@
 import io
+import os
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
 from flask import Flask, request
 
 import util
-from nn import nn_lr
+from nns import nn_lr
 from values import values_h
 
-nn = nn_lr.get_nn ()
+util.set_log (os.getenv ('HOSTNAME'))
 v = values_h.get_values ()
+nn = nn_lr.get_nn ()
 
-util.set_log (str (v ['id']))
 if 'learning_rate' in v:
 	nn_lr.set_train_lr (v ['learning_rate'])
 	nn_lr.set_train_data_batch (v ['batch_size'], v ['round'], v ['start_index'], v ['end_index'])
@@ -22,9 +23,21 @@ lock = threading.Lock ()
 executor = ThreadPoolExecutor (1)
 
 
+@app.route ('/hi', methods=['GET'])
+def route_hi ():
+	return 'This is node ' + os.getenv ('HOSTNAME') + '\n'
+
+
+@app.route ('/update', methods=['GET'])
+def route_update ():
+	global v
+	values_h.update_addr (v)
+	return 'update done\n'
+
+
 # 聚合
 @app.route ('/start', methods=['GET'])
-def start ():
+def route_start ():
 	initial_weights = nn ['sess'].run (nn ['weights'])
 	from_layer = request.args.get ('layer', default=-1, type=int)
 
@@ -42,7 +55,7 @@ def start ():
 		util.send_weight_down_train (write, initial_weights, i_random, v ['down_addr'] [0])
 		return 'start FL\n'
 
-	return 'error \n'
+	return 'error\n'
 
 
 # 聚合
@@ -184,9 +197,4 @@ def on_route_train (received_w, is_file=0):
 		on_route_combine (latest_weights, 1)
 
 
-@app.route ('/hi', methods=['GET'])
-def route_hi ():
-	return 'What\'s up?'
-
-
-app.run (host='0.0.0.0', port=v ['port'], threaded=True)
+app.run (host='0.0.0.0', port=os.getenv ('PORT'), threaded=True)

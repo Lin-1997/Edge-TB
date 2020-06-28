@@ -48,6 +48,7 @@ nn ['sess'] = sess
 def get_nn ():
 	return nn
 
+
 # start_index, end_index are useless in LR
 def set_train_data_batch (bs, r, start_index, end_index):
 	train_data = tf.data.Dataset.from_tensor_slices ((train_x, train_y))

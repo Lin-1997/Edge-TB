@@ -17,7 +17,7 @@ class logFunc ():
 		pass
 
 
-#TODO: log文件变了
+# TODO: log文件变了
 #  不区分parameter_server和work了，因为一个节点可能同时是两种角色
 # logging.basicConfig (level=logging.INFO, filename='log/n' + str (v ['id']) + '.log', filemode='w', format='%(message)s')
 
