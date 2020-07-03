@@ -26,6 +26,11 @@ def get_values ():
 values = read_env ()
 values ['current_round'] = [0] * values ['layer_count']
 
+if values ['unit'] == 'KB':
+	values ['bw'] = values ['bw'] * 1024
+elif values ['unit'] == 'MB':
+	values ['bw'] = values ['bw'] * 1024 * 1024
+
 # 聚合用
 # 每层接收到的参数数量
 values ['received_count'] = [0] * values ['layer_count']

@@ -1,9 +1,13 @@
+import io
 import logging
+import time
 
 import math
 import numpy as np
 import requests
 import tensorflow as tf
+
+write = io.BytesIO ()
 
 
 def set_log (hostname):
@@ -12,6 +16,22 @@ def set_log (hostname):
 
 def log (message):
 	logging.info (message)
+
+
+def calculate_size (w):
+	np.save (write, w)
+	write.seek (0)
+	size = len (write.read ())
+	write.seek (0)
+	write.truncate ()
+	return size
+
+
+def simulate_sleep (size, bw):
+	t = float (format (size / bw, '.1f'))
+	if t > 0.2:
+		log ('sleep {}s'.format (t))
+		time.sleep (t)
 
 
 def add_layer (assign_list, inputs, in_size, out_size, activation_function=None):
@@ -71,10 +91,10 @@ def assignment (assign_list, w, sess):
 		weight_placeholder_start_index += 1
 
 
-def send_weight_down_replace (write, w, addr_list, layer, is_file=0):
+def send_weight_down_replace (w, addr_list, layer, is_binary=0):
 	self = 0
 	# w为file
-	if is_file == 1:
+	if is_binary == 1:
 		for addr in addr_list:
 			# 需要发给自己
 			if addr == 'self':
@@ -88,7 +108,7 @@ def send_weight_down_replace (write, w, addr_list, layer, is_file=0):
 
 	# w不为file，用write
 	else:
-		np.save (write, w, allow_pickle=True)
+		np.save (write, w)
 		write.seek (0)
 		for addr in addr_list:
 			if addr == 'self':
@@ -102,9 +122,9 @@ def send_weight_down_replace (write, w, addr_list, layer, is_file=0):
 		return self
 
 
-def send_weight_down_train (write, w, selected_index, addr_list, is_file=0):
+def send_weight_down_train (w, selected_index, addr_list, is_binary=0):
 	self = 0
-	if is_file == 1:
+	if is_binary == 1:
 		for i in selected_index:
 			if addr_list [i] == 'self':
 				self = 1
@@ -116,7 +136,7 @@ def send_weight_down_train (write, w, selected_index, addr_list, is_file=0):
 		return self
 
 	else:
-		np.save (write, w, allow_pickle=True)
+		np.save (write, w)
 		write.seek (0)
 		for i in selected_index:
 			if addr_list [i] == 'self':
@@ -130,10 +150,10 @@ def send_weight_down_train (write, w, selected_index, addr_list, is_file=0):
 		return self
 
 
-def send_weight_up_combine (write, w, addr, layer=1):
+def send_weight_up_combine (w, addr, layer):
 	if addr == 'self':
 		return 1
-	np.save (write, w, allow_pickle=True)
+	np.save (write, w)
 	write.seek (0)
 	file = {'weights': write}
 	path = addr + '/combine?layer=' + str (layer)

@@ -1,6 +1,8 @@
 import numpy as np
 import tensorflow as tf
 
+import util
+
 nn = {}
 
 assign_list = []
@@ -68,6 +70,7 @@ nn ['loss'] = loss
 nn ['accuracy'] = accuracy
 nn ['weights'] = weights
 nn ['sess'] = sess
+nn ['size'] = util.calculate_size (sess.run (weights))
 
 
 def get_nn ():

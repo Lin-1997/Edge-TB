@@ -1,11 +1,13 @@
 version: "2"
 services:
   etree:
-    image: etree
+    image: etree:v1.0
     expose:
       - "8888"
     volumes:
       - ./:/home/etree
+    environment:
+      PORT: "8888"
     stdin_open: true
     tty: true
     command: ["python3", "hybrid.py"]

@@ -17,9 +17,9 @@ if 'learning_rate' in v:
 	nn_lr.set_train_lr (v ['learning_rate'])
 	nn_lr.set_train_data_batch (v ['batch_size'], v ['round'], v ['start_index'], v ['end_index'])
 
-write = io.BytesIO ()
 app = Flask (__name__)
-lock = threading.Lock ()
+weights_lock = threading.Lock ()
+network_lock = threading.Lock ()
 executor = ThreadPoolExecutor (1)
 
 
@@ -41,18 +41,18 @@ def route_start ():
 	initial_weights = nn ['sess'].run (nn ['weights'])
 	from_layer = request.args.get ('layer', default=-1, type=int)
 
-	# 从-1来，证明自己是EL的根节点，往下全发，send_weight_down_to_combine
+	# 从-1来，证明自己是EL的根节点，往下全发，send_weight_down_replace
 	if from_layer == -1:
 		self_layer = v ['layer'] [-1]
-		send_self = util.send_weight_down_replace (write, initial_weights, v ['down_addr'] [-1], self_layer)
+		send_self = util.send_weight_down_replace (initial_weights, v ['down_addr'] [-1], self_layer)
 		if send_self == 1:
 			on_route_replace (initial_weights, self_layer)
 		return 'start EL\n'
 
-	# 从0来，证明自己是FL的根节点，往下随机发，send_weight_down_to_train
+	# 从0来，证明自己是FL的根节点，往下随机发，send_weight_down_train
 	elif from_layer == 0:
 		i_random = util.index_random (v ['down_count'] [0], v ['worker_fraction'])
-		util.send_weight_down_train (write, initial_weights, i_random, v ['down_addr'] [0])
+		util.send_weight_down_train (initial_weights, i_random, v ['down_addr'] [0])
 		return 'start FL\n'
 
 	return 'error\n'
@@ -63,55 +63,83 @@ def route_start ():
 def route_replace ():
 	file_w = request.files.get ('weights')
 	from_layer = request.args.get ('layer', default=1, type=int)
-	on_route_replace (file_w, from_layer, 1)
+
+	temp_file = io.BytesIO ()
+	file_w.save (temp_file)
+	file_w.seek (0)
+	size = len (file_w.read ())  # 模拟网络传输时延
+	temp_file.seek (0)
+
+	executor.submit (on_route_replace, temp_file, from_layer, is_binary=1, size=size)
 	return ''
 
 
-def on_route_replace (w, from_layer, is_file=0):
+def on_route_replace (w, from_layer, is_binary=0, size=0):
+	if size != 0:
+		global network_lock
+		network_lock.acquire ()
+		util.simulate_sleep (size, v ['bw'])
+		network_lock.release ()
+
 	self_layer = from_layer - 1
 	layer_index = v ['layer'].index (self_layer)
 
 	# EL的第2层，下一层是训练节点，往下全发，send_weight_down_to_train
 	if self_layer == 2:
 		i_full = util.index_full (v ['down_count'] [layer_index])
-		send_self = util.send_weight_down_train (write, w, i_full, v ['down_addr'] [layer_index], is_file)
+		send_self = util.send_weight_down_train (w, i_full, v ['down_addr'] [layer_index], is_binary=is_binary)
 		if send_self == 1:
-			on_route_train (w, is_file)
-	# EL的中间层，往下全发，send_weight_down_to_combine
+			on_route_train (w, is_binary=is_binary)
+	# EL的中间层，往下全发，send_weight_down_replace
 	else:
-		send_self = util.send_weight_down_replace (write, w, v ['down_addr'] [layer_index], self_layer, is_file)
+		send_self = util.send_weight_down_replace (w, v ['down_addr'] [layer_index], self_layer, is_binary=is_binary)
 		if send_self == 1:
-			on_route_replace (w, self_layer, is_file)
+			on_route_replace (w, self_layer, is_binary=is_binary)
 
 
 # 聚合
 @app.route ('/combine', methods=['POST'])
 def route_combine ():
-	w = util.parse_received_weight (request.files.get ('weights'))
+	file_w = request.files.get ('weights')
 	from_layer = request.args.get ('layer', default=1, type=int)
-	on_route_combine (w, from_layer)
+
+	temp_file = io.BytesIO ()
+	file_w.save (temp_file)
+	file_w.seek (0)
+	size = len (file_w.read ())  # 模拟网络传输时延
+	temp_file.seek (0)
+
+	w = util.parse_received_weight (temp_file)
+	executor.submit (on_route_combine, w, from_layer, size=size)
 	return ''
 
 
-def on_route_combine (w, from_layer):
+def on_route_combine (w, from_layer, size=0):
+	if size != 0:
+		global network_lock
+		network_lock.acquire ()
+		util.simulate_sleep (size, v ['bw'])
+		network_lock.release ()
+
 	self_layer = from_layer + 1
 	layer_index = v ['layer'].index (self_layer)
 
 	# 接收参数并存起来
-	global lock
-	lock.acquire ()
+	global weights_lock
+	weights_lock.acquire ()
 	# 追加worker的参数到received_weight
 	v ['received_weight'] [layer_index].append (w)
 	v ['received_count'] [layer_index] += 1
-	lock.release ()
+	weights_lock.release ()
 
 	# 在EL中要确保v ['worker_fraction'] = 1
 	if v ['received_count'] [layer_index] == int (v ['down_count'] [layer_index] * v ['worker_fraction']):
-		executor.submit (async_combine_weight, layer_index)
+		# executor.submit (combine_weight, layer_index)
+		combine_weight (layer_index)
 
 
 # 聚合
-def async_combine_weight (layer_index):
+def combine_weight (layer_index):
 	avg_weight = util.calculate_avg_weight (v ['received_weight'] [layer_index], v ['received_count'] [layer_index])
 	v ['received_weight'] [layer_index].clear ()
 	v ['received_count'] [layer_index] = 0
@@ -137,7 +165,7 @@ def async_combine_weight (layer_index):
 				print ('===================training ended===================')
 			# 不是最高层
 			else:
-				send_self = util.send_weight_up_combine (write, avg_weight, v ['up_addr'] [layer_index], self_layer)
+				send_self = util.send_weight_up_combine (avg_weight, v ['up_addr'] [layer_index], self_layer)
 				if send_self == 1:
 					on_route_combine (avg_weight, self_layer)
 
@@ -146,12 +174,12 @@ def async_combine_weight (layer_index):
 			# EL的第2层，下一层是训练节点，往下全发，send_weight_down_to_train
 			if self_layer == 2:
 				i_full = util.index_full (v ['down_count'] [layer_index])
-				send_self = util.send_weight_down_train (write, avg_weight, i_full, v ['down_addr'] [layer_index])
+				send_self = util.send_weight_down_train (avg_weight, i_full, v ['down_addr'] [layer_index])
 				if send_self == 1:
 					on_route_train (avg_weight)
-			# EL的中间层，往下全发，send_weight_down_to_combine
+			# EL的中间层，往下全发，send_weight_down_replace
 			else:
-				send_self = util.send_weight_down_replace (write, avg_weight, v ['down_addr'] [layer_index], self_layer)
+				send_self = util.send_weight_down_replace (avg_weight, v ['down_addr'] [layer_index], self_layer)
 				if send_self == 1:
 					on_route_replace (avg_weight, self_layer)
 
@@ -166,20 +194,33 @@ def async_combine_weight (layer_index):
 		# 没训练完
 		else:
 			i_random = util.index_random (v ['down_count'] [0], v ['worker_fraction'])
-			util.send_weight_down_train (write, avg_weight, i_random, v ['down_addr'] [0])
+			util.send_weight_down_train (avg_weight, i_random, v ['down_addr'] [0])
 
 
 # 训练
 @app.route ('/train', methods=['POST'])
 def route_train ():
-	w = util.parse_received_weight (request.files.get ('weights'))
-	executor.submit (on_route_train, w)
+	file_w = request.files.get ('weights')
+
+	temp_file = io.BytesIO ()
+	file_w.save (temp_file)
+	file_w.seek (0)
+	size = len (file_w.read ())  # 模拟网络传输时延
+	temp_file.seek (0)
+
+	executor.submit (on_route_train, temp_file, is_binary=1, size=size)
 	return ''
 
 
 # 训练
-def on_route_train (received_w, is_file=0):
-	if is_file == 1:
+def on_route_train (received_w, is_binary=0, size=0):
+	if size != 0:
+		global network_lock
+		network_lock.acquire ()
+		util.simulate_sleep (size, v ['bw'])
+		network_lock.release ()
+
+	if is_binary == 1:
 		w = util.parse_received_weight (received_w)
 		util.assignment (nn ['assign_list'], w, nn ['sess'])
 	else:
@@ -192,7 +233,7 @@ def on_route_train (received_w, is_file=0):
 	util.log ('Train: round={}:loss={}'.format (v ['current_round'] [0], final_loss))
 
 	latest_weights = nn ['sess'].run (nn ['weights'])
-	send_self = util.send_weight_up_combine (write, latest_weights, v ['up_addr'] [0])
+	send_self = util.send_weight_up_combine (latest_weights, v ['up_addr'] [0], 1)
 	if send_self == 1:
 		on_route_combine (latest_weights, 1)
 
