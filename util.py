@@ -27,10 +27,11 @@ def calculate_size (w):
 	return size
 
 
-def simulate_sleep (size, bw):
-	t = float (format (size / bw, '.1f'))
+def simulate_sleep (size, s_time, bw):
+	n_time = float (format (size / bw, '.1f'))
+	c_time = time.time ()
+	t = s_time + n_time - c_time
 	if t > 0.2:
-		log ('sleep {}s'.format (t))
 		time.sleep (t)
 
 
@@ -91,17 +92,19 @@ def assignment (assign_list, w, sess):
 		weight_placeholder_start_index += 1
 
 
-def send_weight_down_replace (w, addr_list, layer, is_binary=0):
+def send_weight_down_replace (w, addr_list, addr_bw, layer, is_binary=0):
 	self = 0
 	# w为file
 	if is_binary == 1:
-		for addr in addr_list:
+		for index in range (len (addr_list)):
 			# 需要发给自己
-			if addr == 'self':
+			if addr_list [index] == 'self':
 				self = 1
 				continue
 			file = {'weights': w}
-			path = addr + '/replace?layer=' + str (layer)
+			s_time = format (time.time (), '.1f')
+			path = addr_list [index] + '/replace?layer=' + str (layer) \
+			       + '&time=' + str (s_time) + '&bw=' + str (addr_bw [index])
 			requests.post (path, files=file)
 			w.seek (0)
 		return self
@@ -110,19 +113,21 @@ def send_weight_down_replace (w, addr_list, layer, is_binary=0):
 	else:
 		np.save (write, w)
 		write.seek (0)
-		for addr in addr_list:
-			if addr == 'self':
+		for index in range (len (addr_list)):
+			if addr_list [index] == 'self':
 				self = 1
 				continue
 			file = {'weights': write}
-			path = addr + '/replace?layer=' + str (layer)
+			s_time = format (time.time (), '.1f')
+			path = addr_list [index] + '/replace?layer=' + str (layer) \
+			       + '&time=' + str (s_time) + '&bw=' + str (addr_bw [index])
 			requests.post (path, files=file)
 			write.seek (0)
 		write.truncate ()
 		return self
 
 
-def send_weight_down_train (w, selected_index, addr_list, is_binary=0):
+def send_weight_down_train (w, selected_index, addr_list, addr_bw, is_binary=0):
 	self = 0
 	if is_binary == 1:
 		for i in selected_index:
@@ -130,7 +135,8 @@ def send_weight_down_train (w, selected_index, addr_list, is_binary=0):
 				self = 1
 				continue
 			file = {'weights': w}
-			path = addr_list [i] + '/train'
+			s_time = format (time.time (), '.1f')
+			path = addr_list [i] + '/train?time=' + str (s_time) + '&bw=' + str (addr_bw [i])
 			requests.post (path, files=file)
 			w.seek (0)
 		return self
@@ -143,20 +149,23 @@ def send_weight_down_train (w, selected_index, addr_list, is_binary=0):
 				self = 1
 				continue
 			file = {'weights': write}
-			path = addr_list [i] + '/train'
+			s_time = format (time.time (), '.1f')
+			path = addr_list [i] + '/train?time=' + str (s_time) + '&bw=' + str (addr_bw [i])
 			requests.post (path, files=file)
 			write.seek (0)
 		write.truncate ()
 		return self
 
 
-def send_weight_up_combine (w, addr, layer):
+def send_weight_up_combine (w, addr, bw, layer):
 	if addr == 'self':
 		return 1
 	np.save (write, w)
 	write.seek (0)
 	file = {'weights': write}
-	path = addr + '/combine?layer=' + str (layer)
+	s_time = format (time.time (), '.1f')
+	path = addr + '/combine?layer=' + str (layer) + '&time=' \
+	       + str (s_time) + '&bw=' + str (bw)
 	requests.post (path, files=file)
 	write.seek (0)
 	write.truncate ()
