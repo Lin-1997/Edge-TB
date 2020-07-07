@@ -1,6 +1,8 @@
 import json
 from collections import deque
 
+import numpy as np
+
 
 class Env:
 	def __init__ (self, _id, _type=0):
@@ -78,7 +80,7 @@ def gen_env ():
 			env.up_bw.append (0)
 		else:
 			env.up_addr.append (format_addr (upper_id, _host, _host_list))
-			env.up_bw.append (2)  # 假装带宽都是2MB/s
+			env.up_bw.append (np_bw [a ['id'] - 1] [int (upper_id) - 1])
 		# 占位
 		env.sync.append (a ['sync'])
 		env.down_count.append (a ['dc'])
@@ -98,10 +100,10 @@ def gen_env ():
 				u_e.down_bw.append ([])
 			if u_e.id == a ['id']:
 				u_e.down_addr [curr].append ('self')
-				u_e.down_bw [curr].append (0)  # 代表无限，反正用不上
+				u_e.down_bw [curr].append (0)
 			else:
 				u_e.down_addr [curr].append (format_addr (a ['id'], _host, _host_list))
-				u_e.down_bw [curr].append (2)  # 假装带宽都是2MB/s
+				u_e.down_bw [curr].append (np_bw [a ['id'] - 1] [u_e.id - 1])
 			u_e.current_down [curr] = u_e.current_down [curr] + 1
 		# 是后面a[dc]个的父节点
 		for _ in range (a ['dc']):
@@ -221,6 +223,8 @@ _learning_rate = _json ['learning_rate']
 _start_index = _json ['start_index']
 _end_index = _json ['end_index']
 _worker_fraction = _json ['worker_fraction']
+
+np_bw = np.loadtxt ('np_graph.txt')
 
 # env对象
 env_map = {}

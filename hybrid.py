@@ -24,7 +24,7 @@ executor = ThreadPoolExecutor (1)
 
 @app.route ('/hi', methods=['GET'])
 def route_hi ():
-	return 'This is node ' + os.getenv ('HOSTNAME') + '\n'
+	return 'Node ' + os.getenv ('HOSTNAME') + 'in ' + str (os.getenv ('PORT')) + '\r\n'
 
 
 @app.route ('/update', methods=['GET'])
