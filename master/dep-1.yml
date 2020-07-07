@@ -1,18 +1,18 @@
+---
 apiVersion: apps/v1
 kind: Deployment # 定义Dep资源
 metadata:
-  name: d-etree # Dep的名字
+  name: d-etree-1 # Dep的名字
 spec:
-  # replicas: 1 # 容器冗余个数
   selector: # 选择对应label的pod参与进去这个Dep
     matchLabels:
-      label: l-p-etree
+      label: l-p-etree-1
   template: # 定义pod 
     metadata:
       labels: # 定义label使得被上面选中
-        label: l-p-etree
+        label: l-p-etree-1
     spec:
-      hostname: p-etree # 定义pod的HOSTNAME
+      hostname: p-etree-1 # 定义pod的HOSTNAME
       containers: # 定义pod内容器
       - name: n1
         image: etree:v1.0
@@ -72,17 +72,17 @@ spec:
           mountPath: /home/etree
       volumes:
       - name: etree # 只能是小写字母和数字
-        hostPath:
-          path: /home/l/etree # 运行容器的物理机目录
+        persistentVolumeClaim:
+          claimName: pvc-etree
 # 分割多个资源
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: s-etree
+  name: s-etree-1
 spec:
   selector: # 不需要matchLabels
-    label: l-p-etree # 选中pod
+    label: l-p-etree-1 # 选中pod
   type: NodePort # 将service暴露给外部
   ports:
   - name: n1
@@ -101,4 +101,3 @@ spec:
     port: 8004
     targetPort: 8004
     nodePort: 30004
-

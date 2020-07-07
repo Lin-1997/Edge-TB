@@ -160,9 +160,8 @@ def gen_yml ():
 		# dep中volume的信息
 		str_dep = str_dep \
 		          + '      volumes:\r\n' \
-		          + '      - name: etree\r\n' \
-		          + '        hostPath:\r\n' \
-		          + '          path: /home/l/etree\r\n'  # TODO 这个目录要修改
+		          + '        persistentVolumeClaim:\r\n' \
+		          + '          claimName: pvc-etree\r\n'
 		# svc的信息
 		str_dep = str_dep \
 		          + '---\r\n' \
@@ -195,11 +194,9 @@ def gen_yml ():
 	with open ('../master/dep.sh', 'w') as f:
 		str_dep_sh = ''
 		for i in range (dep_index - 1):
-			str_dep_sh = str_dep_sh \
-			             + 'kubectl delete deployment d-etree-' + str (i + 1) + '\r\n' \
-			             + 'kubectl delete svc s-etree-' + str (i + 1) + '\r\n'
+			str_dep_sh = str_dep_sh + 'kubectl delete -f dep-' + str (i + 1) + '.yml\r\n'
 		for i in range (dep_index - 1):
-			str_dep_sh = str_dep_sh + 'kubectl apply -f dep-' + str (i + 1) + '.yml\r\n'
+			str_dep_sh = str_dep_sh + 'kubectl create -f dep-' + str (i + 1) + '.yml\r\n'
 		f.writelines (str_dep_sh)
 		f.close ()
 

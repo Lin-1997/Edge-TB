@@ -2,12 +2,12 @@
 ### 已完成部分
 - Dockerfile
 - K8s
-### 待完成部分
 - NFS
 ### 安装说明
 0. At least 2 computers, each with 2-cores and 2G memory, one acts as master and others act as nodes
-0. Linux required, Ubuntu 18.04 LTS recommend
-0. Install K8s and docker, see https://www.jianshu.com/p/f2d4dd4d1fb1
+0. Linux required
+0. Install K8s and docker and , see https://www.jianshu.com/p/f2d4dd4d1fb1
+0. Install NFS, see https://blog.csdn.net/networken/article/details/105997728
 0. On master
     0. ```sudo bash ./master/setup.sh```
 0. On node
