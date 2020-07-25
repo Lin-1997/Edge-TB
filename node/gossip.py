@@ -55,7 +55,7 @@ v ['other_addresses'] = v ['all_addresses'].copy ()
 del v ['other_addresses'] [this_index]
 
 # logging的设置
-log_dir = './log'
+log_dir = 'node/log'
 if not os.path.exists (log_dir):
 	os.makedirs (log_dir)
 logging.basicConfig (level=logging.INFO,

@@ -24,14 +24,7 @@ executor = ThreadPoolExecutor (1)
 
 @app.route ('/hi', methods=['GET'])
 def route_hi ():
-	return 'Node ' + os.getenv ('HOSTNAME') + ' in ' + str (os.getenv ('PORT')) + '\r\n'
-
-
-@app.route ('/update', methods=['GET'])
-def route_update ():
-	global v
-	values_h.update_addr (v)
-	return 'update done\n'
+	return 'Node ' + os.getenv ('HOSTNAME') + ' in ' + str (os.getenv ('PORT')) + '\r\r\n'
 
 
 # 聚合
@@ -43,28 +36,28 @@ def route_start ():
 	# 从-1来，证明自己是EL的根节点，往下全发，send_weight_down_replace
 	if from_layer == -1:
 		self_layer = v ['layer'] [-1]
-		send_self = util.send_weight_down_replace (initial_weights, v ['down_addr'] [-1],
-			v ['down_bw'] [-1], self_layer)
+		send_self = util.send_weight_down_replace (initial_weights, v ['switch'], v ['down_host'] [-1],
+			v ['bw'], self_layer)
 		if send_self == 1:
 			on_route_replace (initial_weights, self_layer)
-		return 'start EL\n'
+		return 'start EL\r\n'
 
 	# 从0来，证明自己是FL的根节点，往下随机发，send_weight_down_train
 	elif from_layer == 0:
 		i_random = util.index_random (v ['down_count'] [0], v ['worker_fraction'])
-		util.send_weight_down_train (initial_weights, i_random, v ['down_addr'] [0], v ['down_bw'] [0])
-		return 'start FL\n'
+		util.send_weight_down_train (initial_weights, i_random, v ['switch'], v ['down_host'] [0], v ['bw'])
+		return 'start FL\r\n'
 
-	return 'error\n'
+	return 'error\r\n'
 
 
 # 聚合
 @app.route ('/replace', methods=['POST'])
 def route_replace ():
 	file_w = request.files.get ('weights')
-	from_layer = request.args.get ('layer', default=1, type=int)
-	s_time = request.args.get ('time', default=1.0, type=float)
-	bw = request.args.get ('bw', default=1, type=int)
+	from_layer = request.args.get ('layer', type=int)
+	s_time = request.args.get ('time', type=float)
+	bw = request.args.get ('bw', type=float)
 
 	temp_file = io.BytesIO ()
 	file_w.save (temp_file)
@@ -87,14 +80,14 @@ def on_route_replace (w, from_layer, is_binary=0, size=0, s_time=0.0, bw=0):
 	# EL的第2层，下一层是训练节点，往下全发，send_weight_down_to_train
 	if self_layer == 2:
 		i_full = util.index_full (v ['down_count'] [layer_index])
-		send_self = util.send_weight_down_train (w, i_full, v ['down_addr'] [layer_index],
-			v ['down_bw'] [layer_index], is_binary=is_binary)
+		send_self = util.send_weight_down_train (w, v ['switch'], i_full, v ['down_host'] [layer_index],
+			v ['bw'], is_binary=is_binary)
 		if send_self == 1:
 			on_route_train (w, is_binary=is_binary)
 	# EL的中间层，往下全发，send_weight_down_replace
 	else:
-		send_self = util.send_weight_down_replace (w, v ['down_addr'] [layer_index],
-			v ['down_bw'] [layer_index], self_layer, is_binary=is_binary)
+		send_self = util.send_weight_down_replace (w, v ['switch'], v ['down_host'] [layer_index],
+			v ['bw'], self_layer, is_binary=is_binary)
 		if send_self == 1:
 			on_route_replace (w, self_layer, is_binary=is_binary)
 
@@ -103,9 +96,9 @@ def on_route_replace (w, from_layer, is_binary=0, size=0, s_time=0.0, bw=0):
 @app.route ('/combine', methods=['POST'])
 def route_combine ():
 	file_w = request.files.get ('weights')
-	from_layer = request.args.get ('layer', default=1, type=int)
-	s_time = request.args.get ('time', default=1.0, type=float)
-	bw = request.args.get ('bw', default=1, type=int)
+	from_layer = request.args.get ('layer', type=int)
+	s_time = request.args.get ('time', type=float)
+	bw = request.args.get ('bw', type=float)
 
 	temp_file = io.BytesIO ()
 	file_w.save (temp_file)
@@ -156,7 +149,7 @@ def combine_weight (layer_index):
 		# 达到该层的sync，往上发
 		if v ['current_round'] [layer_index] % v ['sync'] [layer_index] == 0:
 			# 是最高层
-			if v ['up_addr'] [layer_index] == 'top':
+			if v ['up_host'] [layer_index] == 'top':
 				# 用没有GUI的云服务器下面两句代码会卡死
 				# 用有GUI的设备可以正常使用
 				# 输出训练的accuracy和loss图像
@@ -165,8 +158,8 @@ def combine_weight (layer_index):
 				print ('===================training ended===================')
 			# 不是最高层
 			else:
-				send_self = util.send_weight_up_combine (avg_weight, v ['up_addr'] [layer_index],
-					v ['up_bw'] [layer_index], self_layer)
+				send_self = util.send_weight_up_combine (avg_weight, v ['switch'], v ['up_host'] [layer_index],
+					v ['bw'], self_layer)
 				if send_self == 1:
 					on_route_combine (avg_weight, self_layer)
 
@@ -175,14 +168,14 @@ def combine_weight (layer_index):
 			# EL的第2层，下一层是训练节点，往下全发，send_weight_down_to_train
 			if self_layer == 2:
 				i_full = util.index_full (v ['down_count'] [layer_index])
-				send_self = util.send_weight_down_train (avg_weight, i_full,
-					v ['down_addr'] [layer_index], v ['down_bw'] [layer_index])
+				send_self = util.send_weight_down_train (avg_weight, v ['switch'], i_full,
+					v ['down_host'] [layer_index], v ['bw'])
 				if send_self == 1:
 					on_route_train (avg_weight)
 			# EL的中间层，往下全发，send_weight_down_replace
 			else:
-				send_self = util.send_weight_down_replace (avg_weight, v ['down_addr'] [layer_index],
-					v ['down_bw'] [layer_index], self_layer)
+				send_self = util.send_weight_down_replace (avg_weight, v ['switch'], v ['down_host'] [layer_index],
+					v ['bw'], self_layer)
 				if send_self == 1:
 					on_route_replace (avg_weight, self_layer)
 
@@ -197,15 +190,15 @@ def combine_weight (layer_index):
 		# 没训练完
 		else:
 			i_random = util.index_random (v ['down_count'] [0], v ['worker_fraction'])
-			util.send_weight_down_train (avg_weight, i_random, v ['down_addr'] [0], v ['down_bw'] [0])
+			util.send_weight_down_train (avg_weight, v ['switch'], i_random, v ['down_host'] [0], v ['bw'])
 
 
 # 训练
 @app.route ('/train', methods=['POST'])
 def route_train ():
 	file_w = request.files.get ('weights')
-	s_time = request.args.get ('time', default=1.0, type=float)
-	bw = request.args.get ('bw', default=1, type=int)
+	s_time = request.args.get ('time', type=float)
+	bw = request.args.get ('bw', type=float)
 
 	temp_file = io.BytesIO ()
 	file_w.save (temp_file)
@@ -235,7 +228,7 @@ def on_route_train (received_w, is_binary=0, size=0, s_time=0.0, bw=0):
 	util.log ('Train: round={}:loss={}'.format (v ['current_round'] [0], final_loss))
 
 	latest_weights = nn ['sess'].run (nn ['weights'])
-	send_self = util.send_weight_up_combine (latest_weights, v ['up_addr'] [0], v ['up_bw'] [0], 1)
+	send_self = util.send_weight_up_combine (latest_weights, v ['switch'], v ['up_host'] [0], v ['bw'], 1)
 	if send_self == 1:
 		on_route_combine (latest_weights, 1)
 

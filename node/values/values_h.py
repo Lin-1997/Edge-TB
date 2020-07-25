@@ -11,14 +11,6 @@ def read_env ():
 	return env
 
 
-def update_addr (v):
-	env = read_env ()
-	if 'up_addr' in env:
-		v ['up_addr'] = env ['up_addr']
-	if 'down_addr' in env:
-		v ['down_addr'] = env ['down_addr']
-
-
 def get_values ():
 	return values
 
@@ -26,9 +18,7 @@ def get_values ():
 values = read_env ()
 values ['current_round'] = [0] * values ['layer_count']
 # 从MB/s变成B/s
-values ['up_bw'] = [i * 1024 * 1024 for i in values ['up_bw']]
-for i in range (len (values ['down_bw'])):
-	values ['down_bw'] [i] = [j * 1024 * 1024 for j in values ['down_bw'] [i]]
+values ['bw'] = values ['bw'] * 1024 * 1024
 
 # 聚合用
 # 每层接收到的参数数量

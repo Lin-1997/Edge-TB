@@ -33,7 +33,7 @@ class beProxy (logFunc):
 	# logging.info('round 0: accuracy={}'.format(nn['sess'].run(nn['accuracy'], feed_dict={
 	#      nn['xs']: nn['test_x'], nn['ys']: nn['test_y']})))
 	def infoAcc (self):
-		fp = open ('log/parameter_server.log')
+		fp = open ('node/log/parameter_server.log')
 		accuracy = []
 		for line in fp:
 			m = re.search ('accuracy', line)

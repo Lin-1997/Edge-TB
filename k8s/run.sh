@@ -1,3 +1,4 @@
+#!/bin/bash
 sudo swapoff -a
 
 sudo rm $HOME/.kube/config

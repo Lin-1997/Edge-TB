@@ -11,7 +11,8 @@ write = io.BytesIO ()
 
 
 def set_log (hostname):
-	logging.basicConfig (level=logging.INFO, filename='log/' + hostname + '.log', filemode='w', format='%(message)s')
+	logging.basicConfig (level=logging.INFO, filename='node/log/' + hostname + '.log', filemode='w',
+		format='%(message)s')
 
 
 def log (message):
@@ -92,7 +93,7 @@ def assignment (assign_list, w, sess):
 		weight_placeholder_start_index += 1
 
 
-def send_weight_down_replace (w, addr_list, addr_bw, layer, is_binary=0):
+def send_weight_down_replace (weights, switch_addr, addr_list, bw, layer, is_binary=0):
 	self = 0
 	# w为file
 	if is_binary == 1:
@@ -101,72 +102,84 @@ def send_weight_down_replace (w, addr_list, addr_bw, layer, is_binary=0):
 			if addr_list [index] == 'self':
 				self = 1
 				continue
-			file = {'weights': w}
+			file = {'weights': weights}
+			data = {'host': addr_list [index],
+			        'path': '/replace',
+			        'layer': str (layer)}
 			s_time = format (time.time (), '.1f')
-			path = addr_list [index] + '/replace?layer=' + str (layer) \
-			       + '&time=' + str (s_time) + '&bw=' + str (addr_bw [index])
-			requests.post (path, files=file)
-			w.seek (0)
+			path = switch_addr + '/forward?time=' + str (s_time) + '&bw=' + str (bw)
+			requests.post (path, data=data, files=file)
+			weights.seek (0)
 		return self
 
 	# w不为file，用write
 	else:
-		np.save (write, w)
+		np.save (write, weights)
 		write.seek (0)
 		for index in range (len (addr_list)):
 			if addr_list [index] == 'self':
 				self = 1
 				continue
 			file = {'weights': write}
+			data = {'host': addr_list [index],
+			        'path': '/replace',
+			        'layer': str (layer)}
 			s_time = format (time.time (), '.1f')
-			path = addr_list [index] + '/replace?layer=' + str (layer) \
-			       + '&time=' + str (s_time) + '&bw=' + str (addr_bw [index])
-			requests.post (path, files=file)
+			path = switch_addr + '/forward?time=' + str (s_time) + '&bw=' + str (bw)
+			requests.post (path, data=data, files=file)
 			write.seek (0)
 		write.truncate ()
 		return self
 
 
-def send_weight_down_train (w, selected_index, addr_list, addr_bw, is_binary=0):
+def send_weight_down_train (weights, switch_addr, selected_index, addr_list, bw, is_binary=0):
 	self = 0
 	if is_binary == 1:
-		for i in selected_index:
-			if addr_list [i] == 'self':
+		for index in selected_index:
+			if addr_list [index] == 'self':
 				self = 1
 				continue
-			file = {'weights': w}
+			file = {'weights': weights}
+			data = {'host': addr_list [index],
+			        'path': '/train',
+			        'layer': '2'}
 			s_time = format (time.time (), '.1f')
-			path = addr_list [i] + '/train?time=' + str (s_time) + '&bw=' + str (addr_bw [i])
-			requests.post (path, files=file)
-			w.seek (0)
+			path = switch_addr + '/forward?time=' + str (s_time) + '&bw=' + str (bw)
+			requests.post (path, data=data, files=file)
+			weights.seek (0)
 		return self
 
 	else:
-		np.save (write, w)
+		np.save (write, weights)
 		write.seek (0)
-		for i in selected_index:
-			if addr_list [i] == 'self':
+		for index in selected_index:
+			if addr_list [index] == 'self':
 				self = 1
 				continue
 			file = {'weights': write}
+			data = {'host': addr_list [index],
+			        'path': '/train',
+			        'layer': '2'}
 			s_time = format (time.time (), '.1f')
-			path = addr_list [i] + '/train?time=' + str (s_time) + '&bw=' + str (addr_bw [i])
-			requests.post (path, files=file)
+			path = switch_addr + '/forward?time=' + str (s_time) + '&bw=' + str (bw)
+			requests.post (path, data=data, files=file)
 			write.seek (0)
 		write.truncate ()
 		return self
 
 
-def send_weight_up_combine (w, addr, bw, layer):
+def send_weight_up_combine (weights, switch_addr, addr, bw, layer):
 	if addr == 'self':
 		return 1
-	np.save (write, w)
+	np.save (write, weights)
 	write.seek (0)
 	file = {'weights': write}
+	data = {'host': addr,
+	        'path': '/combine',
+	        'layer': str (layer)}
 	s_time = format (time.time (), '.1f')
-	path = addr + '/combine?layer=' + str (layer) + '&time=' \
-	       + str (s_time) + '&bw=' + str (bw)
-	requests.post (path, files=file)
+	path = switch_addr + '/forward?time=' + str (s_time) + '&bw=' + str (bw)
+	requests.post (path, data=data, files=file)
 	write.seek (0)
 	write.truncate ()
 	return 0

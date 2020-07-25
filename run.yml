@@ -1,32 +1,84 @@
 version: "2"
 services:
-  "1":
+  "n1":
     extends:
-      file: ./etree.yml
-      service: etree
+      file: node/node.yml
+      service: node
     container_name: "n1"
+    expose:
+      - "8001"
     environment:
       HOSTNAME: "n1"
+      PORT: "8001"
     ports:
-      - "8888:8888"
-  "2":
+      - "8001:8001"
+  "n2":
     extends:
-      file: ./etree.yml
-      service: etree
+      file: node/node.yml
+      service: node
     container_name: "n2"
+    expose:
+      - "8002"
     environment:
       HOSTNAME: "n2"
-  "3":
+      PORT: "8002"
+  "n3":
     extends:
-      file: ./etree.yml
-      service: etree
+      file: node/node.yml
+      service: node
     container_name: "n3"
+    expose:
+      - "8003"
     environment:
       HOSTNAME: "n3"
-  "4":
+      PORT: "8003"
+  "n4":
     extends:
-      file: ./etree.yml
-      service: etree
+      file: node/node.yml
+      service: node
     container_name: "n4"
+    expose:
+      - "8004"
     environment:
       HOSTNAME: "n4"
+      PORT: "8004"
+  "s1":
+    extends:
+      file: switch/switch.yml
+      service: switch
+    container_name: "s1"
+    expose:
+      - "10001"
+    environment:
+      HOSTNAME: "s1"
+      PORT: "10001"
+  "s2":
+    extends:
+      file: switch/switch.yml
+      service: switch
+    container_name: "s2"
+    expose:
+      - "10002"
+    environment:
+      HOSTNAME: "s2"
+      PORT: "10002"
+  "s3":
+    extends:
+      file: switch/switch.yml
+      service: switch
+    container_name: "s3"
+    expose:
+      - "10003"
+    environment:
+      HOSTNAME: "s3"
+      PORT: "10003"
+  "s4":
+    extends:
+      file: switch/switch.yml
+      service: switch
+    container_name: "s4"
+    expose:
+      - "10004"
+    environment:
+      HOSTNAME: "s4"
+      PORT: "10004"
