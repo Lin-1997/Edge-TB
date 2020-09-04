@@ -18,7 +18,8 @@ def get_values ():
 values = read_env ()
 values ['current_round'] = [0] * values ['layer_count']
 # 从MB/s变成B/s
-values ['bw'] = values ['bw'] * 1024 * 1024
+for key in values ['bw'].keys ():
+	values ['bw'] [key] = 1024 * 1024 * values ['bw'] [key]
 
 # 聚合用
 # 每层接收到的参数数量

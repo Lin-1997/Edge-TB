@@ -93,22 +93,24 @@ def assignment (assign_list, w, sess):
 		weight_placeholder_start_index += 1
 
 
-def send_weight_down_replace (weights, switch_addr, addr_list, bw, layer, is_binary=0):
+def send_weight (weights, selected_index, host_list, node_map, forward_map, bw_map, path, layer=2, is_binary=0):
 	self = 0
 	# w为file
 	if is_binary == 1:
-		for index in range (len (addr_list)):
+		for index in selected_index:
 			# 需要发给自己
-			if addr_list [index] == 'self':
+			if host_list [index] == 'self':
 				self = 1
 				continue
-			file = {'weights': weights}
-			data = {'host': addr_list [index],
-			        'path': '/replace',
+			data = {'host': host_list [index],
+			        'path': path,
 			        'layer': str (layer)}
-			s_time = format (time.time (), '.1f')
-			path = switch_addr + '/forward?time=' + str (s_time) + '&bw=' + str (bw)
-			requests.post (path, data=data, files=file)
+			if host_list [index] in node_map:
+				addr = node_map [host_list [index]]
+				send (weights, data, addr, bw_map [addr], is_forward=False)
+			else:
+				addr = forward_map [host_list [index]]
+				send (weights, data, addr, bw_map [addr], is_forward=True)
 			weights.seek (0)
 		return self
 
@@ -116,73 +118,34 @@ def send_weight_down_replace (weights, switch_addr, addr_list, bw, layer, is_bin
 	else:
 		np.save (write, weights)
 		write.seek (0)
-		for index in range (len (addr_list)):
-			if addr_list [index] == 'self':
+		for index in selected_index:
+			if host_list [index] == 'self':
 				self = 1
 				continue
-			file = {'weights': write}
-			data = {'host': addr_list [index],
-			        'path': '/replace',
+			data = {'host': host_list [index],
+			        'path': path,
 			        'layer': str (layer)}
-			s_time = format (time.time (), '.1f')
-			path = switch_addr + '/forward?time=' + str (s_time) + '&bw=' + str (bw)
-			requests.post (path, data=data, files=file)
+			if host_list [index] in node_map:
+				addr = node_map [host_list [index]]
+				send (write, data, addr, bw_map [addr], is_forward=False)
+			else:
+				addr = forward_map [host_list [index]]
+				send (write, data, addr, bw_map [addr], is_forward=True)
 			write.seek (0)
 		write.truncate ()
 		return self
 
 
-def send_weight_down_train (weights, switch_addr, selected_index, addr_list, bw, is_binary=0):
-	self = 0
-	if is_binary == 1:
-		for index in selected_index:
-			if addr_list [index] == 'self':
-				self = 1
-				continue
-			file = {'weights': weights}
-			data = {'host': addr_list [index],
-			        'path': '/train',
-			        'layer': '2'}
-			s_time = format (time.time (), '.1f')
-			path = switch_addr + '/forward?time=' + str (s_time) + '&bw=' + str (bw)
-			requests.post (path, data=data, files=file)
-			weights.seek (0)
-		return self
-
-	else:
-		np.save (write, weights)
-		write.seek (0)
-		for index in selected_index:
-			if addr_list [index] == 'self':
-				self = 1
-				continue
-			file = {'weights': write}
-			data = {'host': addr_list [index],
-			        'path': '/train',
-			        'layer': '2'}
-			s_time = format (time.time (), '.1f')
-			path = switch_addr + '/forward?time=' + str (s_time) + '&bw=' + str (bw)
-			requests.post (path, data=data, files=file)
-			write.seek (0)
-		write.truncate ()
-		return self
-
-
-def send_weight_up_combine (weights, switch_addr, addr, bw, layer):
-	if addr == 'self':
-		return 1
-	np.save (write, weights)
-	write.seek (0)
-	file = {'weights': write}
-	data = {'host': addr,
-	        'path': '/combine',
-	        'layer': str (layer)}
+def send (weights, data, addr, bw, is_forward):
+	file = {'weights': weights}
 	s_time = format (time.time (), '.1f')
-	path = switch_addr + '/forward?time=' + str (s_time) + '&bw=' + str (bw)
-	requests.post (path, data=data, files=file)
-	write.seek (0)
-	write.truncate ()
-	return 0
+	if is_forward:
+		path = addr + '/forward?time=' + str (s_time) + '&bw=' + str (bw)
+		requests.post (path, data=data, files=file)
+	else:
+		path = addr + data ['path'] + '?layer=' + str (data ['layer']) \
+		       + '&time=' + str (s_time) + '&bw=' + str (bw)
+		requests.post (path, files=file)
 
 
 def index_random (worker_num, fraction):

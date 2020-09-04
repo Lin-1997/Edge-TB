@@ -5,9 +5,7 @@ import numpy as np
 
 
 class HostEnv:
-	def __init__ (self, _id, _switch, _bw, _type=0):
-		self.switch = _switch
-		self.bw = _bw
+	def __init__ (self, _id, _type=0):
 		self.id = _id
 		self.type = _type
 		self.layer_count = 0
@@ -26,14 +24,17 @@ class HostEnv:
 		self.end_index = _end_index [_id - 1]
 		self.worker_fraction = _worker_fraction [_id - 1]
 
+		self.node = {}
+		self.forward = {}
+		self.bw = {}
+		self.n_hop = {}
+
 	def __hash__ (self):
 		return hash (self.id)
 
 	def to_json (self):
 		_string = \
 			'{\r\n' \
-			+ '"switch": "' + format_path (self.switch, 10000) + '",\r\n' \
-			+ '"bw": ' + str (self.bw) + ',\r\n' \
 			+ '"type": ' + str (self.type) + ',\r\n' \
 			+ '"layer_count": ' + str (self.layer_count) + ',\r\n' \
 			+ '"layer": ' + str (self.layer [::-1]) + ',\r\n' \
@@ -47,49 +48,29 @@ class HostEnv:
 			+ '"learning_rate": ' + str (self.learning_rate) + ',\r\n' \
 			+ '"start_index": ' + str (self.start_index) + ',\r\n' \
 			+ '"end_index": ' + str (self.end_index) + ',\r\n' \
-			+ '"worker_fraction": ' + str (self.worker_fraction) + '\r\n' \
-			+ '}\r\n'
-		return _string
-
-
-class SwitchEnv:
-	def __init__ (self, _id):
-		self.id = _id
-		self.switch = {}
-		self.node = {}
-		self.n_hop = {}
-		self.forward = {}
-
-	def __hash__ (self):
-		return hash (self.id)
-
-	def to_json (self):
-		_string = \
-			'{\r\n' \
-			+ '"switch": ' + str (self.switch) + ',\r\n' \
+			+ '"worker_fraction": ' + str (self.worker_fraction) + ',\r\n' \
 			+ '"node": ' + str (self.node) + ',\r\n' \
-			+ '"forward": ' + str (self.forward) + '\r\n' \
+			+ '"forward": ' + str (self.forward) + ',\r\n' \
+			+ '"bw": ' + str (self.bw) + '\r\n' \
 			+ '}\r\n'
 		return _string
 
 
-def format_path (_id, start):
-	host = 's-etree-'
+def format_path (_id):
 	s_index = 0
-	if start == 10000:
-		while _id > _switch_number [s_index]:
-			s_index = s_index + 1
-	else:
-		while _id > _host_number [s_index]:
-			s_index = s_index + 1
-	return 'http://' + host + str (s_index + 1) + ':' + str (start + _id)
+	while _id > _host_number [s_index]:
+		s_index = s_index + 1
+	# host = 's-etree-'
+	# return 'http://' + host + str (s_index + 1) + ':' + str (8000 + _id)
+	host = 'n'
+	return 'http://' + host + str (_id) + ':' + str (8000 + _id)
 
 
 def gen_host_env ():
 	for host in _host_list:
 		# 初始化一个env对象
 		if host ['id'] not in host_env_map:
-			host_env_map [host ['id']] = HostEnv (host ['id'], host_conn [host ['id'] - 1], host_bw [host ['id'] - 1])
+			host_env_map [host ['id']] = HostEnv (host ['id'])
 		# 赋值
 		env = host_env_map [host ['id']]
 		env.layer_count = env.layer_count + 1
@@ -130,53 +111,43 @@ def gen_host_env ():
 		if host ['dc'] == 0:
 			host_env_map [host ['id']].down_host.append ([])
 
+	# 路由信息
+	size = _host_number [-1]
+	for host_id in range (size):
+		env = host_env_map [host_id + 1]
+		# 到自己0跳
+		env.n_hop ['n' + str (host_id + 1)] = 0
+		for next_id in range (size):
+			if host_id == next_id:
+				continue
+			if node_bw [host_id] [next_id] != 0:
+				env.node ['n' + str (next_id + 1)] = format_path (next_id + 1)
+				# 到邻居带宽
+				env.bw [format_path (next_id + 1)] = node_bw [host_id] [next_id]
+				# 到邻居1跳
+				env.n_hop ['n' + str (next_id + 1)] = 1
+	flag = True
+	while flag:
+		flag = False
+		for h1 in host_env_map.values ():
+			hop1 = h1.n_hop
+			for host_name2 in h1.node:
+				h2 = host_env_map [int (host_name2 [1:])]
+				hop2 = h2.n_hop
+				for dest in hop1:
+					if dest not in hop2 or h2.n_hop [dest] > h1.n_hop [dest] + 1:
+						flag = True
+						h2.forward [dest] = format_path (h1.id)
+						h2.n_hop [dest] = h1.n_hop [dest] + 1
+
 	for key in host_env_map:
 		file_name = '../node/env/n' + str (key) + '.env'
 		with open (file_name, 'w') as file:
 			file.writelines (host_env_map [key].to_json ())
 
 
-def gen_switch_env ():
-	size, _ = switch_bw.shape
-	for switch_id in range (size):
-		env = switch_env_map [switch_id + 1] = SwitchEnv (switch_id + 1)
-		for next_id in range (size):
-			if switch_id == next_id:
-				continue
-			if switch_bw [switch_id] [next_id] != 0:
-				env.switch [format_path (next_id + 1, 10000)] = switch_bw [switch_id] [next_id]
-	for index in range (len (host_conn)):
-		env = switch_env_map [host_conn [index]]
-		env.node [format_path (index + 1, 8000)] = host_bw [index]
-		env.forward ['n' + str (index + 1)] = format_path (index + 1, 8000)
-		env.n_hop ['n' + str (index + 1)] = 1
-	flag = True
-	while flag:
-		flag = False
-		for key1 in switch_env_map:
-			s1 = switch_env_map [key1]
-			f1 = s1.forward
-			for path2 in s1.switch:
-				key2 = int (path2 [path2.rfind (':') + 1:]) - 10000
-				if key1 == key2:
-					continue
-				s2 = switch_env_map [key2]
-				f2 = s2.forward
-				for host1 in f1:
-					if host1 not in f2 or s2.n_hop [host1] > s1.n_hop [host1] + 1:
-						flag = True
-						f2 [host1] = format_path (key1, 10000)
-						s2.n_hop [host1] = s1.n_hop [host1] + 1
-
-	for key in switch_env_map:
-		file_name = '../switch/env/s' + str (key) + '.env'
-		with open (file_name, 'w') as file:
-			file.writelines (switch_env_map [key].to_json ())
-
-
 def gen_yml ():
 	host_start_number = 1
-	switch_start_number = 1
 	for dep_index in range (len (_host_number)):
 		# dep-的信息
 		str_dep = '---\r\n' \
@@ -213,24 +184,6 @@ def gen_yml ():
 			          + '        volumeMounts:\r\n' \
 			          + '        - name: etree\r\n' \
 			          + '          mountPath: /home/etree\r\n'
-		# dep中每个switch container的信息
-		switch_number = _switch_number [dep_index]
-		for switch_index in range (switch_start_number, switch_number + 1):
-			str_dep = str_dep \
-			          + '      - name: s' + str (switch_index) + '\r\n' \
-			          + '        image: etree-switch:v1.0\r\n' \
-			          + '        imagePullPolicy: Never\r\n' \
-			          + '        ports:\r\n' \
-			          + '        - containerPort: ' + str (10000 + switch_index) + '\r\n' \
-			          + '        command: ["python3", "switch/switch.py"]\r\n' \
-			          + '        env:\r\n' \
-			          + '        - name: HOSTNAME\r\n' \
-			          + '          value: "s' + str (switch_index) + '"\r\n' \
-			          + '        - name: PORT\r\n' \
-			          + '          value: "' + str (10000 + switch_index) + '"\r\n' \
-			          + '        volumeMounts:\r\n' \
-			          + '        - name: etree\r\n' \
-			          + '          mountPath: /home/etree\r\n'
 		# dep中volume的信息
 		str_dep = str_dep \
 		          + '      volumes:\r\n' \
@@ -254,21 +207,14 @@ def gen_yml ():
 			str_dep = str_dep \
 			          + '  - name: n' + str (host_index) + '\r\n' \
 			          + '    port: ' + str (8000 + host_index) + '\r\n' \
-			          + '    targetPort: ' + str (8000 + host_index) + '\r\n'
-		# svc中每个switch port的信息
-		for switch_index in range (switch_start_number, switch_number + 1):
-			str_dep = str_dep \
-			          + '  - name: s' + str (switch_index) + '\r\n' \
-			          + '    port: ' + str (10000 + switch_index) + '\r\n' \
-			          + '    targetPort: ' + str (10000 + switch_index) + '\r\n' \
-			          + '    nodePort: ' + str (32000 + switch_index) + '\r\n'
+			          + '    targetPort: ' + str (8000 + host_index) + '\r\n' \
+			          + '    nodePort: ' + str (30000 + host_index) + '\r\n'
 		# 写入一个yml文件
 		with open ('../k8s/dep-' + str (dep_index + 1) + '.yml', 'w')as f:
 			f.writelines (str_dep)
 			f.close ()
 		# 下一个文件用
 		host_start_number = host_number + 1
-		switch_start_number = switch_number + 1
 
 	with open ('../k8s/dep.sh', 'w') as f:
 		str_dep_sh = '#!/bin/bash\r\n'
@@ -289,14 +235,7 @@ def read_json (filename):
 
 
 env_json = read_json ('env.txt')
-_host = 's-etree-'
-_switch_number = env_json ['switch_number']
 _host_number = env_json ['host_number']
-
-if len (_switch_number) != len (_host_number):
-	print ("Error: switch_number.length != host_number.length")
-	exit (-1)
-
 _host_list = env_json ['host_list']
 _round = env_json ['round']
 _local_epoch_num = env_json ['local_epoch_num']
@@ -310,13 +249,7 @@ host_env_map = {}
 upper_queue = deque (['top'])
 queue = deque ([])
 
-conn_json = read_json ('host_conn.txt')
-host_conn = conn_json ['conn']
-host_bw = conn_json ['bw']
-
-switch_env_map = {}
-switch_bw = np.loadtxt ('switch_bw.txt')
+node_bw = np.loadtxt ('node_bw.txt')
 
 gen_host_env ()
-gen_switch_env ()
 gen_yml ()

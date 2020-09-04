@@ -13,7 +13,7 @@ util.set_log (os.getenv ('HOSTNAME'))
 v = values_h.get_values ()
 nn = nn_lr.get_nn ()
 
-if 'learning_rate' in v:
+if 'learning_rate' in v and v ['learning_rate'] != 0:
 	nn_lr.set_train_lr (v ['learning_rate'])
 	nn_lr.set_train_data_batch (v ['batch_size'], v ['round'], v ['start_index'], v ['end_index'])
 
@@ -33,19 +33,20 @@ def route_start ():
 	initial_weights = nn ['sess'].run (nn ['weights'])
 	from_layer = request.args.get ('layer', default=-1, type=int)
 
-	# 从-1来，证明自己是EL的根节点，往下全发，send_weight_down_replace
+	# 从-1来，证明自己是EL的根节点，往下全发，path=replace
 	if from_layer == -1:
 		self_layer = v ['layer'] [-1]
-		send_self = util.send_weight_down_replace (initial_weights, v ['switch'], v ['down_host'] [-1],
-			v ['bw'], self_layer)
+		i_full = util.index_full (v ['down_count'] [-1])
+		send_self = util.send_weight (initial_weights, i_full, v ['down_host'] [-1], v ['node'], v ['forward'],
+			v ['bw'], '/replace', layer=self_layer)
 		if send_self == 1:
 			on_route_replace (initial_weights, self_layer)
 		return 'start EL\r\n'
 
-	# 从0来，证明自己是FL的根节点，往下随机发，send_weight_down_train
+	# 从0来，证明自己是FL的根节点，往下随机发，path=train
 	elif from_layer == 0:
 		i_random = util.index_random (v ['down_count'] [0], v ['worker_fraction'])
-		util.send_weight_down_train (initial_weights, i_random, v ['switch'], v ['down_host'] [0], v ['bw'])
+		util.send_weight (initial_weights, i_random, v ['down_host'] [0], v ['node'], v ['forward'], v ['bw'], '/train')
 		return 'start FL\r\n'
 
 	return 'error\r\n'
@@ -76,18 +77,18 @@ def on_route_replace (w, from_layer, is_binary=0, size=0, s_time=0.0, bw=0):
 
 	self_layer = from_layer - 1
 	layer_index = v ['layer'].index (self_layer)
+	i_full = util.index_full (v ['down_count'] [layer_index])
 
-	# EL的第2层，下一层是训练节点，往下全发，send_weight_down_to_train
+	# EL的第2层，下一层是训练节点，往下全发，path=train
 	if self_layer == 2:
-		i_full = util.index_full (v ['down_count'] [layer_index])
-		send_self = util.send_weight_down_train (w, v ['switch'], i_full, v ['down_host'] [layer_index],
-			v ['bw'], is_binary=is_binary)
+		send_self = util.send_weight (w, i_full, v ['down_host'] [layer_index], v ['node'], v ['forward'], v ['bw'],
+			'/train', is_binary=is_binary)
 		if send_self == 1:
 			on_route_train (w, is_binary=is_binary)
-	# EL的中间层，往下全发，send_weight_down_replace
+	# EL的中间层，往下全发，path=replace
 	else:
-		send_self = util.send_weight_down_replace (w, v ['switch'], v ['down_host'] [layer_index],
-			v ['bw'], self_layer, is_binary=is_binary)
+		send_self = util.send_weight (w, i_full, v ['down_host'] [layer_index], v ['node'], v ['forward'],
+			v ['bw'], '/replace', layer=self_layer, is_binary=is_binary)
 		if send_self == 1:
 			on_route_replace (w, self_layer, is_binary=is_binary)
 
@@ -158,24 +159,24 @@ def combine_weight (layer_index):
 				print ('===================training ended===================')
 			# 不是最高层
 			else:
-				send_self = util.send_weight_up_combine (avg_weight, v ['switch'], v ['up_host'] [layer_index],
-					v ['bw'], self_layer)
+				send_self = util.send_weight (avg_weight, [layer_index], v ['up_host'], v ['node'], v ['forward'],
+					v ['bw'], '/combine', layer=self_layer)
 				if send_self == 1:
 					on_route_combine (avg_weight, self_layer)
 
 		# 没达到该层的sync，往下发
 		else:
-			# EL的第2层，下一层是训练节点，往下全发，send_weight_down_to_train
+			i_full = util.index_full (v ['down_count'] [layer_index])
+			# EL的第2层，下一层是训练节点，往下全发，path=train
 			if self_layer == 2:
-				i_full = util.index_full (v ['down_count'] [layer_index])
-				send_self = util.send_weight_down_train (avg_weight, v ['switch'], i_full,
-					v ['down_host'] [layer_index], v ['bw'])
+				send_self = util.send_weight (avg_weight, i_full, v ['down_host'] [layer_index], v ['node'],
+					v ['forward'], v ['bw'], '/train')
 				if send_self == 1:
 					on_route_train (avg_weight)
-			# EL的中间层，往下全发，send_weight_down_replace
+			# EL的中间层，往下全发，path=replace
 			else:
-				send_self = util.send_weight_down_replace (avg_weight, v ['switch'], v ['down_host'] [layer_index],
-					v ['bw'], self_layer)
+				send_self = util.send_weight (avg_weight, i_full, v ['down_host'] [layer_index], v ['node'],
+					v ['forward'], v ['bw'], '/replace', layer=self_layer)
 				if send_self == 1:
 					on_route_replace (avg_weight, self_layer)
 
@@ -190,7 +191,7 @@ def combine_weight (layer_index):
 		# 没训练完
 		else:
 			i_random = util.index_random (v ['down_count'] [0], v ['worker_fraction'])
-			util.send_weight_down_train (avg_weight, v ['switch'], i_random, v ['down_host'] [0], v ['bw'])
+			util.send_weight (avg_weight, i_random, v ['down_host'] [0], v ['node'], v ['forward'], v ['bw'], '/train')
 
 
 # 训练
@@ -228,9 +229,39 @@ def on_route_train (received_w, is_binary=0, size=0, s_time=0.0, bw=0):
 	util.log ('Train: round={}:loss={}'.format (v ['current_round'] [0], final_loss))
 
 	latest_weights = nn ['sess'].run (nn ['weights'])
-	send_self = util.send_weight_up_combine (latest_weights, v ['switch'], v ['up_host'] [0], v ['bw'], 1)
+	send_self = util.send_weight (latest_weights, [0], v ['up_host'], v ['node'], v ['forward'], v ['bw'], '/combine',
+		layer=1)
 	if send_self == 1:
 		on_route_combine (latest_weights, 1)
+
+
+@app.route ('/forward', methods=['POST'])
+def route_forward ():
+	weights = request.files.get ('weights')
+	data = {'host': request.form ['host'],
+	        'path': request.form ['path'],
+	        'layer': request.form.get ('layer')}
+	s_time = request.args.get ('time', type=float)
+	bw = request.args.get ('bw', type=float)
+
+	temp_file = io.BytesIO ()
+	weights.save (temp_file)
+	weights.seek (0)
+	size = len (weights.read ())  # 模拟网络传输时延
+	temp_file.seek (0)
+
+	executor.submit (on_route_forward, temp_file, data, size, s_time, bw)
+	return ''
+
+
+def on_route_forward (weights, data, size, _time, bw):
+	util.simulate_sleep (size, _time, bw)
+	if data ['host'] in v ['node']:
+		addr = v ['node'] [data ['host']]
+		util.send (weights, data, addr, v ['bw'] [addr], is_forward=False)
+	else:
+		addr = v ['forward'] [data ['host']]
+		util.send (weights, data, addr, v ['bw'] [addr], is_forward=True)
 
 
 app.run (host='0.0.0.0', port=os.getenv ('PORT'), threaded=True)

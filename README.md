@@ -28,5 +28,3 @@
 如果要用minst或者cifar数据集，请自行下载到etree目录下，修改```etree/node/nns/nn_minst```或者```etree/node/nns/nn_cifar```中涉及到数据集地址的代码，修改```etree/node/node.py```中调用nns的代码。注意不要把数据集commit到git上
 ### 关于网络模型
 如果要自定义网络模型，准备好数据集后，编写```etree/node/nns/`nn_xx.py```，格式参见现有的代码，暴露出必要的api，修改```etree/node/node.py```中调用nns的代码。注意自定义的网络模型以及相应的数据集也不要commit到git上
-### ~~物理网络拓扑图信息~~ 已弃用，使用tools内工具
-详情可参考`etree/graph/README.md`

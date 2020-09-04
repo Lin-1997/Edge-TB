@@ -70,62 +70,6 @@ spec:
         volumeMounts:
         - name: etree
           mountPath: /home/etree
-      - name: s1
-        image: etree-switch:v1.0
-        imagePullPolicy: Never
-        ports:
-        - containerPort: 10001
-        command: ["python3", "switch/switch.py"]
-        env:
-        - name: HOSTNAME
-          value: "s1"
-        - name: PORT
-          value: "10001"
-        volumeMounts:
-        - name: etree
-          mountPath: /home/etree
-      - name: s2
-        image: etree-switch:v1.0
-        imagePullPolicy: Never
-        ports:
-        - containerPort: 10002
-        command: ["python3", "switch/switch.py"]
-        env:
-        - name: HOSTNAME
-          value: "s2"
-        - name: PORT
-          value: "10002"
-        volumeMounts:
-        - name: etree
-          mountPath: /home/etree
-      - name: s3
-        image: etree-switch:v1.0
-        imagePullPolicy: Never
-        ports:
-        - containerPort: 10003
-        command: ["python3", "switch/switch.py"]
-        env:
-        - name: HOSTNAME
-          value: "s3"
-        - name: PORT
-          value: "10003"
-        volumeMounts:
-        - name: etree
-          mountPath: /home/etree
-      - name: s4
-        image: etree-switch:v1.0
-        imagePullPolicy: Never
-        ports:
-        - containerPort: 10004
-        command: ["python3", "switch/switch.py"]
-        env:
-        - name: HOSTNAME
-          value: "s4"
-        - name: PORT
-          value: "10004"
-        volumeMounts:
-        - name: etree
-          mountPath: /home/etree
       volumes:
       - name: etree
         persistentVolumeClaim:
@@ -143,28 +87,16 @@ spec:
   - name: n1
     port: 8001
     targetPort: 8001
+    nodePort: 30001
   - name: n2
     port: 8002
     targetPort: 8002
+    nodePort: 30002
   - name: n3
     port: 8003
     targetPort: 8003
+    nodePort: 30003
   - name: n4
     port: 8004
     targetPort: 8004
-  - name: s1
-    port: 10001
-    targetPort: 10001
-    nodePort: 32001
-  - name: s2
-    port: 10002
-    targetPort: 10002
-    nodePort: 32002
-  - name: s3
-    port: 10003
-    targetPort: 10003
-    nodePort: 32003
-  - name: s4
-    port: 10004
-    targetPort: 10004
-    nodePort: 32004
+    nodePort: 30004
