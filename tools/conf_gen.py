@@ -16,13 +16,13 @@ class HostEnv:
 		self.down_host = []
 		self.sync = []
 
-		self.round = _round [_id - 1]
-		self.local_epoch_num = _local_epoch_num [_id - 1]
-		self.batch_size = _batch_size [_id - 1]
-		self.learning_rate = _learning_rate [_id - 1]
-		self.start_index = _start_index [_id - 1]
-		self.end_index = _end_index [_id - 1]
-		self.worker_fraction = _worker_fraction [_id - 1]
+		self.round = _round [id_to_index (_id)]
+		self.local_epoch_num = _local_epoch_num [id_to_index (_id)]
+		self.batch_size = _batch_size [id_to_index (_id)]
+		self.learning_rate = _learning_rate [id_to_index (_id)]
+		self.start_index = _start_index [id_to_index (_id)]
+		self.end_index = _end_index [id_to_index (_id)]
+		self.worker_fraction = _worker_fraction [id_to_index (_id)]
 
 		self.node = {}
 		self.forward = {}
@@ -56,14 +56,40 @@ class HostEnv:
 		return _string
 
 
-def format_path (_id):
-	s_index = 0
-	while _id > _host_number [s_index]:
-		s_index = s_index + 1
-	# host = 's-etree-'
-	# return 'http://' + host + str (s_index + 1) + ':' + str (8000 + _id)
-	host = 'n'
-	return 'http://' + host + str (_id) + ':' + str (8000 + _id)
+def id_to_host (_id):
+	if _id > 0:
+		return 'n' + str (_id)
+	return 'r' + str (-_id)
+
+
+def host_to_id (_host):
+	if _host [0] == 'n':
+		return int (_host [1:])
+	return -int (_host [1:])
+
+
+def id_to_path (s_id, d_id):
+	# 都是容器
+	if s_id > 0 and d_id > 0:
+		s_index = 0
+		while d_id > _container_number [s_index]:
+			s_index = s_index + 1
+		return 'http://' + 's-etree-' + str (s_index + 1) + ':' + str (8000 + d_id)
+	# 设备发给容器
+	elif d_id > 0 > s_id:
+		s_index = 0
+		while d_id > _container_number [s_index]:
+			s_index = s_index + 1
+		return 'http://' + _server_ip [s_index] + ':' + str (30000 + d_id)
+	# 发给设备
+	else:
+		return 'http://' + _device_ip [id_to_host (d_id)] + ':8888'
+
+
+def id_to_index (_id):
+	if _id > 0:
+		return _id + _device_number - 1
+	return _id + _device_number
 
 
 def gen_host_env ():
@@ -79,10 +105,10 @@ def gen_host_env ():
 		upper_id = upper_queue.popleft ()
 		if upper_id == host ['id']:
 			env.up_host.append ('self')
-		elif upper_id == 'top':
+		elif upper_id == 0:
 			env.up_host.append ('top')
 		else:
-			env.up_host.append ('n' + str (upper_id))
+			env.up_host.append (id_to_host (upper_id))
 		# 占位
 		env.sync.append (host ['sync'])
 		env.down_count.append (host ['dc'])
@@ -102,7 +128,7 @@ def gen_host_env ():
 			if u_e.id == host ['id']:
 				u_e.down_host [curr].append ('self')
 			else:
-				u_e.down_host [curr].append ('n' + str (host ['id']))
+				u_e.down_host [curr].append (id_to_host (host ['id']))
 			u_e.current_down [curr] = u_e.current_down [curr] + 1
 		# 是后面a[dc]个的父节点
 		for _ in range (host ['dc']):
@@ -112,43 +138,47 @@ def gen_host_env ():
 			host_env_map [host ['id']].down_host.append ([])
 
 	# 路由信息
-	size = _host_number [-1]
-	for host_id in range (size):
-		env = host_env_map [host_id + 1]
+	for host_id in range (-_device_number, _container_number [-1] + 1):
+		if host_id == 0:
+			continue
+		env = host_env_map [host_id]
 		# 到自己0跳
-		env.n_hop ['n' + str (host_id + 1)] = 0
-		for next_id in range (size):
-			if host_id == next_id:
+		env.n_hop [id_to_host (host_id)] = 0
+		for next_id in range (-_device_number, _container_number [-1] + 1):
+			if next_id == host_id or next_id == 0:
 				continue
-			if node_bw [host_id] [next_id] != 0:
-				env.node ['n' + str (next_id + 1)] = format_path (next_id + 1)
+			bw = node_bw [id_to_index (host_id)] [id_to_index (next_id)]
+			if bw != 0:
+				next_host = id_to_host (next_id)
+				next_path = id_to_path (host_id, next_id)
+				env.node [next_host] = next_path
 				# 到邻居带宽
-				env.bw [format_path (next_id + 1)] = node_bw [host_id] [next_id]
+				env.bw [next_path] = bw
 				# 到邻居1跳
-				env.n_hop ['n' + str (next_id + 1)] = 1
+				env.n_hop [next_host] = 1
 	flag = True
 	while flag:
 		flag = False
 		for h1 in host_env_map.values ():
 			hop1 = h1.n_hop
 			for host_name2 in h1.node:
-				h2 = host_env_map [int (host_name2 [1:])]
+				h2 = host_env_map [host_to_id (host_name2)]
 				hop2 = h2.n_hop
 				for dest in hop1:
 					if dest not in hop2 or h2.n_hop [dest] > h1.n_hop [dest] + 1:
 						flag = True
-						h2.forward [dest] = format_path (h1.id)
+						h2.forward [dest] = id_to_path (h2.id, h1.id)
 						h2.n_hop [dest] = h1.n_hop [dest] + 1
 
 	for key in host_env_map:
-		file_name = '../node/env/n' + str (key) + '.env'
+		file_name = '../node/env/' + id_to_host (key) + '.env'
 		with open (file_name, 'w') as file:
 			file.writelines (host_env_map [key].to_json ())
 
 
 def gen_yml ():
-	host_start_number = 1
-	for dep_index in range (len (_host_number)):
+	container_start_number = 1
+	for dep_index in range (_server_number):
 		# dep-的信息
 		str_dep = '---\r\n' \
 		          + 'apiVersion: apps/v1\r\n' \
@@ -167,29 +197,29 @@ def gen_yml ():
 		          + '      hostname: p-etree-' + str (dep_index + 1) + '\r\n' \
 		          + '      containers:\r\n'
 		# dep中每个host container的信息
-		host_number = _host_number [dep_index]
-		for host_index in range (host_start_number, host_number + 1):
+		container_number = _container_number [dep_index]
+		for host_index in range (container_start_number, container_number + 1):
 			str_dep = str_dep \
 			          + '      - name: n' + str (host_index) + '\r\n' \
 			          + '        image: etree-node:v1.0\r\n' \
 			          + '        imagePullPolicy: Never\r\n' \
 			          + '        ports:\r\n' \
 			          + '        - containerPort: ' + str (8000 + host_index) + '\r\n' \
-			          + '        command: ["python3", "node/node.py"]\r\n' \
+			          + '        command: ["python3", "node.py"]\r\n' \
 			          + '        env:\r\n' \
-			          + '        - name: HOSTNAME\r\n' \
+			          + '        - name: NAME\r\n' \
 			          + '          value: "n' + str (host_index) + '"\r\n' \
 			          + '        - name: PORT\r\n' \
 			          + '          value: "' + str (8000 + host_index) + '"\r\n' \
 			          + '        volumeMounts:\r\n' \
-			          + '        - name: etree\r\n' \
-			          + '          mountPath: /home/etree\r\n'
+			          + '        - name: node\r\n' \
+			          + '          mountPath: /home/node\r\n'
 		# dep中volume的信息
 		str_dep = str_dep \
 		          + '      volumes:\r\n' \
-		          + '      - name: etree\r\n' \
+		          + '      - name: node\r\n' \
 		          + '        persistentVolumeClaim:\r\n' \
-		          + '          claimName: pvc-etree\r\n'
+		          + '          claimName: pvc-node\r\n'
 		# svc的信息
 		str_dep = str_dep \
 		          + '---\r\n' \
@@ -203,24 +233,24 @@ def gen_yml ():
 		          + '  type: NodePort\r\n' \
 		          + '  ports:\r\n'
 		# svc中每个host port的信息
-		for host_index in range (host_start_number, host_number + 1):
+		for host_index in range (container_start_number, container_number + 1):
 			str_dep = str_dep \
 			          + '  - name: n' + str (host_index) + '\r\n' \
 			          + '    port: ' + str (8000 + host_index) + '\r\n' \
 			          + '    targetPort: ' + str (8000 + host_index) + '\r\n' \
 			          + '    nodePort: ' + str (30000 + host_index) + '\r\n'
 		# 写入一个yml文件
-		with open ('../k8s/dep-' + str (dep_index + 1) + '.yml', 'w')as f:
+		with open ('../k8s-master/dep-' + str (dep_index + 1) + '.yml', 'w')as f:
 			f.writelines (str_dep)
 			f.close ()
 		# 下一个文件用
-		host_start_number = host_number + 1
+		container_start_number = container_number + 1
 
-	with open ('../k8s/dep.sh', 'w') as f:
+	with open ('../k8s-master/dep.sh', 'w') as f:
 		str_dep_sh = '#!/bin/bash\r\n'
-		for i in range (len (_host_number)):
+		for i in range (_server_number):
 			str_dep_sh = str_dep_sh + 'kubectl delete -f dep-' + str (i + 1) + '.yml\r\n'
-		for i in range (len (_host_number)):
+		for i in range (_server_number):
 			str_dep_sh = str_dep_sh + 'kubectl create -f dep-' + str (i + 1) + '.yml\r\n'
 		f.writelines (str_dep_sh)
 		f.close ()
@@ -235,7 +265,11 @@ def read_json (filename):
 
 
 env_json = read_json ('env.txt')
-_host_number = env_json ['host_number']
+_server_number = env_json ['server_number']
+_device_number = env_json ['device_number']
+_server_ip = env_json ['server_ip']
+_device_ip = env_json ['device_ip']
+_container_number = env_json ['container_number']
 _host_list = env_json ['host_list']
 _round = env_json ['round']
 _local_epoch_num = env_json ['local_epoch_num']
@@ -246,10 +280,10 @@ _end_index = env_json ['end_index']
 _worker_fraction = env_json ['worker_fraction']
 
 host_env_map = {}
-upper_queue = deque (['top'])
+upper_queue = deque ([0])  # 代表"top"
 queue = deque ([])
 
-node_bw = np.loadtxt ('node_bw.txt')
+node_bw = np.loadtxt ('bw.txt')
 
 gen_host_env ()
 gen_yml ()

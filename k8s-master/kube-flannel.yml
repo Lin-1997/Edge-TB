@@ -31,7 +31,7 @@ spec:
   allowPrivilegeEscalation: false
   defaultAllowPrivilegeEscalation: false
   # Capabilities
-  allowedCapabilities: ['NET_ADMIN']
+  allowedCapabilities: ['NET_ADMIN', 'NET_RAW']
   defaultAddCapabilities: []
   requiredDropCapabilities: []
   # Host namespaces
@@ -163,13 +163,14 @@ spec:
                     values:
                       - amd64
       hostNetwork: true
+      priorityClassName: system-node-critical
       tolerations:
       - operator: Exists
         effect: NoSchedule
       serviceAccountName: flannel
       initContainers:
       - name: install-cni
-        image: quay-mirror.qiniu.com/coreos/flannel:v0.12.0-amd64
+        image: quay.io/coreos/flannel:v0.12.0-amd64
         command:
         - cp
         args:
@@ -183,7 +184,7 @@ spec:
           mountPath: /etc/kube-flannel/
       containers:
       - name: kube-flannel
-        image: quay-mirror.qiniu.com/coreos/flannel:v0.12.0-amd64
+        image: quay.io/coreos/flannel:v0.12.0-amd64
         command:
         - /opt/bin/flanneld
         args:
@@ -199,7 +200,7 @@ spec:
         securityContext:
           privileged: false
           capabilities:
-            add: ["NET_ADMIN"]
+            add: ["NET_ADMIN", "NET_RAW"]
         env:
         - name: POD_NAME
           valueFrom:
@@ -257,13 +258,14 @@ spec:
                     values:
                       - arm64
       hostNetwork: true
+      priorityClassName: system-node-critical
       tolerations:
       - operator: Exists
         effect: NoSchedule
       serviceAccountName: flannel
       initContainers:
       - name: install-cni
-        image: quay-mirror.qiniu.com/coreos/flannel:v0.12.0-arm64
+        image: quay.io/coreos/flannel:v0.12.0-arm64
         command:
         - cp
         args:
@@ -277,7 +279,7 @@ spec:
           mountPath: /etc/kube-flannel/
       containers:
       - name: kube-flannel
-        image: quay-mirror.qiniu.com/coreos/flannel:v0.12.0-arm64
+        image: quay.io/coreos/flannel:v0.12.0-arm64
         command:
         - /opt/bin/flanneld
         args:
@@ -293,7 +295,7 @@ spec:
         securityContext:
           privileged: false
           capabilities:
-             add: ["NET_ADMIN"]
+             add: ["NET_ADMIN", "NET_RAW"]
         env:
         - name: POD_NAME
           valueFrom:
@@ -351,13 +353,14 @@ spec:
                     values:
                       - arm
       hostNetwork: true
+      priorityClassName: system-node-critical
       tolerations:
       - operator: Exists
         effect: NoSchedule
       serviceAccountName: flannel
       initContainers:
       - name: install-cni
-        image: quay-mirror.qiniu.com/coreos/flannel:v0.12.0-arm
+        image: quay.io/coreos/flannel:v0.12.0-arm
         command:
         - cp
         args:
@@ -371,7 +374,7 @@ spec:
           mountPath: /etc/kube-flannel/
       containers:
       - name: kube-flannel
-        image: quay-mirror.qiniu.com/coreos/flannel:v0.12.0-arm
+        image: quay.io/coreos/flannel:v0.12.0-arm
         command:
         - /opt/bin/flanneld
         args:
@@ -387,7 +390,7 @@ spec:
         securityContext:
           privileged: false
           capabilities:
-             add: ["NET_ADMIN"]
+             add: ["NET_ADMIN", "NET_RAW"]
         env:
         - name: POD_NAME
           valueFrom:
@@ -445,13 +448,14 @@ spec:
                     values:
                       - ppc64le
       hostNetwork: true
+      priorityClassName: system-node-critical
       tolerations:
       - operator: Exists
         effect: NoSchedule
       serviceAccountName: flannel
       initContainers:
       - name: install-cni
-        image: quay-mirror.qiniu.com/coreos/flannel:v0.12.0-ppc64le
+        image: quay.io/coreos/flannel:v0.12.0-ppc64le
         command:
         - cp
         args:
@@ -465,7 +469,7 @@ spec:
           mountPath: /etc/kube-flannel/
       containers:
       - name: kube-flannel
-        image: quay-mirror.qiniu.com/coreos/flannel:v0.12.0-ppc64le
+        image: quay.io/coreos/flannel:v0.12.0-ppc64le
         command:
         - /opt/bin/flanneld
         args:
@@ -481,7 +485,7 @@ spec:
         securityContext:
           privileged: false
           capabilities:
-             add: ["NET_ADMIN"]
+             add: ["NET_ADMIN", "NET_RAW"]
         env:
         - name: POD_NAME
           valueFrom:
@@ -539,13 +543,14 @@ spec:
                     values:
                       - s390x
       hostNetwork: true
+      priorityClassName: system-node-critical
       tolerations:
       - operator: Exists
         effect: NoSchedule
       serviceAccountName: flannel
       initContainers:
       - name: install-cni
-        image: quay-mirror.qiniu.com/coreos/flannel:v0.12.0-s390x
+        image: quay.io/coreos/flannel:v0.12.0-s390x
         command:
         - cp
         args:
@@ -559,7 +564,7 @@ spec:
           mountPath: /etc/kube-flannel/
       containers:
       - name: kube-flannel
-        image: quay-mirror.qiniu.com/coreos/flannel:v0.12.0-s390x
+        image: quay.io/coreos/flannel:v0.12.0-s390x
         command:
         - /opt/bin/flanneld
         args:
@@ -575,7 +580,7 @@ spec:
         securityContext:
           privileged: false
           capabilities:
-             add: ["NET_ADMIN"]
+             add: ["NET_ADMIN", "NET_RAW"]
         env:
         - name: POD_NAME
           valueFrom:

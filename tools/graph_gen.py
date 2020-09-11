@@ -98,13 +98,13 @@ def assign_bw ():
 
 
 # 节点数量
-node_n = 4
+node_n = 10
 # 节点相互连接概率
-conn_prob = 0.2
+conn_prob = 0.25
 # 带宽下限
-min_bw = 0.001
+min_bw = 0.02
 # 带宽上限
-max_bw = 0.01
+max_bw = 0.05
 
 # g_2d
 # 图大小
@@ -135,4 +135,4 @@ cal_abc ()
 assign_bw ()
 
 print (g)
-np.savetxt ('node_bw.txt', g.data, fmt='%.4f')
+np.savetxt ('bw.txt', g.data, fmt='%.4f')

@@ -1,0 +1,84 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: d-etree-1
+spec:
+  selector:
+    matchLabels:
+      label: l-p-etree-1
+  template: 
+    metadata:
+      labels:
+        label: l-p-etree-1
+    spec:
+      hostname: p-etree-1
+      containers:
+      - name: n1
+        image: etree-node:v1.0
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8001
+        command: ["python3", "node.py"]
+        env:
+        - name: NAME
+          value: "n1"
+        - name: PORT
+          value: "8001"
+        volumeMounts:
+        - name: node
+          mountPath: /home/node
+      - name: n2
+        image: etree-node:v1.0
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8002
+        command: ["python3", "node.py"]
+        env:
+        - name: NAME
+          value: "n2"
+        - name: PORT
+          value: "8002"
+        volumeMounts:
+        - name: node
+          mountPath: /home/node
+      - name: n3
+        image: etree-node:v1.0
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8003
+        command: ["python3", "node.py"]
+        env:
+        - name: NAME
+          value: "n3"
+        - name: PORT
+          value: "8003"
+        volumeMounts:
+        - name: node
+          mountPath: /home/node
+      volumes:
+      - name: node
+        persistentVolumeClaim:
+          claimName: pvc-node
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s-etree-1
+spec:
+  selector:
+    label: l-p-etree-1
+  type: NodePort
+  ports:
+  - name: n1
+    port: 8001
+    targetPort: 8001
+    nodePort: 30001
+  - name: n2
+    port: 8002
+    targetPort: 8002
+    nodePort: 30002
+  - name: n3
+    port: 8003
+    targetPort: 8003
+    nodePort: 30003

@@ -1,5 +1,6 @@
 import io
 import os
+import socket
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
@@ -9,8 +10,15 @@ import util
 from nns import nn_lr
 from values import values_h
 
-util.set_log (os.getenv ('HOSTNAME'))
-v = values_h.get_values ()
+port = os.getenv ('PORT')
+if not port:
+	port = '8888'
+name = os.getenv ('NAME')
+if not name:
+	name = socket.gethostname ()
+
+util.set_log (name)
+v = values_h.get_values (name)
 nn = nn_lr.get_nn ()
 
 if 'learning_rate' in v and v ['learning_rate'] != 0:
@@ -24,7 +32,7 @@ executor = ThreadPoolExecutor (1)
 
 @app.route ('/hi', methods=['GET'])
 def route_hi ():
-	return 'Node ' + os.getenv ('HOSTNAME') + ' in ' + str (os.getenv ('PORT')) + '\r\r\n'
+	return 'Node ' + name + ' in ' + port + '\r\r\n'
 
 
 # 聚合
@@ -151,11 +159,6 @@ def combine_weight (layer_index):
 		if v ['current_round'] [layer_index] % v ['sync'] [layer_index] == 0:
 			# 是最高层
 			if v ['up_host'] [layer_index] == 'top':
-				# 用没有GUI的云服务器下面两句代码会卡死
-				# 用有GUI的设备可以正常使用
-				# 输出训练的accuracy和loss图像
-				# logact ().star3 ()
-				# logact ().star4 ()
 				print ('===================training ended===================')
 			# 不是最高层
 			else:
@@ -184,10 +187,7 @@ def combine_weight (layer_index):
 	else:
 		# 训练完
 		if v ['current_round'] [layer_index] == v ['sync'] [0]:
-			# logact ().star3 ()
-			# logact ().star4 ()
 			print ('===================training ended===================')
-
 		# 没训练完
 		else:
 			i_random = util.index_random (v ['down_count'] [0], v ['worker_fraction'])
@@ -264,4 +264,4 @@ def on_route_forward (weights, data, size, _time, bw):
 		util.send (weights, data, addr, v ['bw'] [addr], is_forward=True)
 
 
-app.run (host='0.0.0.0', port=os.getenv ('PORT'), threaded=True)
+app.run (host='0.0.0.0', port=port, threaded=True)

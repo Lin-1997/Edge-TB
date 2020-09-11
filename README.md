@@ -1,30 +1,35 @@
-# 最新的项目进展
-### 已完成部分
-- Dockerfile
-- K8s
-- NFS
-### 安装说明
-0. At least 2 computers, each with 2-cores and 2G memory, one acts as master and others act as nodes
-0. Linux required
-0. Install K8s and docker and , see https://www.jianshu.com/p/f2d4dd4d1fb1
-0. Install NFS, see https://blog.csdn.net/networken/article/details/105997728
-0. On master
-    0. ```sudo bash etree/k8s/master_setup.sh```
-0. On node
-    0. ```sudo bash etree/setup.sh```
-    0. ```sudo bash etree/k8s/node_setup.sh```
-### 启动说明
-0. 在master中，修改```etree/tools/graph_gen.py```，然后python3运行  
-0. 在master中，修改```etree/tools/env.txt```，参考```etree/tools/README.md```  
-0. 在master中，python3运行```etree/tools/conf_gen.py```  
-0. 在master中，bash运行 ```etree/k8s/run.sh```  
-0. 在node中，关闭swap，加入K8s网络  
-0. 在master中，修改```etree/k8s/dep.sh```，使得一个dep.yml固定部署到一台node主机上，然后bash运行``` etree/k8s/dep.sh```  
-0. 假设n1为最顶层的节点  
-0. 启动EL->在master中，进入n1的容器， ```curl http://n1的地址/start```  
-0. 启动FL->在master中，进入n1的容器， ```curl http://n1的地址/start?layer=0```  
-0. 在master中，```etree/node/log```查看训练情况，或者在node中，```docker logs $(容器名)``` 查看容器输出  
-### 关于数据集
-如果要用minst或者cifar数据集，请自行下载到etree目录下，修改```etree/node/nns/nn_minst```或者```etree/node/nns/nn_cifar```中涉及到数据集地址的代码，修改```etree/node/node.py```中调用nns的代码。注意不要把数据集commit到git上
-### 关于网络模型
-如果要自定义网络模型，准备好数据集后，编写```etree/node/nns/`nn_xx.py```，格式参见现有的代码，暴露出必要的api，修改```etree/node/node.py```中调用nns的代码。注意自定义的网络模型以及相应的数据集也不要commit到git上
+### Installation
+0. At least 2 computers, each with 2-cores and 2G memory, one acts as Master and others act as Nodes  
+0. Linux required, Ubuntu recommended  
+0. Install python3 and python3-pip  
+0. Install K8s and Docker. For Chinese users, look https://www.jianshu.com/p/f2d4dd4d1fb1 for details  
+0. Install NFS. For Chinese users, look https://blog.csdn.net/networken/article/details/105997728 for details  
+0. On Master  
+    0. Type ```kubeadm config images list```  to list the suitable versions, and modify ```etree/k8s-master/setup.sh```  
+    0. The docker image can be obtained through the official registry  
+    0. For Chinese users, it may be better to use ```registry.aliyuncs.com/google_containers```  instead of the official one  
+    0. Run ```etree/k8s-master/setup.sh``` with bash. This command will install numpy and matplotlib through pip3, take carefully
+0. On Node, Similar to Master-setup, and run ```etree/k8s-node/setup.sh``` with bash  
+0. On Raspberry Pi (if you have, Raspberry Pi OS recommended)  
+    0. Change the hostname of your Raspberry Pi follows r1, r2 ...  
+    0. Install tensorflow==1.15.0, look https://github.com/PINTO0309/Tensorflow-bin#usage for details  
+    0. Copy ```etree/node``` into your Raspberry Pi, no need for the entire ```/etree```, and ```pip3 install -r node/requirements.txt```  
+### Run
+0. On Master, modify ```etree/tools/graph_gen.py```, and run with python3  
+0. On Master, modify ```etree/tools/env.txt```, look ```etree/tools/README.md``` for details  
+0. On Master, run ```etree/tools/conf_gen.py``` with python3  
+0. On Master, export ```/abs/path/to/etree/node``` through NFS, don't export the entire ```/etree```  
+0. On Master, modify ```spec:nfs:path``` and ```spec:nfs:server``` in ```etree/k8s-master/nfs.yml```  
+0. On Master, modify ```--apiserver-advertise-address``` in ```etree/k8s-master/run.sh```, and run with bash  
+0. On Node, make sure there exists ```/etc/cni/net.d/*flannel.conf*```, and has the same name and content as the one in Master 
+0. On Node, make sure there exists ```/run/systemd/resolve/resolv.conf```. It doesn't matter what content is in the file  
+0. On Node, turn off swap, and join the K8s network  
+0. On Raspberry Pi (if you have), copy ```r*.env``` from Master ```etree/node/env``` to the corresponding Raspberry Pi, and run ```node/node.py``` with python3  
+0. On Master, modify ```etree/k8s-master/dep.sh``` to deploy each ```dep.yml``` in one Node, and run ```etree/k8s-master/dep.sh``` with bash  
+0. Suppose n1 is the top-layer aggregator in etree  
+0. To start EL->On Master, ```curl http://n1's address/start```  
+0. To start FL->On Master, ```curl http://n1's address/start?layer=0```  
+0. On Master, ```cat etree/node/log/n*.log```, or ```docker logs $(container ID)```   
+0. For Raspberry Pi (if you have), ```cat node/log/r*.log```  
+### Dataset and Network model
+Write```etree/node/nns/`nn_xx.py```, expose API just like ```etree/node/nns/nn_minst.py```, and modify```etree/node/node.py``` to loads your ```nn_xx.py```  

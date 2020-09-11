@@ -1,8 +1,9 @@
 import io
 import logging
+import math
+import os
 import time
 
-import math
 import numpy as np
 import requests
 import tensorflow as tf
@@ -10,9 +11,9 @@ import tensorflow as tf
 write = io.BytesIO ()
 
 
-def set_log (hostname):
-	logging.basicConfig (level=logging.INFO, filename='node/log/' + hostname + '.log', filemode='w',
-		format='%(message)s')
+def set_log (name):
+	filename = os.path.abspath (os.path.join (os.path.dirname (__file__), './log', name + '.log'))
+	logging.basicConfig (level=logging.INFO, filename=filename, filemode='w', format='%(message)s')
 
 
 def log (message):

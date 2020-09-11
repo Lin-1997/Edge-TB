@@ -3,7 +3,7 @@ services:
   node:
     image: etree-node:v1.0
     volumes:
-      - ../:/home/etree
+      - ./node:/home/node
     stdin_open: true
     tty: true
-    command: ["python3", "node/node.py"]
+    command: ["python3", "node.py"]
