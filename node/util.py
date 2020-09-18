@@ -6,13 +6,13 @@ import time
 
 import numpy as np
 import requests
-import tensorflow as tf
 
 write = io.BytesIO ()
+dirname = os.path.dirname (__file__)
 
 
 def set_log (name):
-	filename = os.path.abspath (os.path.join (os.path.dirname (__file__), './log', name + '.log'))
+	filename = os.path.abspath (os.path.join (dirname, 'log/', name + '.log'))
 	logging.basicConfig (level=logging.INFO, filename=filename, filemode='w', format='%(message)s')
 
 
@@ -35,21 +35,6 @@ def simulate_sleep (size, s_time, bw):
 	t = s_time + n_time - c_time
 	if t > 0.2:
 		time.sleep (t)
-
-
-def add_layer (assign_list, inputs, in_size, out_size, activation_function=None):
-	w = tf.Variable (tf.random_normal ([in_size, out_size]))
-	w_holder = tf.placeholder (tf.float32, [in_size, out_size])
-	assign_list.append (tf.assign (w, w_holder))
-	b = tf.Variable (tf.zeros ([1, out_size]) + 0.1)
-	b_holder = tf.placeholder (tf.float32, [1, out_size])
-	assign_list.append (tf.assign (b, b_holder))
-	wx_plus_b = tf.matmul (inputs, w) + b
-	if activation_function is None:
-		outputs = wx_plus_b
-	else:
-		outputs = activation_function (wx_plus_b)
-	return outputs
 
 
 def train (local_epoch_num, batch_num, sess, batch, loss, train_step, xs, ys):
@@ -147,6 +132,16 @@ def send (weights, data, addr, bw, is_forward):
 		path = addr + data ['path'] + '?layer=' + str (data ['layer']) \
 		       + '&time=' + str (s_time) + '&bw=' + str (bw)
 		requests.post (path, files=file)
+
+
+def send_message (master_ip, path, msg=''):
+	requests.get ('http://' + master_ip + ':9000/' + path + '?msg=' + msg)
+
+
+def send_log (master_ip, name):
+	file_path = os.path.abspath (os.path.join (dirname, 'log/', name + '.log'))
+	with open (file_path, 'r') as f:
+		requests.post ('http://' + master_ip + ':9000/log', files={'log': f})
 
 
 def index_random (worker_num, fraction):

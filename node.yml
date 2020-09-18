@@ -6,4 +6,4 @@ services:
       - ./node:/home/node
     stdin_open: true
     tty: true
-    command: ["python3", "node.py"]
+    command: ["python3", "EL.py"]

@@ -1,5 +1,5 @@
 ## .env文件说明
-- 类型，0: EL，1: FL  
+- 类型，0：EL，1：FL  
 ```"type": 0```  
 conf_gen.py生成的默认type=0  
 - 同时处于多少层  
@@ -27,16 +27,16 @@ conf_gen.py生成的默认type=0
 
 - 下面的参数不是训练节点可以随便赋个值  
 
-- 用来将训练数据划分成一定数量的batch，正考虑换个名称  
+- 训练数据重复使用round次  
 ```"round": 20```  
-这个关联到上下层之间Sync，似乎还不能随便取值，不然可能数据用完了还没到Sync  
+这个关联到上下层之间Sync，不能太小，不然可能数据用完了还没到Sync  
+似乎应该为 local_epoch_num*父节点的sync*父节点的父节点的sync*…，直到最顶层  
 - 本地训练次数  
 ```"local_epoch_num": 1```  
-- 每次训练用多少个样本  
-```"batch_size": 1```  
-- 学习率  
+- 训练参数  
 ```"learning_rate": 0.05```  
-- 训练样本范围，[start_index, end_index)  
+```"batch_size": 10```  
+- 训练样本范围，\[start_index, end_index]  
 ```"start_index": 0```  
 ```"end_index": 1```  
 - FL聚合节点专用，每轮选多少比例的节点训练，EL中赋值为1  
@@ -53,6 +53,3 @@ conf_gen.py生成的默认type=0
 - 带宽  
 ```"bw": {'http://192.168.0.108:8888': 0.002, 'http://s-etree-1:8003': 0.002}```  
 目标path: 带宽  
-##示例网络结构
-示例n1, n2, n3, r1组成的网络  
-![网络结构](network.png)  

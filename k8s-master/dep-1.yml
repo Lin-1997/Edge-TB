@@ -7,19 +7,25 @@ spec:
   selector:
     matchLabels:
       label: l-p-etree-1
-  template: 
+  template:
     metadata:
       labels:
         label: l-p-etree-1
     spec:
+      nodeName: name of the 1^th node
       hostname: p-etree-1
       containers:
       - name: n1
         image: etree-node:v1.0
         imagePullPolicy: Never
+        resources:
+          requests:
+            cpu: "1"
+          limits:
+            cpu: "1"
         ports:
         - containerPort: 8001
-        command: ["python3", "node.py"]
+        command: ["bash", "run.sh"]
         env:
         - name: NAME
           value: "n1"
@@ -33,7 +39,7 @@ spec:
         imagePullPolicy: Never
         ports:
         - containerPort: 8002
-        command: ["python3", "node.py"]
+        command: ["bash", "run.sh"]
         env:
         - name: NAME
           value: "n2"
@@ -47,7 +53,7 @@ spec:
         imagePullPolicy: Never
         ports:
         - containerPort: 8003
-        command: ["python3", "node.py"]
+        command: ["bash", "run.sh"]
         env:
         - name: NAME
           value: "n3"

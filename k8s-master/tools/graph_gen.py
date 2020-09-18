@@ -1,5 +1,7 @@
-import random
 import math
+import os
+import random
+
 import numpy as np
 from numpy.linalg import solve
 
@@ -85,8 +87,6 @@ def cal_abc ():
 
 
 def assign_bw ():
-	# print ('max_dist=' + str (max_dist))
-	# print ('min_dist=' + str (min_dist))
 	print ('cal=' + str (a) + '*dist^2 + ' + str (b) + '*dist + ' + str (c))
 	for i in range (node_n):
 		for j in range (i):
@@ -97,14 +97,18 @@ def assign_bw ():
 				g [j] [i] = g [i] [j]
 
 
+# All configurable parameter(s)
+
 # 节点数量
-node_n = 10
+node_n = 4
 # 节点相互连接概率
-conn_prob = 0.25
+conn_prob = 0.2
 # 带宽下限
-min_bw = 0.02
+min_bw = 2
 # 带宽上限
-max_bw = 0.05
+max_bw = 5
+
+# All configurable parameter(s)
 
 # g_2d
 # 图大小
@@ -134,5 +138,5 @@ cal_abc ()
 # 赋值网速
 assign_bw ()
 
-print (g)
-np.savetxt ('bw.txt', g.data, fmt='%.4f')
+filename = os.path.abspath (os.path.join (os.path.dirname (__file__), 'bw.txt'))
+np.savetxt (filename, g.data, fmt='%.4f')

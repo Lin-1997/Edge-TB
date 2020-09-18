@@ -32,3 +32,13 @@ services:
     environment:
       NAME: "n3"
       PORT: "8003"
+  "n4":
+    extends:
+      file: node.yml
+      service: node
+    container_name: "n4"
+    expose:
+      - "8004"
+    environment:
+      NAME: "n4"
+      PORT: "8004"

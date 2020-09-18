@@ -1,4 +1,6 @@
-**/log/*
-!**/log/.keep
 __pycache__/
-venv/
+**/datasets/*
+!**/datasets/.keep
+*.env
+*.log
+bw.txt

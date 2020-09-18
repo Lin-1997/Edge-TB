@@ -8,10 +8,9 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from flask import Flask, request
 
 import util
-from nns import nn_lr
+from nns.nn_mnist import nn
 from values import values_g
 
-nn = nn_lr.get_nn ()
 v = values_g.get_values ()
 
 # 启动参数获取
@@ -64,8 +63,8 @@ logging.basicConfig (level=logging.INFO,
 	format='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s')
 
 # 模型超参数设置
-nn_lr.set_train_data_batch (v ['batch_size'], v ['round'], v ['start_index'], v ['end_index'])
-nn_lr.set_train_lr (v ['learning_rate'])
+nn_mnist.set_train_data_batch (v ['batch_size'], v ['round'], v ['start_index'], v ['end_index'])
+nn_mnist.set_train_lr (v ['learning_rate'])
 
 app = Flask (__name__)
 executor = ThreadPoolExecutor (3)
