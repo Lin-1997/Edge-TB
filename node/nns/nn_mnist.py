@@ -11,15 +11,14 @@ class Mnist (nns.NN):
 	def __init__ (self, _test_x, _test_y, _xs, _ys, _assign_list, _loss, _accuracy, _weights, _sess, _size, _path):
 		super ().__init__ (_test_x, _test_y, _xs, _ys, _assign_list, _loss, _accuracy, _weights, _sess, _size, _path)
 
-	def set_train_data_batch (self, batch_size, round_repeat, start_index, end_index):
+	def set_batch (self, batch_size, round_repeat, start_index, end_index):
 		train_data_dir = self.path + '/train_data'
 		train_x_list = []
 		train_y_list = []
 		for i in range (end_index - start_index + 1):
 			train_x_list.append (
 				np.load (train_data_dir + '/images_' + str (start_index + i) + '.npy').reshape ([-1, 784]))
-			train_y_list.append (
-				np.load (train_data_dir + '/labels_' + str (start_index + i) + '.npy').reshape ([-1, 10]))
+			train_y_list.append (np.load (train_data_dir + '/labels_' + str (start_index + i) + '.npy'))
 		train_x = np.concatenate (tuple (train_x_list))
 		train_y = np.concatenate (tuple (train_y_list))
 
@@ -27,13 +26,17 @@ class Mnist (nns.NN):
 		train_data = train_data.shuffle (buffer_size=10000)
 		train_data = train_data.batch (batch_size).repeat (round_repeat)
 		i = train_data.make_one_shot_iterator ()
-		self.batch = i.get_next ()
+		self.batch_size = batch_size
 		self.batch_num = int (len (train_x) / batch_size)
+		self.batch = i.get_next ()
+
+	def set_train_step (self, lr):
+		self.train_step = tf.train.GradientDescentOptimizer (lr).minimize (self.loss)
 
 
-MINST_path = os.path.abspath (os.path.join (os.path.dirname (__file__), '../datasets/MNIST'))
-test_x = np.load (MINST_path + '/test_data/images.npy').reshape ([-1, 784])
-test_y = np.load (MINST_path + '/test_data/labels.npy').reshape ([-1, 10])
+path = os.path.abspath (os.path.join (os.path.dirname (__file__), '../datasets/MNIST'))
+test_x = np.load (path + '/test_data/images.npy').reshape ([-1, 784])
+test_y = np.load (path + '/test_data/labels.npy')
 
 xs = tf.placeholder (tf.float32, [None, 784])
 ys = tf.placeholder (tf.float32, [None, 10])
@@ -52,4 +55,4 @@ sess = tf.Session ()
 sess.run (tf.global_variables_initializer ())
 size = util.calculate_size (sess.run (weights))
 
-nn = Mnist (test_x, test_y, xs, ys, assign_list, loss, accuracy, weights, sess, size, MINST_path)
+nn = Mnist (test_x, test_y, xs, ys, assign_list, loss, accuracy, weights, sess, size, path)

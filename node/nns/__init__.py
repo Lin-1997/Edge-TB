@@ -31,14 +31,19 @@ class NN (object):
 		self.sess = _sess
 		self.size = _size
 		self.path = _path
-		self.batch = None
+		self.batch_size = None
 		self.batch_num = None
+		self.batch = None
 		self.train_step = None
 
 	@abstractmethod
-	def set_train_data_batch (self, batch_size, round_repeat, start_index, end_index):
+	def set_batch (self, batch_size, round_repeat, start_index, end_index):
+		# Assign value to self.batch_size, self.batch_num and self.batch
+		# Refer to nn_mnist.py and nn_cifar10.py
 		pass
 
-	def set_train_lr (self, lr):
-		train_step = tf.train.GradientDescentOptimizer (lr).minimize (self.loss)
-		self.train_step = train_step
+	@abstractmethod
+	def set_train_step (self, lr):
+		# Assign value to self.train_step
+		# Refer to nn_mnist.py and nn_cifar10.py
+		pass

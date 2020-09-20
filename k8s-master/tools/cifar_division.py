@@ -5,7 +5,12 @@ from keras.utils import to_categorical
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-data_root = os.path.abspath (os.path.join (os.path.dirname (__file__), '../../node/datasets/CIFAR10'))
+ten = True  # The only configurable parameter, True for cifar-10, False for cifar-100
+
+if ten:
+	data_root = os.path.abspath (os.path.join (os.path.dirname (__file__), '../../node/datasets/CIFAR10'))
+else:
+	data_root = os.path.abspath (os.path.join (os.path.dirname (__file__), '../../node/datasets/CIFAR100'))
 train_dir = data_root + '/train_data/'
 test_dir = data_root + '/test_data/'
 
@@ -15,8 +20,12 @@ if not os.path.exists (test_dir):
 	os.makedirs (test_dir)
 
 data_tf = transforms.Compose ([transforms.ToTensor ()])
-train_dataset = datasets.CIFAR10 (root=data_root, train=True, transform=data_tf, download=True)
-test_dateset = datasets.CIFAR10 (root=data_root, train=False, transform=data_tf, download=True)
+if ten:
+	train_dataset = datasets.CIFAR10 (root=data_root, train=True, transform=data_tf, download=True)
+	test_dateset = datasets.CIFAR10 (root=data_root, train=False, transform=data_tf, download=True)
+else:
+	train_dataset = datasets.CIFAR100 (root=data_root, train=True, transform=data_tf, download=True)
+	test_dateset = datasets.CIFAR100 (root=data_root, train=False, transform=data_tf, download=True)
 
 batch_size = int (len (train_dataset) / 100)
 

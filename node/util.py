@@ -37,13 +37,15 @@ def simulate_sleep (size, s_time, bw):
 		time.sleep (t)
 
 
-def train (local_epoch_num, batch_num, sess, batch, loss, train_step, xs, ys):
-	loss_val = -1
+def train (local_epoch_num, sess, batch_size, batch_num, batch, loss, train_step, xs, ys):
+	total_loss = 0
 	for epoch in range (local_epoch_num):
 		for i in range (batch_num):
 			batch_data = sess.run (batch)
 			loss_val, _ = sess.run ([loss, train_step], feed_dict={xs: batch_data [0], ys: batch_data [1]})
-	return loss_val
+			total_loss += loss_val
+	# return total_loss / local_epoch_num / batch_num / batch_size
+	return total_loss
 
 
 def parse_received_weight (new_w):
@@ -88,14 +90,13 @@ def send_weight (weights, selected_index, host_list, node_map, forward_map, bw_m
 			if host_list [index] == 'self':
 				self = 1
 				continue
-			data = {'host': host_list [index],
-			        'path': path,
-			        'layer': str (layer)}
 			if host_list [index] in node_map:
 				addr = node_map [host_list [index]]
+				data = {'path': path, 'layer': str (layer)}
 				send (weights, data, addr, bw_map [addr], is_forward=False)
 			else:
 				addr = forward_map [host_list [index]]
+				data = {'host': host_list [index], 'path': path, 'layer': str (layer)}
 				send (weights, data, addr, bw_map [addr], is_forward=True)
 			weights.seek (0)
 		return self
@@ -108,14 +109,13 @@ def send_weight (weights, selected_index, host_list, node_map, forward_map, bw_m
 			if host_list [index] == 'self':
 				self = 1
 				continue
-			data = {'host': host_list [index],
-			        'path': path,
-			        'layer': str (layer)}
 			if host_list [index] in node_map:
 				addr = node_map [host_list [index]]
+				data = {'path': path, 'layer': str (layer)}
 				send (write, data, addr, bw_map [addr], is_forward=False)
 			else:
 				addr = forward_map [host_list [index]]
+				data = {'host': host_list [index], 'path': path, 'layer': str (layer)}
 				send (write, data, addr, bw_map [addr], is_forward=True)
 			write.seek (0)
 		write.truncate ()
@@ -125,17 +125,19 @@ def send_weight (weights, selected_index, host_list, node_map, forward_map, bw_m
 def send (weights, data, addr, bw, is_forward):
 	file = {'weights': weights}
 	s_time = format (time.time (), '.1f')
-	if is_forward:
-		path = addr + '/forward?time=' + str (s_time) + '&bw=' + str (bw)
-		requests.post (path, data=data, files=file)
+	data.update ({'time': str (s_time), 'bw': str (bw)})
+	if not is_forward:
+		requests.post (addr + data ['path'], data=data, files=file)
 	else:
-		path = addr + data ['path'] + '?layer=' + str (data ['layer']) \
-		       + '&time=' + str (s_time) + '&bw=' + str (bw)
-		requests.post (path, files=file)
+		requests.post (addr + '/forward', data=data, files=file)
 
 
-def send_message (master_ip, path, msg=''):
-	requests.get ('http://' + master_ip + ':9000/' + path + '?msg=' + msg)
+def send_message (master_ip, path):
+	requests.get ('http://' + master_ip + ':9000/' + path)
+
+
+def send_print (master_ip, msg):
+	requests.post ('http://' + master_ip + ':9000/print', data={'msg': msg})
 
 
 def send_log (master_ip, name):

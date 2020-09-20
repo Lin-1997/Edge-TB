@@ -1,6 +1,17 @@
 __pycache__/
 **/datasets/*
 !**/datasets/.keep
+**/env/*
+!**/env/.keep
+!**/env/README.md
+**/env_datasets/*
+!**/env_datasets/README.md
+**/log/*
+!**/log/.keep
+!**/log/README.md
 *.env
 *.log
 bw.txt
+perf.txt
+dep.sh
+dep-*.yml

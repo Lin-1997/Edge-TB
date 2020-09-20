@@ -21,32 +21,37 @@ def gen_yml ():
 		          + '        label: l-p-etree-' + str (dep_index + 1) + '\n' \
 		          + '    spec:\n' \
 		          + '      nodeName: name of the ' + str (dep_index + 1) + '^th node\n' \
-		          + '      hostname: p-etree-' + str (dep_index + 1) + '\n' \
+		          + '      hostname: p-etree-' + str (dep_index + 1) + '\n'
+		# dep中volume的信息
+		str_dep = str_dep \
+		          + '      volumes:\n' \
+		          + '        - name: node\n' \
+		          + '          hostPath:\n' \
+		          + '            path: /abs/path/to/etree/node\n' \
 		          + '      containers:\n'
 		# dep中每个host container的信息
 		container_number = _container_number [dep_index]
 		for host_index in range (container_start_number, container_number + 1):
 			str_dep = str_dep \
-			          + '      - name: n' + str (host_index) + '\n' \
-			          + '        image: etree-node:v1.0\n' \
-			          + '        imagePullPolicy: Never\n' \
-			          + '        ports:\n' \
-			          + '        - containerPort: ' + str (8000 + host_index) + '\n' \
-			          + '        command: ["bash", "run.sh"]\n' \
-			          + '        env:\n' \
-			          + '        - name: NAME\n' \
-			          + '          value: "n' + str (host_index) + '"\n' \
-			          + '        - name: PORT\n' \
-			          + '          value: "' + str (8000 + host_index) + '"\n' \
-			          + '        volumeMounts:\n' \
-			          + '        - name: node\n' \
-			          + '          mountPath: /home/node\n'
-		# dep中volume的信息
-		str_dep = str_dep \
-		          + '      volumes:\n' \
-		          + '      - name: node\n' \
-		          + '        persistentVolumeClaim:\n' \
-		          + '          claimName: pvc-node\n'
+			          + '        - name: n' + str (host_index) + '\n' \
+			          + '          image: etree-node:v1.0\n' \
+			          + '          imagePullPolicy: Never\n' \
+			          + '          resources:\n' \
+			          + '            requests:\n' \
+			          + '              cpu: "1"\n' \
+			          + '            limits:\n' \
+			          + '              cpu: "1"\n' \
+			          + '          ports:\n' \
+			          + '            - containerPort: ' + str (8000 + host_index) + '\n' \
+			          + '          command: [ "bash", "run.sh" ]\n' \
+			          + '          env:\n' \
+			          + '            - name: NAME\n' \
+			          + '              value: "n' + str (host_index) + '"\n' \
+			          + '            - name: PORT\n' \
+			          + '              value: "' + str (8000 + host_index) + '"\n' \
+			          + '          volumeMounts:\n' \
+			          + '            - name: node\n' \
+			          + '              mountPath: /home/node\n'
 		# svc的信息
 		str_dep = str_dep \
 		          + '---\n' \
@@ -62,10 +67,10 @@ def gen_yml ():
 		# svc中每个host port的信息
 		for host_index in range (container_start_number, container_number + 1):
 			str_dep = str_dep \
-			          + '  - name: n' + str (host_index) + '\n' \
-			          + '    port: ' + str (8000 + host_index) + '\n' \
-			          + '    targetPort: ' + str (8000 + host_index) + '\n' \
-			          + '    nodePort: ' + str (30000 + host_index) + '\n'
+			          + '    - name: n' + str (host_index) + '\n' \
+			          + '      port: ' + str (8000 + host_index) + '\n' \
+			          + '      targetPort: ' + str (8000 + host_index) + '\n' \
+			          + '      nodePort: ' + str (30000 + host_index) + '\n'
 		# 写入一个yml文件
 		file_path = os.path.abspath (os.path.join (dirname, '../', 'dep-' + str (dep_index + 1) + '.yml'))
 		with open (file_path, 'w')as f:

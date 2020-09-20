@@ -42,3 +42,53 @@ services:
     environment:
       NAME: "n4"
       PORT: "8004"
+  "n5":
+    extends:
+      file: node.yml
+      service: node
+    container_name: "n5"
+    expose:
+      - "8005"
+    environment:
+      NAME: "n5"
+      PORT: "8005"
+  "n6":
+    extends:
+      file: node.yml
+      service: node
+    container_name: "n6"
+    expose:
+      - "8006"
+    environment:
+      NAME: "n6"
+      PORT: "8006"
+  "n7":
+    extends:
+      file: node.yml
+      service: node
+    container_name: "n7"
+    expose:
+      - "8007"
+    environment:
+      NAME: "n7"
+      PORT: "8007"
+  "n8":
+    extends:
+      file: node.yml
+      service: node
+    container_name: "n8"
+    expose:
+      - "8008"
+    environment:
+      NAME: "n8"
+      PORT: "8008"
+  "n9":
+    extends:
+      file: node.yml
+      service: node
+    container_name: "n9"
+    expose:
+      - "8009"
+    environment:
+      NAME: "n9"
+      PORT: "8009"

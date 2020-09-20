@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from flask import Flask, request
 
 import util
-from nns.nn_cifar import nn  # The only configurable parameter
+from nns.nn_mnist import nn  # The only configurable parameter
 from values import values_h
 
 dirname = os.path.dirname (__file__)
@@ -29,8 +29,8 @@ executor = ThreadPoolExecutor (1)
 
 v = values_h.get_values (name)
 if 'learning_rate' in v and v ['learning_rate'] != 0:
-	nn.set_train_lr (v ['learning_rate'])
-	nn.set_train_data_batch (v ['batch_size'], v ['round'], v ['start_index'], v ['end_index'])
+	nn.set_train_step (v ['learning_rate'])
+	nn.set_batch (v ['batch_size'], v ['round'], v ['start_index'], v ['end_index'])
 	util.send_message (master_ip, 'ready')
 
 
@@ -45,12 +45,17 @@ def route_log ():
 	return ''
 
 
-# 聚合
 @app.route ('/start', methods=['GET'])
 def route_start ():
 	initial_weights = nn.sess.run (nn.weights)
 	_type = request.args.get ('type', default=0, type=int)
-	# EL往下全发
+	initial_acc = nn.sess.run (nn.accuracy, feed_dict={nn.xs: nn.test_x, nn.ys: nn.test_y})
+	executor.submit (on_route_start, initial_weights, _type)
+	return str (initial_acc)
+
+
+def on_route_start (initial_weights, _type):
+	# EL
 	if _type == 0:
 		self_layer = v ['layer'] [-1]
 		i_full = util.index_full (v ['down_count'] [-1])
@@ -64,26 +69,26 @@ def route_start ():
 				v ['bw'], '/train')
 			if send_self == 1:
 				on_route_train (initial_weights)
-		return 'start EL\n'
-	# FL往下随机发
+		util.send_print (master_ip, 'start EL')
+	# FL
 	elif _type == 1:
 		i_random = util.index_random (v ['down_count'] [0], v ['worker_fraction'])
 		util.send_weight (initial_weights, i_random, v ['down_host'] [0], v ['node'], v ['forward'], v ['bw'], '/train')
-		return 'start FL\n'
+		util.send_print (master_ip, 'start FL')
 	# TODO GL还没做
 	elif _type == 2:
-		return 'start GL\n'
+		util.send_print (master_ip, 'start GL')
+	else:
+		util.send_print (master_ip, 'error at start')
 
-	return 'error\n'
 
-
-# 聚合
+# 替换
 @app.route ('/replace', methods=['POST'])
 def route_replace ():
 	file_w = request.files.get ('weights')
-	from_layer = request.args.get ('layer', type=int)
-	s_time = request.args.get ('time', type=float)
-	bw = request.args.get ('bw', type=float)
+	from_layer = request.form.get ('layer', type=int)
+	s_time = request.form.get ('time', type=float)
+	bw = request.form.get ('bw', type=float)
 
 	temp_file = io.BytesIO ()
 	file_w.save (temp_file)
@@ -122,9 +127,9 @@ def on_route_replace (w, from_layer, is_binary=0, size=0, s_time=0.0, bw=0):
 @app.route ('/combine', methods=['POST'])
 def route_combine ():
 	file_w = request.files.get ('weights')
-	from_layer = request.args.get ('layer', type=int)
-	s_time = request.args.get ('time', type=float)
-	bw = request.args.get ('bw', type=float)
+	from_layer = request.form.get ('layer', type=int)
+	s_time = request.form.get ('time', type=float)
+	bw = request.form.get ('bw', type=float)
 
 	temp_file = io.BytesIO ()
 	file_w.save (temp_file)
@@ -156,7 +161,6 @@ def on_route_combine (w, from_layer, size=0, s_time=0.0, bw=0):
 		combine_weight (layer_index)
 
 
-# 聚合
 def combine_weight (layer_index):
 	avg_weight = util.calculate_avg_weight (v ['received_weight'] [layer_index], v ['received_count'] [layer_index])
 	v ['received_weight'] [layer_index].clear ()
@@ -169,7 +173,7 @@ def combine_weight (layer_index):
 		nn.sess.run (nn.accuracy, feed_dict={nn.xs: nn.test_x, nn.ys: nn.test_y}))
 	util.log (msg)
 	print (msg)
-	util.send_message (master_ip, 'print', name + ': ' + msg)
+	util.send_print (master_ip, name + ': ' + msg)
 
 	# EL
 	if v ['type'] == 0:
@@ -219,8 +223,8 @@ def combine_weight (layer_index):
 @app.route ('/train', methods=['POST'])
 def route_train ():
 	file_w = request.files.get ('weights')
-	s_time = request.args.get ('time', type=float)
-	bw = request.args.get ('bw', type=float)
+	s_time = request.form.get ('time', type=float)
+	bw = request.form.get ('bw', type=float)
 
 	temp_file = io.BytesIO ()
 	file_w.save (temp_file)
@@ -232,7 +236,6 @@ def route_train ():
 	return ''
 
 
-# 训练
 def on_route_train (received_w, is_binary=0, size=0, s_time=0.0, bw=0):
 	if size != 0:
 		util.simulate_sleep (size, s_time, bw)
@@ -242,15 +245,15 @@ def on_route_train (received_w, is_binary=0, size=0, s_time=0.0, bw=0):
 		util.assignment (nn.assign_list, w, nn.sess)
 	else:
 		util.assignment (nn.assign_list, received_w, nn.sess)
-	final_loss = util.train (v ['local_epoch_num'], nn.batch_num, nn.sess, nn.batch, nn.loss,
+	final_loss = util.train (v ['local_epoch_num'], nn.sess, nn.batch_size, nn.batch_num, nn.batch, nn.loss,
 		nn.train_step, nn.xs, nn.ys)
 
 	# 训练的时候肯定是作为最底层的节点
 	v ['current_round'] [0] += 1
-	msg = 'Train: round={}:loss={}'.format (v ['current_round'] [0], final_loss)
+	msg = 'Train: round={}, loss={}'.format (v ['current_round'] [0], final_loss)
 	util.log (msg)
 	print (msg)
-	util.send_message (master_ip, 'print', name + ': ' + msg)
+	util.send_print (master_ip, name + ': ' + msg)
 
 	latest_weights = nn.sess.run (nn.weights)
 	send_self = util.send_weight (latest_weights, [0], v ['up_host'], v ['node'], v ['forward'], v ['bw'], '/combine',
@@ -262,11 +265,9 @@ def on_route_train (received_w, is_binary=0, size=0, s_time=0.0, bw=0):
 @app.route ('/forward', methods=['POST'])
 def route_forward ():
 	weights = request.files.get ('weights')
-	data = {'host': request.form ['host'],
-	        'path': request.form ['path'],
-	        'layer': request.form.get ('layer')}
-	s_time = request.args.get ('time', type=float)
-	bw = request.args.get ('bw', type=float)
+	data = {'host': request.form ['host'], 'path': request.form ['path'], 'layer': request.form ['layer']}
+	s_time = request.form.get ('time', type=float)
+	bw = request.form.get ('bw', type=float)
 
 	temp_file = io.BytesIO ()
 	weights.save (temp_file)

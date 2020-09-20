@@ -10,8 +10,10 @@
     0. Run ```etree/k8s-master/setup.sh``` with bash  
     0. ```etree/k8s-master/tools/cifar_division``` and ```etree/k8s-master/tools/mnist_division``` 
     require ```torch, keras, torchvison, cuda, cudnn, etc``` on Master, anaconda3 recommended  
-0. On Node, Similar to Master-setup, and run ```etree/k8s-node/setup.sh``` with bash  
-0. On Node, modify ```etree/node/master_ip.txt```  
+0. On Node
+    0. Copy ```/etree``` into Node, or just ```etree/node``` and ```etree/k8s-node```  
+    0. Type ```kubeadm config images list```  to list the suitable versions, modify ```etree/k8s-node/setup.sh```, and run it`with bash  
+    0. Modify ```etree/node/master_ip.txt```  
 0. On Raspberry Pi (if you have, Raspberry Pi OS recommended)  
     0. Change the hostname of your Raspberry Pi follows r1, r2 ...  
     0. Install tensorflow==1.15.0, look https://github.com/PINTO0309/Tensorflow-bin#usage for details  
@@ -37,12 +39,13 @@
 0. On Node, turn off swap, and join the K8s network  
 0. On Master, run ```etree/k8s-master/tools/conf_yml_gen.py``` with python3  
 0. On Master, modify ```spec:template:spec:nodeName``` in each ```etree/k8s-master/dep-*.yml``` to deploy them to the corresponding Node, following the order defined by```etree/k8s-master/tools/env_addr.txt:server_ip```  
+0. On Master, modify ```spec:template:spec:volumes:hostPath:path``` in each ```etree/k8s-master/dep-*.yml```  
 0. On Master, run ```etree/k8s-master/dep.sh``` with bash  
 0. On Raspberry Pi, run ```node/run.sh``` with bash  
-0. On Master, when you see Ter display ```write in perf.txt```, you can modify ```etree/k8s-master/tools/env_tree.txt``` to define the ETree  
+0. On Master, when Ter display ```performance collection completed```, you can modify ```etree/k8s-master/tools/env_tree.txt``` to define the ETree  
 0. On Master, run ```etree/k8s-master/tools/conf_env_gen.py``` to generate complete env files  
 0. On Master, ```curl localhost:9000/conf``` to auto send the complete env files to the corresponding Nodes and Raspberry Pi  
-0. On Master, when Ter display ```>>>>>training ended<<<<<```, It will start collecting the log files automatically  
-0. On Master, when Ter display ```>>>>>all .log got<<<<<```, you can check the log files in ```etree/k8s-master/log/```  
+0. The training will auto start  
+0. On Master, when Ter display ```log files parsing completed```, you can check the log files in ```etree/k8s-master/log/```  
 ### Dataset and Network Model
 Write```etree/node/nns/`nn_xx.py```, just like ```etree/node/nns/nn_minst.py```, and modify```etree/node/EL.py``` and ```etree/node/perf_eval.py``` to loads your ```nn_xx.py```  

@@ -14,4 +14,3 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 kubectl create -f kube-flannel.yml
-kubectl create -f nfs.yml

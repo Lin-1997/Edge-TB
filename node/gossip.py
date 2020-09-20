@@ -63,8 +63,8 @@ logging.basicConfig (level=logging.INFO,
 	format='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s')
 
 # 模型超参数设置
-nn_mnist.set_train_data_batch (v ['batch_size'], v ['round'], v ['start_index'], v ['end_index'])
-nn_mnist.set_train_lr (v ['learning_rate'])
+nn.set_batch (v ['batch_size'], v ['round'], v ['start_index'], v ['end_index'])
+nn.set_train_step (v ['learning_rate'])
 
 app = Flask (__name__)
 executor = ThreadPoolExecutor (3)
@@ -75,8 +75,8 @@ v ['new_weights_list_lock'] = threading.Lock ()
 # 用于控制训练过程
 def node_train ():
 	for r in range (v ['round']):
-		loss = util.train (v ['local_epoch_num'], nn ['batch_num'], nn ['sess'], nn ['batch'], nn ['loss'],
-			nn ['train_step'], nn ['xs'], nn ['ys'])
+		loss = util.train (v ['local_epoch_num'], nn.sess, nn.batch_size, nn.batch_num, nn.batch, nn.loss,
+			nn.train_step, nn.xs, nn.ys)
 		logging.info ('worker {} round {}:loss={}'.format (this_index, r, loss))
 		# 更新参数
 		latest_weights = nn ['sess'].run (nn ['weights'])
