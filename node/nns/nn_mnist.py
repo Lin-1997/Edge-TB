@@ -3,11 +3,11 @@ import os
 import numpy as np
 import tensorflow as tf
 
-import nns
+from nns import NN
 import util
 
 
-class Mnist (nns.NN):
+class Mnist (NN):
 	def __init__ (self, _test_x, _test_y, _xs, _ys, _assign_list, _loss, _accuracy, _weights, _sess, _size, _path):
 		super ().__init__ (_test_x, _test_y, _xs, _ys, _assign_list, _loss, _accuracy, _weights, _sess, _size, _path)
 
@@ -31,7 +31,8 @@ class Mnist (nns.NN):
 		self.batch = i.get_next ()
 
 	def set_train_step (self, lr):
-		self.train_step = tf.train.GradientDescentOptimizer (lr).minimize (self.loss)
+		self.train_step = tf.train.AdamOptimizer (lr).minimize (self.loss)
+		self.sess.run (tf.global_variables_initializer ())
 
 
 path = os.path.abspath (os.path.join (os.path.dirname (__file__), '../datasets/MNIST'))
@@ -42,9 +43,10 @@ xs = tf.placeholder (tf.float32, [None, 784])
 ys = tf.placeholder (tf.float32, [None, 10])
 
 assign_list = []
-l1 = nns.NN.add_layer (assign_list, xs, 784, 200, activation_function=tf.nn.sigmoid)
-l2 = nns.NN.add_layer (assign_list, l1, 200, 200, activation_function=tf.nn.sigmoid)
-prediction = nns.NN.add_layer (assign_list, l2, 200, 10, activation_function=tf.nn.softmax)
+fc1 = NN.fc (assign_list, xs, 784, 512, tf.nn.sigmoid)
+fc2 = NN.fc (assign_list, fc1, 512, 256, tf.nn.sigmoid)
+fc3 = NN.fc (assign_list, fc2, 256, 128, tf.nn.sigmoid)
+prediction = NN.fc (assign_list, fc3, 128, 10, tf.nn.softmax)
 
 loss = tf.reduce_mean (-tf.reduce_sum (ys * tf.log (prediction + 1e-10), reduction_indices=[1]))
 correct_prediction = tf.equal (tf.argmax (prediction, 1), tf.argmax (ys, 1))

@@ -3,11 +3,11 @@ import os
 import numpy as np
 import tensorflow as tf
 
-import nns
+from nns import NN
 import util
 
 
-class Cifar10 (nns.NN):
+class Cifar10 (NN):
 	def __init__ (self, _test_x, _test_y, _xs, _ys, _assign_list, _loss, _accuracy, _weights, _sess, _size, _path):
 		super ().__init__ (_test_x, _test_y, _xs, _ys, _assign_list, _loss, _accuracy, _weights, _sess, _size, _path)
 
@@ -31,7 +31,8 @@ class Cifar10 (nns.NN):
 		self.batch = i.get_next ()
 
 	def set_train_step (self, lr):
-		self.train_step = tf.train.GradientDescentOptimizer (lr).minimize (self.loss)
+		self.train_step = tf.train.AdamOptimizer (lr).minimize (self.loss)
+		self.sess.run (tf.global_variables_initializer ())
 
 
 path = os.path.abspath (os.path.join (os.path.dirname (__file__), '../datasets/CIFAR10'))
@@ -42,38 +43,17 @@ xs = tf.placeholder (tf.float32, [None, 32, 32, 3])
 ys = tf.placeholder (tf.float32, [None, 10])
 
 assign_list = []
-w_conv1 = tf.Variable (tf.truncated_normal ([3, 3, 3, 32], stddev=0.1))
-assign_list.append (tf.assign (w_conv1, tf.placeholder (tf.float32, [3, 3, 3, 32])))
-b_conv1 = tf.Variable (tf.zeros ([1, 32]) + 0.1, )
-assign_list.append (tf.assign (b_conv1, tf.placeholder (tf.float32, [1, 32])))
-h_conv1 = tf.nn.relu (tf.nn.conv2d (xs, w_conv1, strides=[1, 1, 1, 1], padding='VALID') + b_conv1)
-h_pool1 = tf.nn.max_pool (h_conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
 
-w_conv2 = tf.Variable (tf.truncated_normal ([3, 3, 32, 64], stddev=-0.1))
-assign_list.append (tf.assign (w_conv2, tf.placeholder (tf.float32, [3, 3, 32, 64])))
-b_conv2 = tf.Variable (tf.zeros ([1, 64]) + 0.1, )
-assign_list.append (tf.assign (b_conv2, tf.placeholder (tf.float32, [1, 64])))
-h_conv2 = tf.nn.relu (tf.nn.conv2d (h_pool1, w_conv2, strides=[1, 1, 1, 1], padding='VALID') + b_conv2)
-h_pool2 = tf.nn.max_pool (h_conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID')
-
-w_conv3 = tf.Variable (tf.truncated_normal ([3, 3, 64, 64], stddev=0.1))
-assign_list.append (tf.assign (w_conv3, tf.placeholder (tf.float32, [3, 3, 64, 64])))
-b_conv3 = tf.Variable (tf.zeros ([1, 64]) + 0.1, )
-assign_list.append (tf.assign (b_conv3, tf.placeholder (tf.float32, [1, 64])))
-h_conv3 = tf.nn.relu (tf.nn.conv2d (h_pool2, w_conv3, strides=[1, 1, 1, 1], padding='VALID') + b_conv3)
-
-full_connected_layer1 = tf.Variable (tf.truncated_normal ([1024, 64], stddev=0.1))
-assign_list.append (tf.assign (full_connected_layer1, tf.placeholder (tf.float32, [1024, 64])))
-biases1 = tf.Variable (tf.zeros ([1, 64]) + 0.1, )
-assign_list.append (tf.assign (biases1, tf.placeholder (tf.float32, [1, 64])))
-output1 = tf.nn.relu (tf.matmul (tf.reshape (h_conv3, [-1, 4 * 4 * 64]), full_connected_layer1) + biases1)
-
-full_connected_layer2 = tf.Variable (tf.truncated_normal ([64, 10], stddev=0.1))
-assign_list.append (tf.assign (full_connected_layer2, tf.placeholder (tf.float32, [64, 10])))
-biases2 = tf.Variable (tf.zeros ([1, 10]) + 0.1, )
-assign_list.append (tf.assign (biases2, tf.placeholder (tf.float32, [1, 10])))
-
-prediction = tf.nn.softmax (tf.matmul (output1, full_connected_layer2) + biases2)
+conv1 = NN.conv (assign_list, xs, 3, 3, 32, 1, tf.nn.relu, 0.03, 0.8)
+pool1 = NN.pool (conv1, 2, 2, tf.nn.max_pool)
+conv2 = NN.conv (assign_list, pool1, 3, 32, 64, 1, tf.nn.relu, -0.03, 0.8)
+pool2 = NN.pool (conv2, 2, 2, tf.nn.max_pool)
+conv3 = NN.conv (assign_list, pool2, 3, 64, 128, 1, tf.nn.relu, 0.03, 0.8)
+conv4 = NN.conv (assign_list, conv3, 3, 128, 128, 1, tf.nn.relu, -0.03, 0.8)
+pool3 = NN.pool (conv4, 2, 2, tf.nn.max_pool)
+fc1 = NN.fc (assign_list, tf.reshape (pool3, [-1, 4 * 4 * 128]), 4 * 4 * 128, 512, tf.nn.relu, 0.03)
+fc2 = NN.fc (assign_list, fc1, 512, 64, tf.nn.relu, -0.03)
+prediction = NN.fc (assign_list, fc2, 64, 10, tf.nn.softmax, 0.03)
 
 loss = tf.reduce_mean (-tf.reduce_sum (ys * tf.log (prediction + 1e-10), reduction_indices=[1]))
 correct_prediction = tf.equal (tf.argmax (prediction, 1), tf.argmax (ys, 1))

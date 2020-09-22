@@ -20,7 +20,6 @@ if not name:
 v = values_h.get_values (name)
 nn.set_train_step (v ['learning_rate'])
 nn.set_batch (v ['batch_size'], 1, v ['start_index'], v ['end_index'])
-# nn.set_batch (10, 100, 0, 99)
 
 start_time = time.time ()
 util.train (1, nn.sess, nn.batch_size, nn.batch_num, nn.batch, nn.loss, nn.train_step, nn.xs, nn.ys)
@@ -55,3 +54,13 @@ def route_env ():
 
 
 app.run (host='0.0.0.0', port=port, threaded=False)
+# nn.set_train_step (0.001)
+# nn.set_batch (16, 100, 0, 99)
+# for r in range (100):
+# 	for i in range (nn.batch_num):
+# 		batch_data = nn.sess.run (nn.batch)
+# 		loss_val, _ = nn.sess.run ([nn.loss, nn.train_step],
+# 			feed_dict={nn.xs: batch_data [0], nn.ys: batch_data [1]})
+# 		if i % 50 == 0:
+# 			acc = nn.sess.run (nn.accuracy, feed_dict={nn.xs: nn.test_x, nn.ys: nn.test_y})
+# 			print ('round = ' + str (r) + ', i = ' + str (i) + ', loss = ' + str (loss_val) + ', acc = ' + str (acc))

@@ -10,14 +10,6 @@
 	{"id": -1, "dc": 0, "layer": 1, "sync": 0},
 	{"id": 2, "dc": 0, "layer": 1, "sync": 0},
 	{"id": -5, "dc": 0, "layer": 1, "sync": 0}],
-"host_list": [
-	{"id": 1, "dc": 2, "layer": 3, "sync": 10},
-	{"id": 1, "dc": 2, "layer": 2, "sync": 2},
-	{"id": 3, "dc": 2, "layer": 2, "sync": 2},
-	{"id": 1, "dc": 0, "layer": 1, "sync": 0},
-	{"id": 2, "dc": 0, "layer": 1, "sync": 0},
-	{"id": 3, "dc": 0, "layer": 1, "sync": 0},
-	{"id": 4, "dc": 0, "layer": 1, "sync": 0}],
 "round": [20, 20, 20, 20, 20, 20, 20, 20, 20, 20],
 "local_epoch_num": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 "worker_fraction": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]

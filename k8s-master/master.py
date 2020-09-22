@@ -87,14 +87,15 @@ def on_route_conf ():
 		os.path.join (dirname, 'log/', time.strftime ('%Y-%m-%d-%H-%M-%S', time.localtime (time.time ()))))
 	os.makedirs (log_file_path)
 
-	for host in _device_ip:
-		file_path = os.path.abspath (os.path.join (dirname, 'env/', host + '.env'))
-		with open (file_path, 'r') as f:
-			try:
-				requests.post ('http://' + _device_ip [host] + ':8888/env', files={'env': f})
-			except requests.exceptions.ConnectionError:
-				pass
-			print ('sent env to ' + host)
+	if _device_number > 0:
+		for host in _device_ip:
+			file_path = os.path.abspath (os.path.join (dirname, 'env/', host + '.env'))
+			with open (file_path, 'r') as f:
+				try:
+					requests.post ('http://' + _device_ip [host] + ':8888/env', files={'env': f})
+				except requests.exceptions.ConnectionError:
+					pass
+				print ('sent env to ' + host)
 
 	for addr in _container_addr:
 		file_path = os.path.abspath (os.path.join (dirname, 'env/', 'n' + str (int (addr [-5:]) - 30000) + '.env'))
@@ -139,8 +140,9 @@ def route_finish ():
 
 
 def on_route_finish ():
-	for ip in _device_ip.values ():
-		requests.get ('http://' + ip + ':8888/log')
+	if _device_number > 0:
+		for ip in _device_ip.values ():
+			requests.get ('http://' + ip + ':8888/log')
 	for addr in _container_addr:
 		requests.get ('http://' + addr + '/log')
 
