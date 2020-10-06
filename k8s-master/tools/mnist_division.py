@@ -1,9 +1,10 @@
 import os
 
 import numpy as np
-from keras.utils import to_categorical
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+
+from utils import to_categorical
 
 data_root = os.path.abspath (os.path.join (os.path.dirname (__file__), '../../node/datasets'))
 train_dir = data_root + '/MNIST/train_data/'
@@ -41,6 +42,7 @@ for data in train_loader:
 	idx += 1
 
 print ('loading test set, total number: {}'.format (len (test_dateset)))
+
 for data in test_loader:
 	img, label = data
 	img = img.numpy ()

@@ -1,9 +1,10 @@
 import os
 
 import numpy as np
-from keras.utils import to_categorical
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+
+from utils import to_categorical
 
 ten = True  # The only configurable parameter, True for cifar-10, False for cifar-100
 
