@@ -1,6 +1,5 @@
 import io
 import logging
-import math
 import os
 import time
 
@@ -37,14 +36,13 @@ def simulate_sleep (size, s_time, bw):
 		time.sleep (t)
 
 
-def train (local_epoch_num, sess, batch_size, batch_num, batch, loss, train_step, xs, ys):
+def train (local_epoch_num, sess, batch_num, batch, loss, train_step, xs, ys):
 	total_loss = 0
 	for epoch in range (local_epoch_num):
 		for i in range (batch_num):
 			batch_data = sess.run (batch)
 			loss_val, _ = sess.run ([loss, train_step], feed_dict={xs: batch_data [0], ys: batch_data [1]})
 			total_loss += loss_val
-	# return total_loss / local_epoch_num / batch_num / batch_size
 	return total_loss
 
 
@@ -147,7 +145,7 @@ def send_log (master_ip, name):
 
 
 def index_random (worker_num, fraction):
-	return np.random.choice (worker_num, int (math.ceil (float (worker_num) * fraction)), replace=False)
+	return np.random.choice (worker_num, int (float (worker_num) * fraction), replace=False)
 
 
 def index_full (length):

@@ -87,7 +87,7 @@ def on_route_start (initial_weights, _type):
 def route_replace ():
 	file_w = request.files.get ('weights')
 	from_layer = request.form.get ('layer', type=int)
-	s_time = request.form.get ('time', type=float)
+	_time = request.form.get ('time', type=float)
 	bw = request.form.get ('bw', type=float)
 
 	temp_file = io.BytesIO ()
@@ -97,7 +97,7 @@ def route_replace ():
 	temp_file.seek (0)
 
 	executor.submit (on_route_replace, temp_file, from_layer, is_binary=1,
-		size=size, s_time=s_time, bw=bw)
+		size=size, s_time=_time, bw=bw)
 	return ''
 
 
@@ -128,7 +128,7 @@ def on_route_replace (w, from_layer, is_binary=0, size=0, s_time=0.0, bw=0):
 def route_combine ():
 	file_w = request.files.get ('weights')
 	from_layer = request.form.get ('layer', type=int)
-	s_time = request.form.get ('time', type=float)
+	_time = request.form.get ('time', type=float)
 	bw = request.form.get ('bw', type=float)
 
 	temp_file = io.BytesIO ()
@@ -138,7 +138,7 @@ def route_combine ():
 	temp_file.seek (0)
 
 	w = util.parse_received_weight (temp_file)
-	executor.submit (on_route_combine, w, from_layer, size=size, s_time=s_time, bw=bw)
+	executor.submit (on_route_combine, w, from_layer, size=size, s_time=_time, bw=bw)
 	return ''
 
 
@@ -172,7 +172,6 @@ def combine_weight (layer_index):
 		v ['layer'] [layer_index], v ['current_round'] [layer_index], v ['sync'] [layer_index],
 		nn.sess.run (nn.accuracy, feed_dict={nn.xs: nn.test_x, nn.ys: nn.test_y}))
 	util.log (msg)
-	print (msg)
 	util.send_print (master_ip, name + ': ' + msg)
 
 	# EL
@@ -182,7 +181,7 @@ def combine_weight (layer_index):
 		if v ['current_round'] [layer_index] % v ['sync'] [layer_index] == 0:
 			# 是最高层
 			if v ['up_host'] [layer_index] == 'top':
-				print ('>>>>>training ended<<<<<')
+				util.log ('>>>>>training ended<<<<<')
 				util.send_message (master_ip, 'finish')
 			# 不是最高层
 			else:
@@ -211,7 +210,7 @@ def combine_weight (layer_index):
 	else:
 		# 训练完
 		if v ['current_round'] [layer_index] == v ['sync'] [0]:
-			print ('>>>>>training ended<<<<<')
+			util.log ('>>>>>training ended<<<<<')
 			util.send_message (master_ip, 'finish')
 		# 没训练完
 		else:
@@ -223,7 +222,7 @@ def combine_weight (layer_index):
 @app.route ('/train', methods=['POST'])
 def route_train ():
 	file_w = request.files.get ('weights')
-	s_time = request.form.get ('time', type=float)
+	_time = request.form.get ('time', type=float)
 	bw = request.form.get ('bw', type=float)
 
 	temp_file = io.BytesIO ()
@@ -232,7 +231,7 @@ def route_train ():
 	size = len (file_w.read ())  # 模拟网络传输时延
 	temp_file.seek (0)
 
-	executor.submit (on_route_train, temp_file, is_binary=1, size=size, s_time=s_time, bw=bw)
+	executor.submit (on_route_train, temp_file, is_binary=1, size=size, s_time=_time, bw=bw)
 	return ''
 
 
@@ -245,14 +244,13 @@ def on_route_train (received_w, is_binary=0, size=0, s_time=0.0, bw=0):
 		util.assignment (nn.assign_list, w, nn.sess)
 	else:
 		util.assignment (nn.assign_list, received_w, nn.sess)
-	final_loss = util.train (v ['local_epoch_num'], nn.sess, nn.batch_size, nn.batch_num, nn.batch, nn.loss,
-		nn.train_step, nn.xs, nn.ys)
+	final_loss = util.train (v ['local_epoch_num'], nn.sess, nn.batch_num, nn.batch, nn.loss, nn.train_step, nn.xs,
+		nn.ys)
 
 	# 训练的时候肯定是作为最底层的节点
 	v ['current_round'] [0] += 1
 	msg = 'Train: round={}, loss={}'.format (v ['current_round'] [0], final_loss)
 	util.log (msg)
-	print (msg)
 	util.send_print (master_ip, name + ': ' + msg)
 
 	latest_weights = nn.sess.run (nn.weights)
@@ -266,7 +264,7 @@ def on_route_train (received_w, is_binary=0, size=0, s_time=0.0, bw=0):
 def route_forward ():
 	weights = request.files.get ('weights')
 	data = {'host': request.form ['host'], 'path': request.form ['path'], 'layer': request.form ['layer']}
-	s_time = request.form.get ('time', type=float)
+	_time = request.form.get ('time', type=float)
 	bw = request.form.get ('bw', type=float)
 
 	temp_file = io.BytesIO ()
@@ -275,12 +273,12 @@ def route_forward ():
 	size = len (weights.read ())  # 模拟网络传输时延
 	temp_file.seek (0)
 
-	executor.submit (on_route_forward, temp_file, data, size, s_time, bw)
+	executor.submit (on_route_forward, temp_file, data, size, _time, bw)
 	return ''
 
 
-def on_route_forward (weights, data, size, _time, bw):
-	util.simulate_sleep (size, _time, bw)
+def on_route_forward (weights, data, size, s_time, bw):
+	util.simulate_sleep (size, s_time, bw)
 	if data ['host'] in v ['node']:
 		addr = v ['node'] [data ['host']]
 		util.send (weights, data, addr, v ['bw'] [addr], is_forward=False)
