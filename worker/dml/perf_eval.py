@@ -5,7 +5,7 @@ import time
 import requests
 from flask import Flask, request
 
-import util
+import utils
 from nns.nn_mnist import nn  # configurable parameter, from nns.whatever import nn
 from values import values_h
 
@@ -25,7 +25,7 @@ v = values_h.get_values (name)
 if 'train_len' in v and v ['train_len'] > 0:
 	# configurable parameter, specify the dataset path
 	train_path = os.path.abspath (os.path.join (dirname, 'datasets/MNIST/train_data'))
-	train_images, train_labels = util.load_data (train_path, v ['train_start_i'], v ['train_len'], input_shape)
+	train_images, train_labels = utils.load_data (train_path, v ['train_start_i'], v ['train_len'], input_shape)
 	s_time = time.time ()
 	model.fit (train_images, train_labels, epochs=1, batch_size=v ['batch_size'])
 	t_time = time.time () - s_time

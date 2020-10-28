@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 from collections import deque
@@ -57,6 +58,12 @@ class HostEnv:
 		return _string
 
 
+def id_to_index (_id):
+	if _id > 0:
+		return _id + _device_number - 1
+	return _id + _device_number
+
+
 def id_to_host (_id):
 	if _id > 0:
 		return 'n' + str (_id)
@@ -70,30 +77,24 @@ def host_to_id (_host):
 
 
 def id_to_path (s_id, d_id):
-	# both are containers
+	# from container to container.
 	if s_id > 0 and d_id > 0:
 		return 'http://' + 's-n' + str (d_id) + ':' + str (8000 + d_id)
-	# from device to container
+	# from device to container.
 	elif d_id > 0 > s_id:
 		s_index = 0
 		while d_id > _container_number [s_index]:
 			s_index = s_index + 1
 		return 'http://' + _server_ip [s_index] + ':' + str (30000 + d_id)
-	# from whatever to device
+	# from whatever to device.
 	else:
 		return 'http://' + _device_ip [id_to_host (d_id)] + ':8888'
 
 
-def id_to_index (_id):
-	if _id > 0:
-		return _id + _device_number - 1
-	return _id + _device_number
-
-
 def read_json (filename):
-	file_path = os.path.abspath (os.path.join (dirname, filename))
-	with open (file_path, 'r') as f:
-		return json.loads (f.read ().replace ('\n', '').replace ('\r', '').replace ('\'', '\"'))
+	file_path = os.path.join (dirname, filename)
+	with open (file_path, 'r') as file:
+		return json.loads (file.read ().replace ('\n', '').replace ('\r', '').replace ('\'', '\"'))
 
 
 def gen_env ():
@@ -103,7 +104,7 @@ def gen_env ():
 		env = host_env_map [host ['id']]
 		env.layer_count = env.layer_count + 1
 		env.layer.append (host ['layer'])
-		# connect to upper node
+		# connect to upper node.
 		upper_id = upper_queue.popleft ()
 		if upper_id == host ['id']:
 			env.up_host.append ('self')
@@ -114,13 +115,13 @@ def gen_env ():
 		env.sync.append (host ['sync'])
 		env.down_count.append (host ['dc'])
 		env.current_down.append (0)
-		# the later a[dc] nodes can connect to it
+		# the later a[dc] nodes can connect to it.
 		for _ in range (host ['dc']):
 			upper_queue.append (host ['id'])
-		# let the upper node connect to it
+		# let the upper node connect to it.
 		if len (queue) != 0:
 			u_e = host_env_map [queue.popleft ()]
-			# at the curr-th down nodes set of upper node
+			# at the curr-th down nodes set of upper node.
 			curr = 0
 			while u_e.current_down [curr] == u_e.down_count [curr]:
 				curr = curr + 1
@@ -131,14 +132,14 @@ def gen_env ():
 			else:
 				u_e.down_host [curr].append (id_to_host (host ['id']))
 			u_e.current_down [curr] = u_e.current_down [curr] + 1
-		# let itself can connect to the later a[dc] nodes
+		# let itself can connect to the later a[dc] nodes.
 		for _ in range (host ['dc']):
 			queue.append (host ['id'])
-		# no down node
+		# no down node.
 		if host ['dc'] == 0:
 			host_env_map [host ['id']].down_host.append ([])
 
-	# router
+	# router.
 	for host_id in range (-_device_number, _container_number [-1] + 1):
 		if host_id == 0:
 			continue
@@ -167,34 +168,68 @@ def gen_env ():
 						h2.n_hop [dest] = h1.n_hop [dest] + 1
 
 	for key in host_env_map:
-		file_path = os.path.abspath (os.path.join (dirname, '../env/', id_to_host (key) + '.env'))
+		file_path = os.path.join (dirname, '../env/', id_to_host (key) + '.env')
 		with open (file_path, 'w') as file:
 			file.writelines (host_env_map [key].to_json ())
 
 
 if __name__ == '__main__':
-	dirname = os.path.dirname (__file__)
-	env_addr_json = read_json ('env_addr.txt')
-	_device_number = env_addr_json ['device_number']
-	_container_number = env_addr_json ['container_number']
-	_server_ip = env_addr_json ['server_ip']
-	_device_ip = env_addr_json ['device_ip']
+	dirname = os.path.abspath (os.path.dirname (__file__))
+	parser = argparse.ArgumentParser ()
+	parser.add_argument ('-T', '--type', dest='type', required=True, type=int,
+		help='1 for datasets-only-env, 2 for full-env')
+	args = parser.parse_args ()
 
-	env_tree_json = read_json ('env_tree.txt')
-	_type = env_tree_json ['type']
-	_worker_fraction = env_tree_json ['worker_fraction']
-	_host_list = env_tree_json ['host_list']
-	_local_epoch_num = env_tree_json ['local_epoch_num']
+	if args.type == 1:
+		env_addr_json = read_json ('env_addr.txt')
+		_device_number = env_addr_json ['device_number']
+		_container_number = env_addr_json ['container_number'] [-1]
 
-	env_datasets_json = read_json ('env_datasets.txt')
-	_batch_size = env_datasets_json ['batch_size']
-	_train_start_i = env_datasets_json ['train_start_i']
-	_train_len = env_datasets_json ['train_len']
-	_test_start_i = env_datasets_json ['test_start_i']
-	_test_len = env_datasets_json ['test_len']
+		env_datasets_json = read_json ('env_datasets.txt')
+		_batch_size = env_datasets_json ['batch_size']
+		_train_start_i = env_datasets_json ['train_start_i']
+		_train_len = env_datasets_json ['train_len']
+		_test_start_i = env_datasets_json ['test_start_i']
+		_test_len = env_datasets_json ['test_len']
 
-	host_env_map = {}
-	upper_queue = deque ([0])  # top
-	queue = deque ([])
-	node_bw = np.loadtxt (os.path.abspath (os.path.join (dirname, 'bw.txt')))
-	gen_env ()
+		for i in range (_device_number + _container_number):
+			_id = i - _device_number
+			if _id >= 0:
+				_id += 1
+			env_string = \
+				'{\n' \
+				+ '"batch_size": ' + str (_batch_size [i]) + ',\n' \
+				+ '"train_start_i": ' + str (_train_start_i [i]) + ',\n' \
+				+ '"train_len": ' + str (_train_len [i]) + ',\n' \
+				+ '"test_start_i": ' + str (_test_start_i [i]) + ',\n' \
+				+ '"test_len": ' + str (_test_len [i]) + '\n' \
+				+ '}\n'
+			env_path = os.path.join (dirname, '../env_datasets/', id_to_host (_id) + '.env')
+			with open (env_path, 'w') as f:
+				f.writelines (env_string)
+
+	else:
+		env_addr_json = read_json ('env_addr.txt')
+		_device_number = env_addr_json ['device_number']
+		_container_number = env_addr_json ['container_number']
+		_server_ip = env_addr_json ['server_ip']
+		_device_ip = env_addr_json ['device_ip']
+
+		env_tree_json = read_json ('env_tree.txt')
+		_type = env_tree_json ['type']
+		_worker_fraction = env_tree_json ['worker_fraction']
+		_host_list = env_tree_json ['host_list']
+		_local_epoch_num = env_tree_json ['local_epoch_num']
+
+		env_datasets_json = read_json ('env_datasets.txt')
+		_batch_size = env_datasets_json ['batch_size']
+		_train_start_i = env_datasets_json ['train_start_i']
+		_train_len = env_datasets_json ['train_len']
+		_test_start_i = env_datasets_json ['test_start_i']
+		_test_len = env_datasets_json ['test_len']
+
+		host_env_map = {}
+		upper_queue = deque ([0])  # stand for top.
+		queue = deque ([])
+		node_bw = np.loadtxt (os.path.join (dirname, 'bw.txt'))
+		gen_env ()

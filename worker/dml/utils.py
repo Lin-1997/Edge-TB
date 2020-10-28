@@ -1,28 +1,20 @@
 import io
-import logging
-import os
 import time
+
 import numpy as np
 import requests
 
+from worker_utils import log
+
 write = io.BytesIO ()
-dirname = os.path.dirname (__file__)
-
-
-def set_log (name):
-	filename = os.path.abspath (os.path.join (dirname, 'log/', name + '.log'))
-	logging.basicConfig (level=logging.INFO, filename=filename, filemode='w', format='%(message)s')
-
-
-def log (message):
-	logging.info (message)
 
 
 def load_data (path, start_index, _len, input_shape):
 	x_list = []
 	y_list = []
 	for i in range (_len):
-		x_list.append (np.load (path + '/images_' + str (start_index + i) + '.npy').reshape (input_shape))
+		x_list.append (np.load (path + '/images_' + str (start_index + i) + '.npy')
+			.reshape (input_shape))
 		y_list.append (np.load (path + '/labels_' + str (start_index + i) + '.npy'))
 	images = np.concatenate (tuple (x_list))
 	labels = np.concatenate (tuple (y_list))
@@ -51,7 +43,8 @@ def assign_weights (model, weights):
 	model.set_weights (weights)
 
 
-def send_weights (weights, selected_index, host_list, node_map, forward_map, path, layer=2, is_binary=0):
+def send_weights (weights, selected_index, host_list, node_map,
+		forward_map, path, layer=2):
 	self = 0
 	np.save (write, weights)
 	write.seek (0)
@@ -82,22 +75,16 @@ def send (weights, data, addr, is_forward):
 	log ('send weights to ' + addr + ', s=' + str (s) + ', e=' + str (e) + ', cost=' + str (e - s))
 
 
-def send_message (net_ctl_address, path, name):
-	requests.get ('http://' + net_ctl_address + path + '?host=' + name)
-
-
-def send_print (net_ctl_address, msg):
-	requests.post ('http://' + net_ctl_address + '/print', data={'msg': msg})
-
-
-def send_log (net_ctl_address, name):
-	file_path = os.path.abspath (os.path.join (dirname, 'log/', name + '.log'))
-	with open (file_path, 'r') as f:
-		requests.post ('http://' + net_ctl_address + '/log?host=' + name, files={'log': f})
+def send_message (ctl_addr, path, name):
+	try:
+		requests.get ('http://' + ctl_addr + path + '?host=' + name)
+	except requests.exceptions.ConnectionError:
+		pass
 
 
 def index_random (worker_num, fraction):
-	return np.random.choice (worker_num, int (float (worker_num) * fraction), replace=False)
+	return np.random.choice (worker_num, int (float (worker_num) * fraction),
+		replace=False)
 
 
 def index_full (length):

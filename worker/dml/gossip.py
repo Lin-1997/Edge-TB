@@ -7,7 +7,7 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 from flask import Flask, request
 
-import util
+import utils
 from nns.nn_mnist import nn
 from values import values_g
 
@@ -75,7 +75,7 @@ v ['new_weights_list_lock'] = threading.Lock ()
 # 用于控制训练过程
 def node_train ():
 	for r in range (v ['round']):
-		loss = util.train (v ['local_epoch_num'], nn.sess, nn.batch_size, nn.batch_num, nn.batch, nn.loss,
+		loss = utils.train (v ['local_epoch_num'], nn.sess, nn.batch_size, nn.batch_num, nn.batch, nn.loss,
 			nn.train_step, nn.xs, nn.ys)
 		logging.info ('worker {} round {}:loss={}'.format (this_index, r, loss))
 		# 更新参数
@@ -83,13 +83,13 @@ def node_train ():
 		list_lock = v ['new_weights_list_lock']
 		list_lock.acquire ()
 		v ['new_weights_list'].append (latest_weights)
-		avg_weights = util.calculate_avg_weight (v ['new_weights_list'], len (v ['new_weights_list']))
-		util.assignment (nn ['assign_list'], avg_weights, nn ['sess'])
+		avg_weights = utils.calculate_avg_weight (v ['new_weights_list'], len (v ['new_weights_list']))
+		utils.assignment (nn ['assign_list'], avg_weights, nn ['sess'])
 		v ['new_weights_list'].clear ()
 		list_lock.release ()
 		other_nodes_num = v ['client_num'] - 1
-		indices = util.index_random (other_nodes_num, 1.0 / float (other_nodes_num))
-		util.send_weight_down_train (client_weights, avg_weights, indices, v ['other_addresses'])
+		indices = utils.index_random (other_nodes_num, 1.0 / float (other_nodes_num))
+		utils.send_weight_down_train (client_weights, avg_weights, indices, v ['other_addresses'])
 
 
 @app.route ('/start_training', methods=['POST'])
@@ -101,7 +101,7 @@ def start_training ():
 
 @app.route ('/train', methods=['POST'])
 def update_weights ():
-	new_weights = util.parse_received_weight (request.files.get ('weights'))
+	new_weights = utils.parse_received_weight (request.files.get ('weights'))
 	executor.submit (on_receive_weight, new_weights)
 	return 'continue training'
 

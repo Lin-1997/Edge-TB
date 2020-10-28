@@ -7,10 +7,14 @@ from flask import Flask, request
 
 
 def container_load_tc ():
-	net_ctl_address = os.getenv ('NET_CTL_ADDRESS')
+	"""
+	this function can request TC settings from controller.
+	this request can be received by net/controller/ctl_utils.py, tc_listener ().
+	"""
+	ctl_addr = os.getenv ('NET_CTL_ADDRESS')
 	c_name = os.getenv ('NET_CONTAINER_NAME')
 	s_name = os.getenv ('NET_SERVER_NAME')
-	res = requests.post ('http://' + net_ctl_address + '/tc', data={'name': c_name, 'server_name': s_name})
+	res = requests.post ('http://' + ctl_addr + '/tc', data={'name': c_name, 'server_name': s_name})
 	res_json = json.loads (res.text)
 	tc = res_json ['tc']
 	if len (tc) != 0:
@@ -31,7 +35,7 @@ def container_load_tc ():
 				ip = tc_ip [name]
 			else:
 				# is a container.
-				# the svc name comes from controller/class_node.py, ContainerServer.save_yml(), Service.metadata.name.
+				# the svc name comes from controller/class_node.py, ContainerServer.save_yml (), Service.metadata.name.
 				# the format is s-$(container.name).
 				# k8s will save it in system env as $(Service.metadata.name)_SERVICE_HOST in uppercase and replace all '-' to '_'.
 				# for convenience, we hardcode it, and we do not recommend modifying it.
@@ -50,12 +54,16 @@ def container_load_tc ():
 			print ('if no error printed, then successfully limited the bw with ' + name + ' to ' + bw)
 			cmd.clear ()
 		try:
-			requests.get ('http://' + net_ctl_address + '/tcReady?number=' + str (len (tc)))
+			requests.get ('http://' + ctl_addr + '/tcReady?number=' + str (len (tc)))
 		except requests.exceptions.ConnectionError:
 			pass
 
 
 def device_conf_listener ():
+	"""
+	this function can listen message from net/controller/ctl_utils.py, send_device_conf ().
+	it will apply TC settings and save envs to the system environment.
+	"""
 	app = Flask (__name__)
 
 	@app.route ('/tcConf', methods=['POST'])

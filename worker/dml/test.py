@@ -4,7 +4,7 @@ import os
 
 from nns.nn_cifar10 import nn
 # from nns.nn_mnist import nn
-from util import load_data
+from utils import load_data
 
 model = nn.model
 input_shape = nn.input_shape

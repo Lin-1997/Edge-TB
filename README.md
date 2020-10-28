@@ -51,9 +51,9 @@ The order of ```server_ip``` should be the same as the order in the ```ctl_run_d
 see ```controller/dml/tools/README.md``` for more.  
 6. Prepare datasets:  
     1. Divide your data and distribute it to the Workers and Raspberry Pis.  
-    2. On Controller, modify ```controller/dml/tools/env_datasets.txt``` 
-    and run ```controller/dml/tools/conf_env_datasets_gen.py``` with python3
-    to generate incomplete env files, see ```controller/dml/tools/README.md``` for more.  
+    2. On Controller, modify ```controller/dml/tools/env_datasets.txt``` .  
+    3. Type ```python3 controller/dml/tools/conf_env_gen.py -T 1``` in terminal
+    to generate datasets-only-env files, see ```controller/dml/tools/README.md``` for more.  
     3. Manually distribute ```controller/dml/env_datasets/*.env``` to corresponding
     Workers and Raspberry Pis in folder ```worker/dml/env/```.  
 7. On Raspberry Pi, run ```worker/run-dml.sh``` with bash.  
@@ -62,11 +62,12 @@ keep this python program running on a terminal (called Ter). It will display mas
 9. On Controller, when Ter display ```performance collection completed```,
 you can modify ```controller/dml/tools/env_tree.txt``` to define the dml network topology,
 see ```controller/dml/tools/README.md``` for more.  
-10. On Controller, run ```controller/dml/tools/conf_env_full_gen.py``` to generate complete env files.  
-11. On Controller, type ```curl localhost:9000/conf``` in terminal to auto send the complete env files
+10. On Controller, type ```python3 controller/dml/tools/conf_env_gen.py -T 2``` in terminal
+to generate full-env files.  
+11. On Controller, type ```curl localhost:9000/conf``` in terminal to auto send the full-env files
 to the corresponding Workers and Raspberry Pi, and training will auto start.  
 12. On Controller, when Ter display ```log files parsing completed```,
-you can check the log files in ```etree/k8s-Controller/log/```.  
+you can check the log files in ```controller/dml/log/```.  
 13. On Worker, you may need to clean the cni config and delete the ```cni0``` nic
 if you finished one test and wan to add some new Workers to start the next test.
 For example, you have used Worker1 to complete a test,
@@ -76,6 +77,6 @@ k8s may assign 10.244.1.0 to Worker2 and 10.244.2.0 to Worker1.
 If you don't clean the old cni config and delete ```cni0``` nic in Worker1,
 it cannot set the ip address of ```cni0``` nic to 10.244.2.0.  
 #### Dataset and Network Model in Dml
-1. Write ```worker/dml/nns/nn_xx.py```, just like ```etree/node/nns/nn_minst.py```.
+1. Write ```worker/dml/nns/nn_xx.py```, just like ```worker/dml/nns/nn_minst.py```.
 2. Prepare datasets and distribute it to the Workers and Raspberry Pis.
 3. Modify ```worker/dml/EL.py``` and ```worker/dml/perf_eval.py``` to loads your ```nn_xx.py```.  

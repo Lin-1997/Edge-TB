@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
 	for i in range (29):
 		for j in range (29 - i):
-			net.add_link_limit (cList [i], cList [i + j + 1], bw=10, unit='mbps')
+			net.dual_link_limit (cList [i], cList [i + j + 1], bw=10, unit='mbps')
 
 	dirname = os.path.abspath (os.path.dirname (__file__))
 	net.save_yml (dirname)
