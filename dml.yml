@@ -1,0 +1,10 @@
+version: "2"
+services:
+  dml:
+    image: dml:v1.0
+    volumes:
+      - ./worker/dml:/home/dml
+    working_dir: /home/dml
+    stdin_open: true
+    tty: true
+    command: [ "python3", "EL.py" ]

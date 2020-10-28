@@ -1,9 +1,0 @@
-version: "2"
-services:
-  node:
-    image: etree-node:v1.0
-    volumes:
-      - ./node:/home/node
-    stdin_open: true
-    tty: true
-    command: ["python3", "EL.py"]

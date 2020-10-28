@@ -1,4 +1,0 @@
-flask
-numpy
-requests
-tensorflow==1.15.0
