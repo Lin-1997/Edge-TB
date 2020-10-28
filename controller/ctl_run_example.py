@@ -54,17 +54,16 @@ if __name__ == '__main__':
 	d1 = net.add_device (name='d1', nic='eth0', ip='192.168.1.13')
 	d1.add_envs ({'key': 'value'})
 
-	# TODO 单向tc限制
-
-	# declare a upper limit of bandwidth between two nodes through Linux Traffic Control.
+	# declare a upper limit of bandwidth from one node to another
+	# or between two nodes through Linux Traffic Control.
 	# it cannot guarantee the lower limit.
-	net.add_link_limit (c1, cList [0], bw=500, unit='kbps')
-	net.add_link_limit (d1, cList [3], bw=2, unit='mbps')
-	# the bandwidth between two nodes that WITHOUT add_link_limit () depends on your physical network.
+	net.single_link_limit (c1, cList [0], bw=500, unit='kbps')
+	net.dual_link_limit (d1, cList [3], bw=2, unit='mbps')
+	# the bandwidth between two nodes that WITHOUT link_limit () depends on your physical network.
 	# we will NOT block the network connection between them.
 
 	"""
-	if you want to limit bandwidth between nodes with our Net.add_link_limit (),
+	if you want to limit bandwidth between nodes with our Net.dual_link_limit (),
 	you should run the worker/worker_tc_init.py in your containers and devices before running your apps.
 	we recommend using the following file structure in your containers and devices:
 	

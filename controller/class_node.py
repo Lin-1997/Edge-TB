@@ -263,11 +263,13 @@ class Net (object):
 		self.device [name] = d
 		return d
 
-	def add_link_limit (self, n1, n2, bw: int, unit: str):
+	def single_link_limit (self, n1, n2, bw: int, unit: str):
 		"""
 		parameters will be passed to Linux Traffic Control.
 		TC can only set a approximately upper limit of the bandwidth,
 		but cannot guarantee the lower limit.
+		n1-----bw----->>n2
+		n1<<-----no TC settings-----n2
 		:param n1: the first Node.
 		:param n2: the second Node.
 		:param bw: bandwidth.
@@ -276,34 +278,44 @@ class Net (object):
 		"""
 		assert unit in ['bit', 'kbit', 'mbit', 'gbit', 'bps', 'kbps', 'mbps', 'gbps'], Exception (
 			unit + ' is not in ["bit", "kbit", "mbit", "gbit", "bps", "kbps", "mbps", "gbps"]')
-		self.tcLinkNumber += 2
+		self.tcLinkNumber += 1
 		if isinstance (n1, Container):
 			if isinstance (n2, Container):  # n1-C, n2-C
 				# for containers, they communicate through K8s service ip.
 				# container's service ip can be obtained through system env
 				n1.limit_link (n2.name, str (bw) + unit)
-				n2.limit_link (n1.name, str (bw) + unit)
 			else:  # n1-C, n2-D
 				# for container, device's ip need to be declared explicitly.
 				n1.limit_link (n2.name, str (bw) + unit)
 				n1.limit_link_ip (n2.name, n2.ip)
-				# device can only communicate with container through the server ip.
-				# there may be many containers sharing the same server ip.
-				# so device needs to know container's server ip and container's nodePorts.
-				n2.limit_link (n1.name, str (bw) + unit)
-				n2.limit_link_ip (n1.name, n1.ip)
-				n2.limit_link_port (n1.name, n1.svcNodePort)
 		elif isinstance (n2, Device):  # n1-D, n2-D
 			n1.limit_link (n2.name, str (bw) + unit)
 			n1.limit_link_ip (n2.name, n2.ip)
-			n2.limit_link (n1.name, str (bw) + unit)
-			n2.limit_link_ip (n1.name, n1.ip)
 		else:  # n1-D, n2-C
+			# device can only communicate with container through the server ip.
+			# there may be many containers sharing the same server ip.
+			# so device needs to know container's server ip and container's nodePorts.
 			n1.limit_link (n2.name, str (bw) + unit)
 			n1.limit_link_ip (n2.name, n2.ip)
 			n1.limit_link_port (n2.name, n2.svcNodePort)
-			n2.limit_link (n1.name, str (bw) + unit)
-			n2.limit_link_ip (n1.name, n1.ip)
+
+	def dual_link_limit (self, n1, n2, bw: int, unit: str):
+		"""
+		parameters will be passed to Linux Traffic Control.
+		TC can only set a approximately upper limit of the bandwidth,
+		but cannot guarantee the lower limit.
+		n1-----bw----->>n2
+		n1<<-----bw-----n2
+		they are NOT sharing a network bandwidth.
+		they just happen to have the same network bandwidth.
+		:param n1: the first Node.
+		:param n2: the second Node.
+		:param bw: bandwidth.
+		:param unit: one of [bit, kbit, mbit, gbit, bps, kbps, mbps, gbps], i.e.,
+			[Bits, Kilobits, Megabits, Gigabits, Bytes, Kilobytes, Megabytes, Gigabytes] per second.
+		"""
+		self.single_link_limit (n1, n2, bw, unit)
+		self.single_link_limit (n2, n1, bw, unit)
 
 	def save_yml (self, path=None):
 		for cs in self.containerServer.values ():
