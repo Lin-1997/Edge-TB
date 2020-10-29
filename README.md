@@ -52,7 +52,7 @@ see ```controller/dml/tools/README.md``` for more.
 6. Prepare datasets:  
     1. Divide your data and distribute it to the Workers and Raspberry Pis.  
     2. On Controller, modify ```controller/dml/tools/env_datasets.txt``` .  
-    3. Type ```python3 controller/dml/tools/conf_env_gen.py -T 1``` in terminal
+    3. Type ```python3 controller/dml/tools/conf_env_gen.py -t 1``` in terminal
     to generate datasets-only-env files, see ```controller/dml/tools/README.md``` for more.  
     3. Manually distribute ```controller/dml/env_datasets/*.env``` to corresponding
     Workers and Raspberry Pis in folder ```worker/dml/env/```.  
@@ -62,7 +62,7 @@ keep this python program running on a terminal (called Ter). It will display mas
 9. On Controller, when Ter display ```performance collection completed```,
 you can modify ```controller/dml/tools/env_tree.txt``` to define the dml network topology,
 see ```controller/dml/tools/README.md``` for more.  
-10. On Controller, type ```python3 controller/dml/tools/conf_env_gen.py -T 2``` in terminal
+10. On Controller, type ```python3 controller/dml/tools/conf_env_gen.py -t 2``` in terminal
 to generate full-env files.  
 11. On Controller, type ```curl localhost:9000/conf``` in terminal to auto send the full-env files
 to the corresponding Workers and Raspberry Pi, and training will auto start.  

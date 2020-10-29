@@ -84,7 +84,7 @@ def print_listener (app):
 		return ''
 
 
-def parse_log (log_file_path, name, initial_acc):
+def parse_log (log_file_path, filename, initial_acc):
 	"""
 	parse log files into pictures.
 	the log files format comes from net/worker/worker_utils.py, log_acc () and log_loss ().
@@ -97,7 +97,7 @@ def parse_log (log_file_path, name, initial_acc):
 	loss_str = 'loss='
 	acc_map = {}
 	loss_list = []
-	path = os.path.join (log_file_path, name + '.log')
+	path = os.path.join (log_file_path, filename)
 	with open (path, 'r') as f:
 		for line in f:
 			if line.find ('Aggregate') != -1:
@@ -113,6 +113,7 @@ def parse_log (log_file_path, name, initial_acc):
 				loss_end_i = line.find (',', loss_start_i)
 				loss = float (line [loss_start_i:loss_end_i])
 				loss_list.append (loss)
+	name = filename [:filename.find ('.log')]
 	for layer in acc_map:
 		plt.plot (acc_map [layer], 'go')
 		plt.plot (acc_map [layer], 'r')
@@ -127,12 +128,12 @@ def parse_log (log_file_path, name, initial_acc):
 		plt.savefig (path)
 		plt.cla ()
 	if len (loss_list) != 0:
-		upper = (loss_list [0] / 10 + max (loss_list [0] / 100, 1)) * 10
+		upper = loss_list [0] * 1.2
 		plt.plot (loss_list, 'go')
 		plt.plot (loss_list, 'r')
 		plt.xlabel ('round')
 		plt.ylabel ('loss')
-		plt.ylim (0, int (upper))
+		plt.ylim (0, upper)
 		plt.title ('Loss')
 		path = os.path.join (log_file_path, 'png/', name + '-loss.png')
 		plt.savefig (path)
@@ -153,17 +154,16 @@ def log_listener (app, log_file_path, total_number, initial_acc=0.0):
 		host = request.args.get ('host')
 		print ('get ' + host + '\'s log')
 		file = request.files.get ('log')
-		filename = file.filename
-		file.save (os.path.join (log_file_path, filename))
+		file.save (os.path.join (log_file_path, file.filename))
 		log_lock.acquire ()
-		log_name.append (filename)
+		log_name.append (file.filename)
 		if len (log_name) == total_number:
 			print ('log files collection completed, saved on ' + log_file_path)
 			path = os.path.join (log_file_path, 'png/')
 			if not os.path.exists (path):
 				os.mkdir (path)
-			for name in log_name:
-				parse_log (log_file_path, name, initial_acc)
+			for filename in log_name:
+				parse_log (log_file_path, filename, initial_acc)
 			print ('log files parsing completed, saved on ' + log_file_path + '/png')
 			log_name.clear ()
 		log_lock.release ()

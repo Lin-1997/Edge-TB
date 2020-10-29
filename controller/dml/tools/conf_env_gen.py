@@ -176,7 +176,7 @@ def gen_env ():
 if __name__ == '__main__':
 	dirname = os.path.abspath (os.path.dirname (__file__))
 	parser = argparse.ArgumentParser ()
-	parser.add_argument ('-T', '--type', dest='type', required=True, type=int,
+	parser.add_argument ('-t', '--type', dest='type', required=True, type=int,
 		help='1 for datasets-only-env, 2 for full-env')
 	args = parser.parse_args ()
 
