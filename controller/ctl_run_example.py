@@ -28,7 +28,7 @@ if __name__ == '__main__':
 	c1 = net.add_container (server=cs1, name='n1', nic='eth0', working_dir='/path/in/container',
 		cmd=['bash', 'run-example.sh'], image='some_image:v1', cpu=3, memory=1, unit='Gi')
 	c1.add_envs ({'key': 'value'})
-	c1.add_volume (host_path='path/in/server-1', mount_path='/path/in/container')
+	c1.add_volume (host_path='/path/in/server-1', mount_path='/path/in/container')
 	# use a same svc_port as container_port.
 	cs1.add_port (c1, container_port=8001, svc_node_port=30001)
 
@@ -40,7 +40,7 @@ if __name__ == '__main__':
 		cList.append (net.add_container (cs2, 'n' + str (i + start_id), 'eth0', '/path/in/container',
 			['bash', 'run-example.sh'], 'some_image:v1', cpu=1))
 		cList [i].add_envs ({'key': 'value'})
-		cList [i].add_volume ('path/in/server-2', '/path/in/container')
+		cList [i].add_volume ('/path/in/server-2', '/path/in/container')
 		cs2.add_port (cList [i], container_port=8000 + i + start_id, svc_port=9000 + i + start_id,
 			svc_node_port=30000 + i + start_id)
 

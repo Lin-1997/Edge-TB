@@ -38,12 +38,16 @@ def listener (app):
 	for s_name in _container:
 		_total_number += len (_container [s_name])
 		for c_name in _container [s_name]:
+			# we assume that you followed the rules stated in controller/ctl_run_dml.py.
+			# k8s maps port 30000+x to port 8000+x of the container
 			_container_addr [c_name] = _server [s_name] + ':' + str (30000 + int (c_name [1:]))
 
 	@app.route ('/hi', methods=['GET'])
 	def route_hi ():
 		return 'this is net_ctl\n'
 
+	# collect the time required for 1 epoch training for each trainer in 1 layer.
+	# they may help you decide how often trainers upload weights.
 	@app.route ('/perf', methods=['GET'])
 	def route_perf ():
 		global receive_number
@@ -61,9 +65,12 @@ def listener (app):
 				f.write (json.dumps (perf))
 			print ('performance collection completed, saved on ' + file_path)
 		receive_lock.release ()
-		# TODO 生成env，然后调用on_route_conf
+		# TODO write controller/dml/env_tree.txt to define the dml structure,
+		#  use controller/dml/conf_env_gen.py to generate env files,
+		#  and call on_route_conf () by sending a HTTP GET to /conf.
 		return ''
 
+	# send the env file to the corresponding node.
 	@app.route ('/conf', methods=['GET'])
 	def route_conf ():
 		executor.submit (on_route_conf)
@@ -71,6 +78,7 @@ def listener (app):
 
 	def on_route_conf ():
 		global log_file_path, initial_acc
+		# create a folder to save the log files of nodes.
 		log_file_path = os.path.join (dirname, 'log/',
 			time.strftime ('%Y-%m-%d-%H-%M-%S', time.localtime (time.time ())))
 
@@ -86,6 +94,7 @@ def listener (app):
 				requests.post ('http://' + _container_addr [node] + '/env', files={'env': f})
 				print ('sent env to ' + node)
 
+		# send a message to the top node in EL or FL to start training.
 		print ('start training')
 		env_tree_json = ctl_utils.read_json (os.path.join (dirname, 'env_tree.txt'))
 		top_node_name = env_tree_json ['node_list'] [0] ['name']
@@ -97,6 +106,7 @@ def listener (app):
 		initial_acc = float (res.text)
 		print ('initial_acc = ' + str (initial_acc))
 
+	# when training is complete, ask for log files.
 	@app.route ('/finish', methods=['GET'])
 	def route_finish ():
 		os.makedirs (log_file_path)

@@ -34,7 +34,7 @@ def heartbeat_listener (app):
 	@app.route ('/heartbeat', methods=['GET'])
 	def route_heartbeat ():
 		name = request.args.get ('name')
-		interval = request.args.get ('interval', type=float, default=30.0)
+		interval = request.args.get ('interval', type=float)
 		_time = time.time ()
 		heartbeat_time [name] = _time
 		heartbeat_interval [name] = interval
