@@ -4,7 +4,7 @@ import time
 import numpy as np
 import requests
 
-from worker_utils import log
+import worker_utils
 
 write = io.BytesIO ()
 
@@ -43,22 +43,22 @@ def assign_weights (model, weights):
 	model.set_weights (weights)
 
 
-def send_weights (weights, selected_index, host_list, node_map,
+def send_weights (weights, selected_index, node_list, node_map,
 		forward_map, path, layer=2):
 	self = 0
 	np.save (write, weights)
 	write.seek (0)
 	for index in selected_index:
-		if host_list [index] == 'self':
+		if node_list [index] == 'self':
 			self = 1
 			continue
-		if host_list [index] in node_map:
-			addr = node_map [host_list [index]]
+		if node_list [index] in node_map:
+			addr = node_map [node_list [index]]
 			data = {'path': path, 'layer': str (layer)}
 			send (write, data, addr, is_forward=False)
 		else:
-			addr = forward_map [host_list [index]]
-			data = {'host': host_list [index], 'path': path, 'layer': str (layer)}
+			addr = forward_map [node_list [index]]
+			data = {'node': node_list [index], 'path': path, 'layer': str (layer)}
 			send (write, data, addr, is_forward=True)
 		write.seek (0)
 	write.truncate ()
@@ -70,16 +70,16 @@ def send (weights, data, addr, is_forward):
 	if not is_forward:
 		requests.post (addr + data ['path'], data=data, files={'weights': weights})
 	else:
+		worker_utils.log ('need ' + addr + ' to forward to ' + data ['node'] + data ['path'])
 		requests.post (addr + '/forward', data=data, files={'weights': weights})
 	e = time.time ()
-	log ('send weights to ' + addr + ', s=' + str (s) + ', e=' + str (e) + ', cost=' + str (e - s))
+	worker_utils.log ('send weights to ' + addr + ', cost=' + str (e - s))
 
 
-def send_message (ctl_addr, path, name):
-	try:
-		requests.get ('http://' + ctl_addr + path + '?host=' + name)
-	except requests.exceptions.ConnectionError:
-		pass
+def send_finish (ctl_addr):
+	if not ctl_addr:
+		return
+	requests.get ('http://' + ctl_addr + '/finish')
 
 
 def index_random (worker_num, fraction):

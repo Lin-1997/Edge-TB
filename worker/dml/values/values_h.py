@@ -11,8 +11,8 @@ def get_values (name):
 	if 'type' not in values:
 		return values
 
-	values ['current_round'] = [0] * values ['layer_count']
-	values ['received_count'] = [0] * values ['layer_count']
-	values ['received_weights'] = [[] for _ in range (values ['layer_count'])]
+	values ['current_round'] = [0] * len (values ['layer'])
+	values ['received_number'] = [0] * len (values ['layer'])
+	values ['received_weights'] = [[] for _ in range (len (values ['layer']))]
 
 	return values

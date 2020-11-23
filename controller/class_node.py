@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess as sp
 from typing import List, Dict
@@ -16,13 +17,13 @@ class Node (object):
 		self.name: str = name
 		self.nic: str = nic
 		self.ip: str = ip
-		self.tc: Dict [str, str] = {}
-		self.tcIP: Dict [str, str] = {}
+		self.tc: Dict [str, str] = {}  # dst name to dst bw.
+		self.tcIP: Dict [str, str] = {}  # dst name to dst ip.
 		self.env: Dict [str, str] = {}
 
 	def limit_link (self, name: str, bw: str):
-		assert name not in self.tc, Exception ('already has a limit between '
-		                                       + name + ' and ' + self.name)
+		assert name not in self.tc, Exception (
+			self.name + ' already has a limit to ' + name)
 		self.tc [name] = bw
 
 	def limit_link_ip (self, name: str, ip: str):
@@ -36,7 +37,7 @@ class Node (object):
 
 
 class Device (Node):
-	"""a node that represented by a physical device (e.g., Raspberry Pi)."""
+	"""a node that represented by a physical device (e.bw_array., Raspberry Pi)."""
 
 	def __init__ (self, name: str, nic: str, ip: str):
 		super ().__init__ (name, nic, ip)
@@ -103,8 +104,6 @@ class ContainerServer (object):
 
 	def add_container (self, name: str, nic: str, working_dir: str, cmd: List [str], image: str,
 			cpu: int = 0, memory: int = 0, unit: str = 'Gi') -> Container:
-		assert name not in self.container, Exception (name + ' is in ' + self.name)
-		assert unit in ['Mi', 'Gi'], Exception (unit + ' is not in ["Mi", "Gi"]')
 		c = Container (name, nic, self.ip, image, working_dir, cmd, cpu, str (memory) + unit)
 		self.container [name] = c
 		return c
@@ -129,7 +128,7 @@ class ContainerServer (object):
 		else:
 			container.add_port (container_port, container_port, svc_node_port)
 
-	def save_yml (self, path=None):
+	def save_k8s_yml (self, path):
 		str_yml = ''
 		# svc
 		for c in self.container.values ():
@@ -207,10 +206,8 @@ class ContainerServer (object):
 				str_yml += ' ]\n'
 			str_yml = str_yml \
 			          + '          env:\n' \
-			          + '            - name: NET_CONTAINER_NAME\n' \
+			          + '            - name: NET_NODE_NAME\n' \
 			          + '              value: "' + c.name + '"\n' \
-			          + '            - name: NET_SERVER_NAME\n' \
-			          + '              value: "' + self.name + '"\n' \
 			          + '            - name: NET_CTL_ADDRESS\n' \
 			          + '              value: "' + self.netCtlAddress + '"\n'
 			for key in c.env:
@@ -224,31 +221,24 @@ class ContainerServer (object):
 					          + '            - name: v-' + c.name + '-' + str (i + 1) + '\n' \
 					          + '              mountPath: ' + c.vMountPath [i] + '\n'
 		# save as yml file
-		if not path:
-			yml_path = os.path.abspath (os.path.join (os.path.dirname (__file__),
-				self.name + '.yml'))
-		else:
-			yml_path = os.path.abspath (os.path.join (path, self.name + '.yml'))
-		with open (yml_path, 'w')as f:
+		yml_name = os.path.abspath (os.path.join (path, self.name + '.yml'))
+		with open (yml_name, 'w')as f:
 			f.writelines (str_yml)
 
-	def deploy_yml (self, path=None):
-		if not path:
-			yml_path = os.path.abspath (os.path.join (os.path.dirname (__file__),
-				self.name + '.yml'))
-		else:
-			yml_path = os.path.abspath (os.path.join (path, self.name + '.yml'))
-		print ('try to delete the old deployment of ' + self.name
-		       + '.yml, is ok to see the error of not found')
-		sp.Popen ('kubectl delete -f ' + yml_path, shell=True).wait ()
+	def deploy_k8s_yml (self, path):
+		yml_path = os.path.abspath (os.path.join (path, self.name + '.yml'))
+		print ('try to delete the old deployment of ' + self.name + '.yml')
+		# hide the error of not found.
+		sp.Popen ('kubectl delete -f ' + yml_path, stderr=sp.PIPE, shell=True).wait ()
 		sp.Popen ('kubectl create -f ' + yml_path, shell=True).wait ()
 
 
 class Net (object):
 	def __init__ (self, address: str):
 		self.address: str = address
-		self.device: Dict [str, Device] = {}
-		self.containerServer: Dict [str, ContainerServer] = {}
+		self.device: Dict [str, Device] = {}  # device's name to device object.
+		self.containerServer: Dict [str, ContainerServer] = {}  # server's name to server object.
+		self.container: Dict [str, ContainerServer] = {}  # container's name to its server object.
 		self.tcLinkNumber = 0
 
 	def add_container_server (self, name: str, ip: str) -> ContainerServer:
@@ -263,21 +253,58 @@ class Net (object):
 		self.device [name] = d
 		return d
 
+	def add_container (self, server: ContainerServer, name: str, nic: str, working_dir: str,
+			cmd: List [str], image: str, cpu: int = 0, memory: int = 0, unit: str = 'Gi') -> Container:
+		"""
+		add a container to a container server.
+		even if the containers are on different container servers, they cannot have the same name.
+		"""
+		assert name not in self.container, Exception (name + ' is in ' + self.container [name].name)
+		assert unit in ['Mi', 'Gi'], Exception (unit + ' is not in ["Mi", "Gi"]')
+		self.container [name] = server
+		return server.add_container (name, nic, working_dir, cmd, image, cpu, memory, unit)
+
+	def save_node_ip (self, path=None):
+		"""
+		save the node's ip address as txt file in json format.
+		an example:
+		{
+		"server" = {"server-1":"192.168.1.11", "server-2":"192.168.1.12"},
+		"container" = {"server-1":["n1"], "server-2":["n2", "n3"]},
+		"device" = {"d1":"192.168.1.13"}
+		}
+		:param path: a directory without file name.
+		"""
+		server = {}
+		container = {}
+		device = {}
+		for s in self.containerServer.values ():
+			server [s.name] = s.ip
+			container [s.name] = list (s.container.keys ())
+		for d in self.device.values ():
+			device [d.name] = d.ip
+		if not path:
+			txt_name = os.path.abspath (os.path.join (os.path.dirname (__file__), 'node_ip.txt'))
+		else:
+			txt_name = os.path.abspath (os.path.join (path, 'node_ip.txt'))
+		data = {'server': server, 'container': container, 'device': device}
+		with open (txt_name, 'w') as f:
+			f.writelines (json.dumps (data).replace ('}, ', '},\n'))
+
 	def single_link_limit (self, n1, n2, bw: int, unit: str):
 		"""
 		parameters will be passed to Linux Traffic Control.
-		TC can only set a approximately upper limit of the bandwidth,
-		but cannot guarantee the lower limit.
+		TC can only set a approximately upper limit of the bandwidth.
 		n1-----bw----->>n2
 		n1<<-----no TC settings-----n2
 		:param n1: the first Node.
 		:param n2: the second Node.
 		:param bw: bandwidth.
-		:param unit: one of [bit, kbit, mbit, gbit, bps, kbps, mbps, gbps], i.e.,
-			[Bits, Kilobits, Megabits, Gigabits, Bytes, Kilobytes, Megabytes, Gigabytes] per second.
+		:param unit: one of [kbit, mbit, gbit, kbps, mbps, gbps], i.e.,
+			[Kilobits, Megabits, Gigabits, Kilobytes, Megabytes, Gigabytes] per second.
 		"""
-		assert unit in ['bit', 'kbit', 'mbit', 'gbit', 'bps', 'kbps', 'mbps', 'gbps'], Exception (
-			unit + ' is not in ["bit", "kbit", "mbit", "gbit", "bps", "kbps", "mbps", "gbps"]')
+		assert unit in ['kbit', 'mbit', 'gbit', 'kbps', 'mbps', 'gbps'], Exception (
+			unit + ' is not in ["kbit", "mbit", "gbit", "kbps", "mbps", "gbps"]')
 		self.tcLinkNumber += 1
 		if isinstance (n1, Container):
 			if isinstance (n2, Container):  # n1-C, n2-C
@@ -301,26 +328,92 @@ class Net (object):
 
 	def dual_link_limit (self, n1, n2, bw: int, unit: str):
 		"""
-		parameters will be passed to Linux Traffic Control.
-		TC can only set a approximately upper limit of the bandwidth,
-		but cannot guarantee the lower limit.
 		n1-----bw----->>n2
 		n1<<-----bw-----n2
 		they are NOT sharing a network bandwidth.
 		they just happen to have the same network bandwidth.
-		:param n1: the first Node.
-		:param n2: the second Node.
-		:param bw: bandwidth.
-		:param unit: one of [bit, kbit, mbit, gbit, bps, kbps, mbps, gbps], i.e.,
-			[Bits, Kilobits, Megabits, Gigabits, Bytes, Kilobytes, Megabytes, Gigabytes] per second.
 		"""
 		self.single_link_limit (n1, n2, bw, unit)
 		self.single_link_limit (n2, n1, bw, unit)
 
-	def save_yml (self, path=None):
-		for cs in self.containerServer.values ():
-			cs.save_yml (path)
+	def name_to_node (self, name) -> Node:
+		"""
+		get node by name.
+		"""
+		assert name in self.device or name in self.container, Exception (
+			'no such node called ' + name)
+		if name in self.device:
+			return self.device [name]
+		else:
+			server = self.container [name]
+			return server.container [name]
 
-	def deploy_yml (self, path=None):
+	def save_bw (self, path=None):
+		"""
+		save the TC settings as txt file in json format.
+		the json content can be read by the following load_bw ().
+		:param path: a directory without file name.
+		"""
+		order = list (self.container.keys ()) + list (self.device.keys ())
+		bw = []
+		for name1 in order:
+			node = self.name_to_node (name1)
+			bw.append ([])
+			for name2 in order:
+				if name1 == name2:
+					bw [-1].append ('inf')
+				elif name2 in node.tc:
+					bw [-1].append (node.tc [name2])
+				else:
+					bw [-1].append ('None')
+		if not path:
+			txt_name = os.path.abspath (os.path.join (os.path.dirname (__file__), 'bw.txt'))
+		else:
+			txt_name = os.path.abspath (os.path.join (path, 'bw.txt'))
+		data = {'order': order, 'bw': bw}
+		with open (txt_name, 'w') as f:
+			f.writelines (json.dumps (data).replace ('], ', '],\n'))
+
+	def load_bw (self, order: List [str], bw: List [List [str]]):
+		"""
+		:param order: what node's name does the row/column represent.
+		:param bw: bandwidth between nodes.
+		an example:
+		order = ['n1, 'd1', 'n2']
+		bw = [
+		['inf', '2mbps', '3mbps'],
+		['2mbps', 'inf', 'None'],
+		['2mbps', '2mbps', 'inf']
+		]
+		"""
+		for i in range (len (order)):
+			n1 = self.name_to_node (order [i])
+			for j in range (len (order)):
+				if i == j: continue
+				unit = bw [i] [j] [-4:]
+				if unit == 'None': continue
+				_bw = int (bw [i] [j] [:-4])
+				n2 = self.name_to_node (order [j])
+				self.single_link_limit (n1, n2, _bw, unit)
+
+	def save_k8s_yml (self, path=None):
+		"""
+		save the deployment of containers as k8s yml files.
+		:param path: a directory without file name.
+		"""
+		if not path:
+			path = os.path.dirname (__file__)
+		if not os.path.exists (path):
+			os.makedirs (path)
 		for cs in self.containerServer.values ():
-			cs.deploy_yml (path)
+			cs.save_k8s_yml (path)
+
+	def deploy_k8s_yml (self, path=None):
+		"""
+		deploy K8s yml files.
+		:param path: a directory without file name.
+		"""
+		if not path:
+			path = os.path.dirname (__file__)
+		for cs in self.containerServer.values ():
+			cs.deploy_k8s_yml (path)

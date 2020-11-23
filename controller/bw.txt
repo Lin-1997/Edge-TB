@@ -1,0 +1,6 @@
+{"order": ["n1", "n2", "n3", "n4", "d1"],
+"bw": [["inf", "4969kbps", "2096kbps", "3326kbps", "2245kbps"],
+["3656kbps", "inf", "4091kbps", "None", "3971kbps"],
+["2996kbps", "3368kbps", "inf", "2683kbps", "None"],
+["3195kbps", "None", "4131kbps", "inf", "2295kbps"],
+["2395kbps", "4280kbps", "None", "3648kbps", "inf"]]}

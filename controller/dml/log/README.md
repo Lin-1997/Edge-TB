@@ -1,3 +1,3 @@
-## .log文件说明
-Train: round={}, loss={}  
-Aggregate: layer={}, round={}, sync={}, accuracy={}  
+## .log
+Train: loss={}, round={}  
+Aggregate: accuracy={}, round={}, layer={}  

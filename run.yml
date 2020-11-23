@@ -6,47 +6,39 @@ services:
       service: dml
     container_name: "n1"
     expose:
-      - "7001"
-    cap_add:
-      - NET_ADMIN
+      - "8001"
     environment:
       NAME: "n1"
-      PORT: "7001"
+      PORT: "8001"
     ports:
-      - "7001:7001"
+      - "8001:8001"
   "n2":
     extends:
       file: dml.yml
       service: dml
     container_name: "n2"
     expose:
-      - "7002"
-    cap_add:
-      - NET_ADMIN
+      - "8002"
     environment:
       NAME: "n2"
-      PORT: "7002"
+      PORT: "8002"
   "n3":
     extends:
       file: dml.yml
       service: dml
     container_name: "n3"
     expose:
-      - "7003"
-    cap_add:
-      - NET_ADMIN
+      - "8003"
     environment:
       NAME: "n3"
-      PORT: "7003"
+      PORT: "8003"
   "n4":
     extends:
       file: dml.yml
       service: dml
     container_name: "n4"
     expose:
-      - "7004"
-    cap_add:
-      - NET_ADMIN
+      - "8004"
     environment:
       NAME: "n4"
-      PORT: "7004"
+      PORT: "8004"

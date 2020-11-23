@@ -16,5 +16,4 @@ __pycache__/
 !kubeadm-init.yml
 !dml.yml
 !run.yml
-bw.txt
 perf.txt

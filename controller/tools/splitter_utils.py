@@ -6,10 +6,10 @@ from tensorflow.keras.utils import to_categorical
 
 def split_data (images, labels, batch, drop_last):
 	"""
-	split data into batch
+	split data into batch.
 	:param images: ndarrays.
 	:param labels: ndarrays.
-	:param batch: int, number of batches
+	:param batch: int, number of batches.
 	:param drop_last: if True, for an array of length l that should be split
     into n sections, it returns sub-arrays of size l/n, and drop rest data.
     if False, it returns l % n sub-arrays of size l/n + 1 and the rest of size l/n.
@@ -26,7 +26,7 @@ def split_data (images, labels, batch, drop_last):
 
 def save_data (images_loader, labels_loader, path, one_hot):
 	"""
-	naming from 1 to n
+	naming from 1 to n.
 	"""
 	if not os.path.exists (path):
 		os.makedirs (path)

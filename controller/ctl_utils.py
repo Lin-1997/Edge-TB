@@ -1,6 +1,7 @@
 import json
 import os
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 import matplotlib.pyplot as plt
@@ -8,6 +9,8 @@ import requests
 from flask import request
 
 executor = ThreadPoolExecutor (1)
+heartbeat_time = {}
+heartbeat_interval = {}
 ready_number = 0
 ready_lock = threading.Lock ()
 log_name = []
@@ -19,23 +22,56 @@ def read_json (filename):
 		return json.loads (f.read ().replace ('\n', '').replace ('\r', '').replace ('\'', '\"'))
 
 
-def tc_listener (app, net, on_ready=None, *args, **kwargs):
+def heartbeat_listener (app):
 	"""
-	this function can listen message from net/worker/worker_tc_init.py, container_load_tc ().
-	it will return TC settings to container, and listen for response.
-	after all containers have applied the TC settings, it will call the on_ready function.
+	this function can listen heartbeat from worker/worker_utils.py, async_heartbeat ().
+	it will store the received time of nodes heartbeat, and the normal interval time.
+	you can send a GET requests to this /all_heartbeat to get how much time
+	has passed since nodes last sent a heartbeat, and to /abnormal_heartbeat
+	to get the likely abnormal nodes.
 	"""
-	if net.tcLinkNumber == 0:
-		return
 
-	@app.route ('/tc', methods=['POST'])
+	@app.route ('/heartbeat', methods=['GET'])
+	def route_heartbeat ():
+		name = request.args.get ('name')
+		interval = request.args.get ('interval', type=float, default=30.0)
+		_time = time.time ()
+		heartbeat_time [name] = _time
+		heartbeat_interval [name] = interval
+		return ''
+
+	@app.route ('/all_heartbeat', methods=['GET'])
+	def route_all_heartbeat ():
+		s = 'the last heartbeat of nodes are:\n'
+		now = time.time ()
+		for name in heartbeat_time:
+			_time = now - heartbeat_time [name]
+			s = s + name + ' was ' + str (_time) + ' seconds ago. ' \
+			    + 'the normal interval should be ' + str (heartbeat_interval [name]) + '.\n'
+		return s
+
+	@app.route ('/abnormal_heartbeat', methods=['GET'])
+	def route_abnormal_heartbeat ():
+		s = 'the last heartbeat of likely abnormal nodes are:\n'
+		now = time.time ()
+		for name in heartbeat_time:
+			_time = now - heartbeat_time [name]
+			if _time > heartbeat_interval [name] * 1.1:
+				s = s + name + ' was ' + str (_time) + ' seconds ago. ' \
+				    + 'the normal interval should be ' + str (heartbeat_interval [name]) + '.\n'
+		return s
+
+
+def tc_listener (app, net):
+	"""
+	this function can listen message from worker/worker_tc_init.py, container_load_tc ().
+	it will return TC settings to container, and listen for response.
+	"""
+
+	@app.route ('/tc', methods=['GET'])
 	def route_tc ():
-		name = request.form ['name']
-		server_name = request.form ['server_name']
-		if server_name != 'none':
-			n = net.containerServer [server_name].container [name]
-		else:
-			n = net.device [name]
+		name = request.args.get ('name')
+		n = net.name_to_node (name)
 		data = {'nic': n.nic, 'tc': n.tc, 'tc_ip': n.tcIP}
 		return json.dumps (data)
 
@@ -45,8 +81,8 @@ def tc_listener (app, net, on_ready=None, *args, **kwargs):
 		global ready_number
 		ready_lock.acquire ()
 		ready_number += number
-		if ready_number == net.tcLinkNumber and on_ready:
-			on_ready (*args, **kwargs)
+		if ready_number == net.tcLinkNumber:
+			print ('tc ready')
 		ready_lock.release ()
 		return ''
 
@@ -54,27 +90,35 @@ def tc_listener (app, net, on_ready=None, *args, **kwargs):
 def send_device_conf (net):
 	"""
 	send TC settings and envs to device.
-	this request can be received by net/worker/worker_tc_init.py, device_conf_listener ().
+	this request can be received by worker/worker_tc_init.py, device_conf_listener ().
 	"""
+	global ready_number
 	for d in net.device.values ():
 		data = {
 			'NET_CTL_ADDRESS': net.address,
-			'NET_DEVICE_NAME': d.name,
-			'NET_DEVICE_NIC': d.nic,
-			'NET_DEVICE_ENV': json.dumps (d.env),
-			'NET_DEVICE_TC': json.dumps (d.tc),
-			'NET_DEVICE_TC_IP': json.dumps (d.tcIP),
-			'NET_DEVICE_TC_PORT': json.dumps (d.tcPort)
+			'NET_NODE_NAME': d.name,
+			'NET_NODE_NIC': d.nic,
+			'NET_NODE_ENV': json.dumps (d.env),
+			'NET_NODE_TC': json.dumps (d.tc),
+			'NET_NODE_TC_IP': json.dumps (d.tcIP),
+			'NET_NODE_TC_PORT': json.dumps (d.tcPort)
 		}
+		res = requests.post ('http://' + d.ip + ':8888/tcConf', data=data)
+		ready_lock.acquire ()
+		ready_number += int (res.text)
+		print ('device tc ready number = ' + res.text)
+		if ready_number == net.tcLinkNumber:
+			print ('tc ready')
+		ready_lock.release ()
 		try:
-			requests.post ('http://' + d.ip + ':4444/tcConf', data=data)
+			requests.get ('http://' + d.ip + ':8888/tcFinish')
 		except requests.exceptions.ConnectionError:
 			pass
 
 
 def print_listener (app):
 	"""
-	this function can listen message from net/worker/worker_utils.py, send_print ().
+	this function can listen message from worker/worker_utils.py, send_print ().
 	print whatever from worker.
 	"""
 
@@ -87,7 +131,7 @@ def print_listener (app):
 def parse_log (log_file_path, filename, initial_acc):
 	"""
 	parse log files into pictures.
-	the log files format comes from net/worker/worker_utils.py, log_acc () and log_loss ().
+	the log files format comes from worker/worker_utils.py, log_acc () and log_loss ().
 	Aggregate: accuracy=0.8999999761581421, round=1, layer=2,
 	Train: loss=0.2740592360496521, round=1,
 	we left a comma at the end for easy positioning and extending.
@@ -142,7 +186,7 @@ def parse_log (log_file_path, filename, initial_acc):
 
 def log_listener (app, log_file_path, total_number, initial_acc=0.0):
 	"""
-	this function can listen log files from net/worker/worker_utils.py, send_log ().
+	this function can listen log files from worker/worker_utils.py, send_log ().
 	log files will be saved on log_file_path.
 	when total_number files are received, it will parse these files into pictures
 	and save them on log_file_path/png.

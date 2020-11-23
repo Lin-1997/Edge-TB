@@ -1,5 +1,5 @@
 #!/bin/bash
-k=v1.19.3
+k=v1.19.4
 g=k8s.gcr.io
 a=registry.aliyuncs.com/google_containers
 images=(kube-proxy:${k}

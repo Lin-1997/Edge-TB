@@ -1,53 +1,58 @@
-## .env文件说明
-- 类型，0：EL，1：FL  
+## .env
+use n2 as example
+- type  
+0：EL，1：FL.  
 ```"type": 0```  
-conf_gen.py生成的默认type=0  
-- 同时处于多少层  
-```"layer_count": 3```
+- layer  
+acts on these layers.  
+```"layer": [1, 2]```  
+n2 acts on 1st layer and 2nd layer.  
+- worker_fraction  
+in EL, set worker_fraction equal to 1.  
+in FL, set worker_fraction in range (0, 1].  
+```worker_fraction: 1```  
+- up_node  
+set to "self" when upper node is itself
+and set to "top" when it's the top node.  
+```"up_node": ["self","n1"]```  
+when acts on 1st layer, n2's upper node is itself
+and when acts on 2nd layer, n2's upper node is n1.  
+- down_node  
+```"down_node": [[], ["self", "n3"]]```  
+when acts on 1st layer, n2 doesn't have child node
+and when acts on 2nd layer, n2 has two child nodes, i.e., itself and n3.  
+- sync  
+set to 0 when acts on 1st layer as trainer.  
+```"sync": [0, 2]```  
+when acts on 1st layer, n2 doesn't need sync
+and when acts on 2nd layer, n2 uploads weights after 2 aggregations.  
+- epoch  
+set to 0 for nodes that don't act on the 1st layer.  
+```"epoch": 4```  
+when acts on 1st layer, n2 uploads weights after 4 local epoch trainings.  
 
-- 下面例子中使用[ ]为key值的，即使节点只处于一层也要用[ ]  
-
-- 分别属于哪些层，1为最底层  
-```"layer": [1,2,3]```  
-EL中节点可以同时负责训练和聚合，但FL中不要让聚合节点同时作为训练节点  
-- 节点位于每层的上层节点  
-```"up_host": ["self","self","top"]```  
-当节点上层节点仍为自己时，该层up_host置为self  
-当节点处于最顶层时，该层up_host置为top  
-- 节点位于每层的下层节点数量  
-```"down_count": [0,2,2]```  
-当节点处于最底层为训练节点时，该层的down_count置为0  
-- 节点位于每层的下层节点  
-```"down_host": [[],["self","r1"],["self","n2"]]```  
-即使节点只处于一层也要用[[ ]]  
-- EL中每层的同步频率  
-```"sync": [0,2,10]```  
-当节点处于最底层为训练节点时，该层的sync置为0  
-当节点处于最顶层时，该层sync控制整个训练过程的聚合次数，当最顶层达到sync次聚合后，训练结束  
-
-- 本地训练次数  
-```"local_epoch_num": 1```  
-不作为训练节点时赋值为0  
-- 训练参数  
-```"batch_size": 8```  
-不作为训练节点时赋值为0  
-- 训练样本起始文件下标和文件个数  
+- batch_size  
+set to 0 for nodes that don't act on the 1st layer.  
+```"batch_size": 32```  
+n2 has bach_size=32 when acts on the 1st layer as trainer.  
+- train_start_i, train_len  
+set to 0 for nodes that don't act on the 1st layer.  
 ```"train_start_i": 1```  
-```"train_len": 2```  
-即使用train_images_1.npy、train_images_2.npy以及train_labels_1.npy、train_labels_2.npy  
-不作为训练节点时两个都赋值为0  
-- 测试样本起始文件下标和文件个数  
-```"test_start_i": 5```  
-```"test_len": 1```  
-即使用test_images_5.npy以及test_labels_5.npy  
-不作为聚合节点时两个都赋值为0  
-- FL聚合节点专用，每轮选多少比例的节点训练，EL固定赋值为1，FL赋值0~1之间  
-```"worker_fraction: 1"```  
+```"train_len": 10```  
+allocate train_data/images_(1 to 10).npy and train_data/labels_(1 to 10).npy to n2.  
+- test_start_i, test_len  
+set to 0 for nodes that only act on the 1st layer.  
+```"test_start_i": 11```  
+```"test_len": 10```  
+allocate test_data/images_(11 to 20).npy and test_data/labels_(11 to 20).npy to n2.  
 
-- 自动生成的路由信息  
-- 直连的节点  
-```"node": {'r1': 'http://192.168.0.108:8888', 'n3': 'http://s-n3:8003'}```  
-目标host_name: 目标path  
-- 需要别人转发的节点  
-```"forward": {'n2': 'http://s-n3:8003'}```  
-目标host_name: 下一跳帮转发的path  
+This part depends on ```contorller/bw.txt``` and ```contorller/node_ip.txt```  
+- connect  
+destination node: destination address.  
+```"connect": {'n1': 'http://s-n1:8001', 'n3': 'http://s-n3:8003', 'd1': 'http:192.168.1.13:8888'}```  
+n2 can directly send messages to n1, n3 and d1.  
+- forward  
+destination node: next hop's address.  
+```"forward": {'n4': 'http://s-n1:8001'}```  
+if n2 want to send messages to n4, it should sent to d1
+and d1 will send the message to n4 (and may still need to be forwarded).  

@@ -2,7 +2,7 @@
 sudo mkdir -p /etc/cni/net.d
 sudo cp 10-flannel.conflist /etc/cni/net.d/10-flannel.conflist
 
-k=v1.19.3
+k=v1.19.4
 g=k8s.gcr.io
 a=registry.aliyuncs.com/google_containers
 images=(kube-proxy:${k}

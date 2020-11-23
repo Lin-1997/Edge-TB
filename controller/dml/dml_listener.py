@@ -10,33 +10,36 @@ from flask import request
 import ctl_utils
 
 # the only configurable parameter.
-_type = 0  # 0: EL, 1: FL, 2: GL.
+_type = 0  # 0: EL, 1: FL.
 
 executor = ThreadPoolExecutor (1)
 dirname = os.path.abspath (os.path.dirname (__file__))
-env_addr_json = ctl_utils.read_json (os.path.join (dirname, 'tools/env_addr.txt'))
-_device_number = env_addr_json ['device_number']
-_container_number = env_addr_json ['container_number']
-_total_number = _device_number + _container_number [-1]
-_server_ip = env_addr_json ['server_ip']
-_device_ip = env_addr_json ['device_ip']
-_container_addr = []
-start_i = 0
-for ip_i in range (len (_server_ip)):
-	end_i = _container_number [ip_i]
-	for c_i in range (end_i - start_i):
-		_container_addr.append (_server_ip [ip_i] + ':' + str (30001 + c_i + start_i))
-	start_i = end_i
 
+env_node_ip_json = {}
+_server = {}
+_container = {}
+_device = {}
+_container_addr = {}
+_total_number = 0
 perf = {}
 log_file_path = ''
-log_file_time = ''
 initial_acc = 0.0
 receive_number = 0
 receive_lock = threading.Lock ()
 
 
 def listener (app):
+	global _total_number
+	env_node_ip_json.update (ctl_utils.read_json (os.path.join (dirname, '../node_ip.txt')))
+	_server.update (env_node_ip_json ['server'])
+	_container.update (env_node_ip_json ['container'])
+	_device.update (env_node_ip_json ['device'])
+	_total_number = len (_device)
+	for s_name in _container:
+		_total_number += len (_container [s_name])
+		for c_name in _container [s_name]:
+			_container_addr [c_name] = _server [s_name] + ':' + str (30000 + int (c_name [1:]))
+
 	@app.route ('/hi', methods=['GET'])
 	def route_hi ():
 		return 'this is net_ctl\n'
@@ -44,10 +47,10 @@ def listener (app):
 	@app.route ('/perf', methods=['GET'])
 	def route_perf ():
 		global receive_number
-		host = request.args.get ('host')
+		node = request.args.get ('node')
 		total_time = request.args.get ('time', type=float)
-		print (host + ' use ' + str (total_time))
-		perf [host] = total_time
+		print (node + ' use ' + str (total_time))
+		perf [node] = total_time
 		receive_lock.acquire ()
 		receive_number += 1
 		if receive_number == _total_number:
@@ -67,63 +70,40 @@ def listener (app):
 		return ''
 
 	def on_route_conf ():
-		global log_file_path
+		global log_file_path, initial_acc
 		log_file_path = os.path.join (dirname, 'log/',
 			time.strftime ('%Y-%m-%d-%H-%M-%S', time.localtime (time.time ())))
 
-		if _device_number > 0:
-			for host in _device_ip:
-				file_path = os.path.join (dirname, 'env/', host + '.env')
-				with open (file_path, 'r') as f:
-					try:
-						requests.post ('http://' + _device_ip [host] + ':8888/env', files={'env': f})
-					except requests.exceptions.ConnectionError:
-						pass
-					print ('sent env to ' + host)
-
-		for addr in _container_addr:
-			file_path = os.path.join (dirname, 'env/', 'n' + str (int (addr [-5:]) - 30000) + '.env')
+		for node in _device:
+			file_path = os.path.join (dirname, 'env/', node + '.env')
 			with open (file_path, 'r') as f:
-				try:
-					requests.post ('http://' + addr + '/env', files={'env': f})
-				except requests.exceptions.ConnectionError:
-					pass
-				print ('sent env to n' + str (int (addr [-5:]) - 30000))
+				requests.post ('http://' + _device [node] + ':8888/env', files={'env': f})
+				print ('sent env to ' + node)
 
-	@app.route ('/ready', methods=['GET'])
-	def route_ready ():
-		host = request.args.get ('host')
-		print (host + ' is ready')
-		executor.submit (on_route_ready)
-		return ''
+		for node in _container_addr:
+			file_path = os.path.join (dirname, 'env/', node + '.env')
+			with open (file_path, 'r') as f:
+				requests.post ('http://' + _container_addr [node] + '/env', files={'env': f})
+				print ('sent env to ' + node)
 
-	def on_route_ready ():
-		global receive_number, initial_acc
-		receive_lock.acquire ()
-		receive_number += 1
-		if receive_number == _total_number:
-			receive_number = 0
-			time.sleep (5)
-			print ('all nodes ready')
-			env_tree_json = ctl_utils.read_json (os.path.join (dirname, 'tools/env_tree.txt'))
-			top_node_id = env_tree_json ['host_list'] [0] ['id']
-			if top_node_id > 0:
-				top_node_addr = _container_addr [top_node_id - 1]
-			else:
-				top_node_addr = _device_ip ['r' + str (-top_node_id)] + ':8888'
-			res = requests.get ('http://' + top_node_addr + '/start?type=' + str (_type))
-			initial_acc = float (res.text)
-			print ('initial_acc = ' + str (initial_acc))
-		receive_lock.release ()
+		print ('start training')
+		env_tree_json = ctl_utils.read_json (os.path.join (dirname, 'env_tree.txt'))
+		top_node_name = env_tree_json ['node_list'] [0] ['name']
+		if top_node_name in _device:
+			top_node_addr = _device [top_node_name] + ':8888'
+		else:
+			top_node_addr = _container_addr [top_node_name]
+		res = requests.get ('http://' + top_node_addr + '/start?type=' + str (_type))
+		initial_acc = float (res.text)
+		print ('initial_acc = ' + str (initial_acc))
 
 	@app.route ('/finish', methods=['GET'])
 	def route_finish ():
 		os.makedirs (log_file_path)
 		ctl_utils.log_listener (app, log_file_path, _total_number, initial_acc)
 		print ('training completed')
-		if _device_number > 0:
-			for _ip in _device_ip.values ():
-				requests.get ('http://' + _ip + ':8888/log')
-		for addr in _container_addr:
+		for _ip in _device.values ():
+			requests.get ('http://' + _ip + ':8888/log')
+		for addr in _container_addr.values ():
 			requests.get ('http://' + addr + '/log')
 		return ''
