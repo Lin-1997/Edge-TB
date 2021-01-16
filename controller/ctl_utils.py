@@ -1,214 +1,518 @@
 import json
 import os
+import subprocess as sp
 import threading
-import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
+from typing import Dict, IO
 
-import matplotlib.pyplot as plt
 import requests
 from flask import request
 
-executor = ThreadPoolExecutor (1)
-heartbeat_time = {}
-heartbeat_interval = {}
-ready_number = 0
-ready_lock = threading.Lock ()
+from class_node import Net, ContainerServer, Device
+
+# this port number should be the same as the one defined in worker/agent.py.
+agent_port = 3333
+executor = ThreadPoolExecutor (4)
+tc_number = 0
+tc_lock = threading.Lock ()
 log_name = []
 log_lock = threading.Lock ()
+dirname = os.path.abspath (os.path.dirname (__file__))
 
 
-def read_json (filename):
+def read_json (filename: str):
 	with open (filename, 'r') as f:
 		return json.loads (f.read ().replace ('\n', '').replace ('\r', '').replace ('\'', '\"'))
 
 
-def heartbeat_listener (app):
+def send_data (method: str, path: str, address: str, port: int = None,
+		data: Dict [str, str] = None, files: Dict [str, IO] = None) -> str:
 	"""
-	this function can listen heartbeat from worker/worker_utils.py, async_heartbeat ().
-	it will store the received time of nodes heartbeat, and the normal interval time.
-	you can send a GET requests to this /all_heartbeat to get how much time
-	has passed since nodes last sent a heartbeat, and to /abnormal_heartbeat
-	to get the likely abnormal nodes.
+	send a request to http://${address/path} or http://${ip:port/path}.
+	@param method: 'GET' or 'POST'.
+	@param path:
+	@param address: ip:port if ${port} is None else only ip.
+	@param port: only used when ${address} is only ip.
+	@param data: only used in 'POST'.
+	@param files: only used in 'POST'.
+	@return: response.text
 	"""
-
-	@app.route ('/heartbeat', methods=['GET'])
-	def route_heartbeat ():
-		name = request.args.get ('name')
-		interval = request.args.get ('interval', type=float)
-		_time = time.time ()
-		heartbeat_time [name] = _time
-		heartbeat_interval [name] = interval
-		return ''
-
-	@app.route ('/all_heartbeat', methods=['GET'])
-	def route_all_heartbeat ():
-		s = 'the last heartbeat of nodes are:\n'
-		now = time.time ()
-		for name in heartbeat_time:
-			_time = now - heartbeat_time [name]
-			s = s + name + ' was ' + str (_time) + ' seconds ago. ' \
-			    + 'the normal interval should be ' + str (heartbeat_interval [name]) + '.\n'
-		return s
-
-	@app.route ('/abnormal_heartbeat', methods=['GET'])
-	def route_abnormal_heartbeat ():
-		s = 'the last heartbeat of likely abnormal nodes are:\n'
-		now = time.time ()
-		for name in heartbeat_time:
-			_time = now - heartbeat_time [name]
-			if _time > heartbeat_interval [name] * 1.1:
-				s = s + name + ' was ' + str (_time) + ' seconds ago. ' \
-				    + 'the normal interval should be ' + str (heartbeat_interval [name]) + '.\n'
-		return s
+	if port:
+		address += ':' + str (port)
+	if method.upper () == 'GET':
+		res = requests.get ('http://' + address + '/' + path)
+		return res.text
+	elif method.upper () == 'POST':
+		res = requests.post ('http://' + address + '/' + path, data=data, files=files)
+		return res.text
+	else:
+		return 'err method ' + method
 
 
-def tc_listener (app, net):
+def export_nfs (net: Net):
 	"""
-	this function can listen message from worker/worker_tc_init.py, container_load_tc ().
-	it will return TC settings to container, and listen for response.
+	export the path through nfs.
 	"""
-
-	@app.route ('/tc', methods=['GET'])
-	def route_tc ():
-		name = request.args.get ('name')
-		n = net.name_to_node (name)
-		data = {'nic': n.nic, 'tc': n.tc, 'tc_ip': n.tcIP}
-		return json.dumps (data)
-
-	@app.route ('/tcReady', methods=['GET'])
-	def route_tc_ready ():
-		number = request.args.get ('number', type=int)
-		global ready_number
-		ready_lock.acquire ()
-		ready_number += number
-		if ready_number == net.tcLinkNumber:
-			print ('tc ready')
-		ready_lock.release ()
-		return ''
-
-
-def send_device_conf (net):
-	"""
-	send TC settings and envs to device.
-	this request can be received by worker/worker_tc_init.py, device_conf_listener ().
-	"""
-	global ready_number
-	for d in net.device.values ():
-		data = {
-			'NET_CTL_ADDRESS': net.address,
-			'NET_NODE_NAME': d.name,
-			'NET_NODE_NIC': d.nic,
-			'NET_NODE_ENV': json.dumps (d.env),
-			'NET_NODE_TC': json.dumps (d.tc),
-			'NET_NODE_TC_IP': json.dumps (d.tcIP),
-			'NET_NODE_TC_PORT': json.dumps (d.tcPort)
-		}
-		res = requests.post ('http://' + d.ip + ':8888/tcConf', data=data)
-		ready_lock.acquire ()
-		ready_number += int (res.text)
-		print ('device tc ready number = ' + res.text)
-		if ready_number == net.tcLinkNumber:
-			print ('tc ready')
-		ready_lock.release ()
-		try:
-			requests.get ('http://' + d.ip + ':8888/tcFinish')
-		except requests.exceptions.ConnectionError:
-			pass
+	for tag in net.nfsClient:
+		client = net.nfsClient [tag]
+		path = net.nfsPath [tag]
+		# restore to system settings.
+		cmd = 'sudo exportfs -r'
+		sp.Popen (cmd, shell=True, stdout=sp.DEVNULL, stderr=sp.STDOUT).wait ()
+		# export the path.
+		cmd = 'sudo exportfs ' + client + ':' + path
+		sp.Popen (cmd, shell=True, stdout=sp.DEVNULL, stderr=sp.STDOUT).wait ()
+		# check result.
+		cmd = 'sudo exportfs -v'
+		p = sp.Popen (cmd, shell=True, stdout=sp.PIPE, stderr=sp.STDOUT)
+		msg = p.communicate () [0].decode ()
+		assert path in msg and client in msg, Exception (
+			'share ' + path + ' to ' + client + ' failed')
 
 
 def print_listener (app):
-	"""
-	this function can listen message from worker/worker_utils.py, send_print ().
-	print whatever from worker.
-	"""
-
 	@app.route ('/print', methods=['POST'])
 	def route_print ():
+		"""
+		this function can listen message from worker/worker_utils.py, send_print ().
+		it will print the ${msg}.
+		"""
 		print (request.form ['msg'])
 		return ''
 
 
-def parse_log (log_file_path, filename, initial_acc):
-	"""
-	parse log files into pictures.
-	the log files format comes from worker/worker_utils.py, log_acc () and log_loss ().
-	Aggregate: accuracy=0.8999999761581421, round=1, layer=2,
-	Train: loss=0.2740592360496521, round=1,
-	we left a comma at the end for easy positioning and extending.
-	"""
-	acc_str = 'accuracy='
-	layer_str = 'layer='
-	loss_str = 'loss='
-	acc_map = {}
-	loss_list = []
-	path = os.path.join (log_file_path, filename)
-	with open (path, 'r') as f:
-		for line in f:
-			if line.find ('Aggregate') != -1:
-				acc_start_i = line.find (acc_str) + len (acc_str)
-				acc_end_i = line.find (',', acc_start_i)
-				acc = float (line [acc_start_i:acc_end_i])
-				layer_start_i = line.find (layer_str) + len (layer_str)
-				layer_end_i = line.find (',', layer_start_i)
-				layer = int (line [layer_start_i:layer_end_i])
-				acc_map.setdefault (layer, [initial_acc]).append (acc)
-			elif line.find ('Train') != -1:
-				loss_start_i = line.find (loss_str) + len (loss_str)
-				loss_end_i = line.find (',', loss_start_i)
-				loss = float (line [loss_start_i:loss_end_i])
-				loss_list.append (loss)
-	name = filename [:filename.find ('.log')]
-	for layer in acc_map:
-		plt.plot (acc_map [layer], 'go')
-		plt.plot (acc_map [layer], 'r')
-		plt.xlabel ('round')
-		plt.ylabel ('accuracy')
-		plt.ylim (0, 1)
-		plt.title ('Accuracy')
-		if layer != -1:
-			path = os.path.join (log_file_path, 'png/', name + '-L' + str (layer) + '-acc.png')
-		else:
-			path = os.path.join (log_file_path, 'png/', name + '-acc.png')
-		plt.savefig (path)
-		plt.cla ()
-	if len (loss_list) != 0:
-		upper = loss_list [0] * 1.2
-		plt.plot (loss_list, 'go')
-		plt.plot (loss_list, 'r')
-		plt.xlabel ('round')
-		plt.ylabel ('loss')
-		plt.ylim (0, upper)
-		plt.title ('Loss')
-		path = os.path.join (log_file_path, 'png/', name + '-loss.png')
-		plt.savefig (path)
-		plt.cla ()
-
-
-def log_listener (app, log_file_path, total_number, initial_acc=0.0):
-	"""
-	this function can listen log files from worker/worker_utils.py, send_log ().
-	log files will be saved on log_file_path.
-	when total_number files are received, it will parse these files into pictures
-	and save them on log_file_path/png.
-	if a log file contains accuracy, it will start from initial_acc.
-	"""
-
-	@app.route ('/log', methods=['POST'])
-	def route_log ():
-		host = request.args.get ('host')
-		print ('get ' + host + '\'s log')
-		file = request.files.get ('log')
-		file.save (os.path.join (log_file_path, file.filename))
-		log_lock.acquire ()
-		log_name.append (file.filename)
-		if len (log_name) == total_number:
-			print ('log files collection completed, saved on ' + log_file_path)
-			path = os.path.join (log_file_path, 'png/')
-			if not os.path.exists (path):
-				os.mkdir (path)
-			for filename in log_name:
-				parse_log (log_file_path, filename, initial_acc)
-			print ('log files parsing completed, saved on ' + log_file_path + '/png')
-			log_name.clear ()
-		log_lock.release ()
+def clear_nfs_listener (app):
+	@app.route ('/clear/nfs', methods=['POST'])
+	def route_clear_nfs ():
+		"""
+		this function can listen command from user.
+		restore nfs to system settings.
+		"""
+		cmd = 'sudo exportfs -r'
+		sp.Popen (cmd, shell=True, stdout=sp.DEVNULL, stderr=sp.STDOUT).wait ()
 		return ''
+
+
+def docker_tc_listener (app, net: Net):
+	@app.route ('/docker/tc', methods=['POST'])
+	def route_docker_tc ():
+		"""
+		this function can listen message from worker/agent.py, deploy_docker_tc ().
+		it will save the result of deploying docker tc settings.
+		"""
+		global tc_number
+		data = json.loads (request.form ['data'])
+		number = data ['number']
+		name = data ['name']
+		if number == '-1':
+			msg = data ['msg']
+			print ('container ' + name + ' tc failed, err:')
+			print (msg)
+		else:
+			print ('container ' + name + ' tc succeed')
+			tc_lock.acquire ()
+			tc_number += int (number)
+			if tc_number == net.tcLinkNumber:
+				print ('tc finish')
+			tc_lock.release ()
+		return ''
+
+
+def send_docker_address (net: Net):
+	"""
+	send ctl's ${ip:port} to container servers.
+	this request can be received by worker/agent.py, route_docker_address ().
+	"""
+	for server in net.containerServer.values ():
+		print ('send_docker_address: send to ' + server.name)
+		send_data ('GET', '/docker/address?address=' + net.address,
+			server.ip, agent_port)
+
+
+def send_docker_tc (net: Net):
+	"""
+	send the tc settings to container servers.
+	this request can be received by worker/agent.py, route_docker_tc ().
+	"""
+	for server in net.containerServer.values ():
+		data = {}
+		# collect tc settings of each container in this container server.
+		for c in server.container.values ():
+			data [c.name] = {
+				'NET_NODE_NIC': c.nic,
+				'NET_NODE_TC': c.tc,
+				'NET_NODE_TC_IP': c.tcIP,
+				'NET_NODE_TC_PORT': c.tcPort
+			}
+		# the agent in container server will deploy all tc settings of its containers.
+		print ('send_docker_tc: send to ' + server.name)
+		send_data ('POST', '/docker/tc', server.ip, agent_port,
+			data={'data': json.dumps (data)})
+
+
+def deploy_dockerfile (net: Net, tag: str, path1: str, path2: str):
+	"""
+	send the Dockerfile and pip requirements.txt to the agent of container servers.
+	this request can be received by worker/agent.py, route_docker_build ().
+	@param net:
+	@param tag: docker image name:version.
+	@param path1: path of Dockerfile.
+	@param path2: path of pip requirements.txt.
+	@return:
+	"""
+	tasks = [executor.submit (deploy_dockerfile_helper, s, tag, path1, path2)
+	         for s in net.containerServer.values ()]
+	wait (tasks, return_when=ALL_COMPLETED)
+
+
+def deploy_dockerfile_helper (server: ContainerServer, tag: str, path1: str, path2: str):
+	with open (path1, 'r') as f1, open (path2, 'r') as f2:
+		print ('deploy_dockerfile: send to ' + server.name)
+		res = send_data ('POST', '/docker/build', server.ip, agent_port,
+			data={'tag': tag}, files={'Dockerfile': f1, 'dml_req': f2})
+		if res == '1':
+			print (server.name + ' build image succeed')
+		else:
+			print (server.name + ' build image failed')
+
+
+def deploy_all_yml (net: Net, path: str):
+	"""
+	send the yml files to the agent of container servers.
+	this request can be received by worker/agent.py, route_docker_start ().
+	"""
+	tasks = [executor.submit (deploy_yml, s, path) for s in net.containerServer.values ()]
+	wait (tasks, return_when=ALL_COMPLETED)
+
+
+def deploy_yml (server: ContainerServer, path: str):
+	with open (os.path.join (path, server.name + '.yml'), 'r') as f:
+		print ('deploy_all_yml: send to ' + server.name)
+		send_data ('POST', '/docker/start', server.ip, agent_port, files={'yml': f})
+
+
+def docker_controller_listener (app, net: Net):
+	"""
+	this function can listen command from user.
+	it can controller containers.
+	"""
+
+	@app.route ('/docker/stop', methods=['GET'])
+	def route_docker_stop ():
+		stop_all_docker (net)
+		return ''
+
+	@app.route ('/docker/clear', methods=['GET'])
+	def route_docker_clear ():
+		clear_all_docker (net)
+		return ''
+
+	@app.route ('/docker/reset', methods=['GET'])
+	def route_docker_reset ():
+		reset_all_docker (net)
+		return ''
+
+
+def stop_all_docker (net: Net):
+	"""
+	send a stop message to container servers.
+	stop containers without remove them.
+	this request can be received by worker/agent.py, route_docker_stop ().
+	"""
+	for s in net.containerServer.values ():
+		if s.container:
+			stop_docker (s.ip)
+
+
+def stop_docker (server_ip: str):
+	send_data ('GET', '/docker/stop', server_ip, agent_port)
+
+
+def clear_all_docker (net: Net):
+	"""
+	send a clear message to container servers.
+	stop containers and remove them.
+	this request can be received by worker/agent.py, route_docker_clear ().
+	"""
+	for s in net.containerServer.values ():
+		if s.container:
+			clear_docker (s.ip)
+
+
+def clear_docker (server_ip: str):
+	send_data ('GET', '/docker/clear', server_ip, agent_port)
+
+
+def reset_all_docker (net: Net):
+	"""
+	send a reset message to container servers.
+	remove containers, volumes and network bridges.
+	this request can be received by worker/agent.py, route_docker_reset ().
+	"""
+	for s in net.containerServer.values ():
+		if s.container:
+			reset_docker (s.ip)
+
+
+def reset_docker (server_ip: str):
+	send_data ('GET', '/docker/reset', server_ip, agent_port)
+
+
+def send_device_nfs (net: Net):
+	"""
+	send the nfs settings to devices.
+	this request can be received by worker/agent.py, route_device_nfs ().
+	"""
+	tasks = [executor.submit (send_device_nfs_helper, d, net.ip)
+	         for d in net.device.values ()]
+	wait (tasks, return_when=ALL_COMPLETED)
+
+
+def send_device_nfs_helper (device: Device, ip: str):
+	data = {'ip': ip, 'nfs': device.nfsMount}
+	print ('send_device_nfs: send to ' + device.name)
+	res = send_data ('POST', '/device/nfs', device.ip, agent_port,
+		data={'data': json.dumps (data)})
+	err = json.loads (res)
+	if not err:
+		print ('device ' + device.name + ' mount nfs succeed')
+	else:
+		print ('device ' + device.name + ' mount nfs failed, err:')
+		print (err)
+
+
+def send_device_tc (net: Net):
+	"""
+	send the tc settings to devices.
+	this request can be received by worker/agent.py, route_device_tc ().
+	"""
+	global tc_number
+	for d in net.device.values ():
+		data = {
+			'NET_NODE_NIC': d.nic,
+			'NET_NODE_TC': d.tc,
+			'NET_NODE_TC_IP': d.tcIP,
+			'NET_NODE_TC_PORT': d.tcPort
+		}
+		print ('device_tc_update: send to ' + d.name)
+		res = send_data ('POST', '/device/tc', d.ip, agent_port,
+			data={'data': json.dumps (data)})
+		if res == '1':
+			print ('device ' + d.name + ' tc succeed')
+			tc_lock.acquire ()
+			tc_number += len (d.tc)
+			if tc_number == net.tcLinkNumber:
+				print ('tc finish')
+			tc_lock.release ()
+		else:
+			print ('device ' + d.name + ' tc failed, err:')
+			print (res)
+
+
+def send_device_env (net: Net):
+	"""
+	send the env to devices.
+	this request can be received by worker/agent.py, route_device_env ().
+	"""
+	for d in net.device.values ():
+		data = {
+			'NET_CTL_ADDRESS': net.address,
+			'NET_AGENT_IP': d.ip,
+			'NET_NODE_NAME': d.name,
+			'NET_NODE_ENV': d.env,
+		}
+		print ('send_device_env: send to ' + d.name)
+		send_data ('POST', '/device/env', d.ip, agent_port,
+			data={'data': json.dumps (data)})
+
+
+def sent_device_req (net: Net, path: str):
+	"""
+	send the dml_req.txt to devices.
+	this request can be received by worker/agent.py, route_device_req ().
+	"""
+	tasks = [executor.submit (sent_device_req_helper, d, path)
+	         for d in net.device.values ()]
+	wait (tasks, return_when=ALL_COMPLETED)
+
+
+def sent_device_req_helper (device: Device, path: str):
+	with open (path, 'r')as f:
+		print ('sent_device_req: send to ' + device.name)
+		res = send_data ('POST', '/device/req', device.ip, agent_port,
+			files={'dml_req': f})
+		if res == '1':
+			print ('device ' + device.name + ' req succeed')
+		else:
+			print ('device ' + device.name + ' req failed, err:')
+			print (res)
+
+
+def deploy_all_device (net: Net):
+	"""
+	send a start message to devices.
+	this request can be received by worker/agent.py, route_device_start ().
+	"""
+	tasks = [executor.submit (deploy_device, d) for d in net.device.values ()]
+	wait (tasks, return_when=ALL_COMPLETED)
+
+
+def deploy_device (device: Device):
+	data = {'dir': device.workingDir, 'cmd': device.cmd}
+	send_data ('POST', '/device/start', device.ip, agent_port,
+		data={'data': json.dumps (data)})
+
+
+def device_controller_listener (app, net: Net):
+	"""
+	this function can listen command from user.
+	it can controller devices.
+	"""
+
+	@app.route ('/device/stop', methods=['GET'])
+	def route_device_stop ():
+		stop_all_device (net)
+		return ''
+
+	@app.route ('/device/clear/tc', methods=['GET'])
+	def route_device_clear_tc ():
+		clear_all_device_tc (net)
+		return ''
+
+	@app.route ('/device/clear/nfs', methods=['GET'])
+	def route_device_clear_nfs ():
+		clear_all_device_nfs (net)
+		return ''
+
+	@app.route ('/device/reset', methods=['GET'])
+	def route_device_reset ():
+		reset_all_device (net)
+		return ''
+
+
+def stop_all_device (net: Net):
+	"""
+	send a stop message to devices.
+	kill the process started by above deploy_device ().
+	this request can be received by worker/agent.py, route_device_stop ().
+	"""
+	for d in net.device.values ():
+		stop_device (d.ip)
+
+
+def stop_device (device_ip: str):
+	send_data ('GET', '/device/stop', device_ip, agent_port)
+
+
+def clear_all_device_tc (net: Net):
+	"""
+	send a clear tc message to devices.
+	clear all tc settings.
+	this request can be received by worker/agent.py, route_device_clear_tc ().
+	"""
+	for d in net.device.values ():
+		clear_device_tc (d.ip)
+
+
+def clear_device_tc (device_ip: str):
+	send_data ('GET', '/device/clear/tc', device_ip, agent_port)
+
+
+def clear_all_device_nfs (net: Net):
+	"""
+	send a clear nfs message to devices.
+	unmount all nfs.
+	this request can be received by worker/agent.py, route_device_clear_nfs ().
+	"""
+	for d in net.device.values ():
+		clear_device_nfs (d.ip)
+
+
+def clear_device_nfs (device_ip: str):
+	send_data ('GET', '/device/clear/nfs', device_ip, agent_port)
+
+
+def reset_all_device (net: Net):
+	"""
+	send a reset message to devices.
+	kill the process started by above deploy_device ().
+	clear all tc settings.
+	unmount all nfs.
+	this request can be received by worker/agent.py, route_device_reset ().
+	"""
+	for d in net.device.values ():
+		reset_device (d.ip)
+
+
+def reset_device (device_ip: str):
+	send_data ('GET', '/device/reset', device_ip, agent_port)
+
+
+def update_tc_listener (app, net: Net):
+	@app.route ('/update/tc', methods=['GET'])
+	def route_update_tc ():
+		"""
+		this function can listen command from user.
+		it can update the tc settings of containers and/or devices.
+		"""
+		path = request.args.get ('path')
+		if path [0] != '/':
+			path = os.path.join (dirname, path)
+		bw_json = read_json (path)
+		order = bw_json ['order']
+		bw = bw_json ['bw']
+		nodes = []
+		servers = {}  # server object to container objects in this server.
+		for name in bw:
+			n = net.name_to_node (name)
+			nodes.append (n)
+			n.tc.clear ()
+			n.tcIP.clear ()
+			n.tcPort.clear ()
+		net.load_bw (order, bw)
+		for node in nodes:
+			if node.name in net.device:
+				update_device_tc (node)
+			else:
+				server = net.container [node.name]
+				servers.setdefault (server, []).append (node)
+		update_docker_tc (servers)
+		return ''
+
+
+def update_device_tc (device):
+	data = {
+		'NET_NODE_TC': device.tc,
+		'NET_NODE_TC_IP': device.tcIP,
+		'NET_NODE_TC_PORT': device.tcPort
+	}
+	print ('update_device_tc: send to ' + device.name)
+	res = send_data ('POST', '/device/tc/update', device.ip, agent_port,
+		data={'data': json.dumps (data)})
+	if res == '1':
+		print ('device ' + device.name + ' update tc succeed')
+	else:
+		print ('device ' + device.name + ' update tc failed, err:')
+		print (res)
+
+
+def update_docker_tc (servers):
+	for server in servers:
+		data = {}
+		for c in servers [server]:
+			data [c.name] = {
+				'NET_NODE_NIC': c.nic,
+				'NET_NODE_TC': c.tc,
+				'NET_NODE_TC_IP': c.tcIP,
+				'NET_NODE_TC_PORT': c.tcPort
+			}
+		print ('update_docker_tc: send to ' + server.name)
+		res = send_data ('POST', '/docker/tc/update', server.ip, agent_port,
+			data={'data': json.dumps (data)})
+		ret = json.loads (res)
+		for name in ret:
+			if ret [name] ['number'] == '-1':
+				print ('container ' + server.name + ': ' + name + ' update tc failed, err:')
+				print (ret [name] ['msg'])
+			else:
+				print ('container ' + server.name + ': ' + name + ' update tc succeed')

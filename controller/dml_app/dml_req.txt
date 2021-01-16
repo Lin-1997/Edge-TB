@@ -1,0 +1,4 @@
+flask
+numpy
+requests
+tensorflow>=2
