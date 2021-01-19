@@ -16,7 +16,7 @@ def read_json (filename):
 def node_to_path (dst_name):
 	# from whatever to device.
 	if dst_name in _device:
-		# this port number should be the same as the one defined in controller/dml_app/EL.py.
+		# this port number should be the same as the one defined in controller/dml_app/etree_learning.py.
 		return _device [dst_name] + ':4444'
 	# from whatever to container.
 	else:

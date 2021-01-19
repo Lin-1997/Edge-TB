@@ -28,7 +28,7 @@ if __name__ == '__main__':
 	# with these rules, we can use controller/dml_tool/conf_generator.py
 	# to quickly generate the  ip:port part of env files for each container and device.
 	# we do not recommend changing this port number, but if you really want to change it,
-	# you need to change controller/dml_app/EL.py, controller/dml_app/dml_listener.py,
+	# you need to change controller/dml_app/etree_learning.py, controller/dml_app/dml_listener.py,
 	# controller/class_node.py, controller/dml_tool/conf_generator.py together.
 	dml_port = 4444
 
@@ -49,7 +49,7 @@ if __name__ == '__main__':
 	# the container uses at most ${cpu} CPU cores (more accurately threads).
 	# if the container asks for more than ${memory unit} memory, it will be killed.
 	cList.append (cs1.add_container (name='n1', nic='eth0', working_dir='/home/worker/dml_app',
-		cmd=['python3', 'EL.py'], image='dml:v1.0', cpu=3, memory=5, unit='G'))
+		cmd=['python3', 'etree_learning.py'], image='dml:v1.0', cpu=3, memory=5, unit='G'))
 	# ${host_path} can use absolute path starting from / or
 	# relative path starting from the directory of the worker/agent.py file.
 	# ${container_path} can only use absolute path starting from /.
@@ -65,7 +65,7 @@ if __name__ == '__main__':
 	cs2.mount_nfs ('dml_app')
 	for i in range (3):
 		cList.append (cs2.add_container ('n' + str (i + start_id), 'eth0', '/home/worker/dml_app',
-			['python3', 'EL.py'], 'dml:v1.0', cpu=5, memory=5, unit='G'))
+			['python3', 'etree_learning.py'], 'dml:v1.0', cpu=5, memory=5, unit='G'))
 		# ${host_path} means /path/in/server-2/to/worker/dml_file in this example.
 		cList [i + start_id - 1].add_volume ('./dml_file', '/home/worker/dml_file')
 		cList [i + start_id - 1].add_nfs ('dml_app', '/home/worker/dml_app')
@@ -81,7 +81,7 @@ if __name__ == '__main__':
 	d1.mount_nfs (tag='dml_app', mount_point='./dml_app')
 	# set device's task.
 	# ${working_dir} can use absolute path or relative path as above mount_nfs ().
-	d1.set_cmd (working_dir='dml_app', cmd=['python3', 'example.py'])
+	d1.set_cmd (working_dir='dml_app', cmd=['python3', 'etree_learning.py'])
 
 	# save the node's information as node_ip.txt file in json format.
 	# the path should be just a directory without file name.
@@ -124,7 +124,7 @@ if __name__ == '__main__':
 	0bps, 0kbps... are not allowed in Linux Traffic Control, so we set 1bps to 
 	block the network connection between two nodes with "None" connection.
 	
-	it take a while to deploy the tc settings.
+	it takes a while to deploy the tc settings.
 	when the terminal prints "tc finish", tc settings of all containers and devices are deployed.
 	please make sure your node communicate with other nodes after "tc finish".
 	"""

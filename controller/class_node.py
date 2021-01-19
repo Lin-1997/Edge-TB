@@ -174,7 +174,7 @@ class ContainerServer (object):
 			for key in c.env:
 				str_yml += '      - ' + key + '=' + c.env [key] + '\n'
 			# see controller/ctrl_run_example.py to get why it is :4444,
-			# and controller/dml_app/EL.py to get why it is /hi.
+			# and controller/dml_app/etree_learning.py to get why it is /hi.
 			str_yml = str_yml \
 			          + '    healthcheck:\n' \
 			          + '      test: curl -f http://localhost:4444/hi\n'

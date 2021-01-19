@@ -11,7 +11,7 @@ import ctl_utils
 
 # configurable parameter.
 _type = 0  # 0: EL, 1: FL.
-# this port number should be the same as the one defined in controller/dml_app/EL.py.
+# this port number should be the same as the one defined in controller/dml_app/etree_learning.py.
 dml_port = 4444
 
 executor = ThreadPoolExecutor (1)
