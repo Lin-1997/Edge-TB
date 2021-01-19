@@ -31,10 +31,10 @@
 2. Modify ```controller/dml_tool/conf_datasets.txt``` to define the data used by each node,
    see ```controller/dml_tool/README.md``` for more.
 3. Type ```python3 controller/dml_tool/conf_generator.py -t 1``` in terminal to generate datasets-only-conf files.
-4. Type ```curl localhost:9000/conf``` in a terminal to send those datasets-only-conf files to each node.
+4. Type ```curl localhost:3333/conf``` in a terminal to send those datasets-only-conf files to each node.
 5. Wait until Ter display ```performance collection completed```.
 6. Modify ```controller/dml_tool/conf_structure.txt``` to define the DML structure,
    see ```controller/dml_tool/README.md``` for more.
 7. Type ```python3 controller/dml_tool/conf_generator.py -t 2``` in terminal to generate full-conf files.
-8. Type ```curl localhost:9000/conf?start=1``` in a terminal to send those full-conf files to each node.
+8. Type ```curl localhost:3333/conf?start=1``` in a terminal to send those full-conf files to each node.
 9. Wait until Term display ```log files parsing completed```.
