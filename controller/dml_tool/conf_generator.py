@@ -11,6 +11,7 @@ def read_json (filename):
 
 
 # we assume that you followed the rules stated in controller/ctl_run_example.py.
+# the node name starts with a letter, followed by numbers.
 # containers map port 4444 to host port 8000+x.
 # devices listen on port 4444.
 def node_to_path (dst_name):

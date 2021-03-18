@@ -132,7 +132,9 @@ def route_docker_build ():
 	cmd = 'sudo docker build -t ' + tag + ' -f ' + path + ' .'
 	print (cmd)
 	p = sp.Popen (cmd, shell=True, stdout=sp.PIPE, stderr=sp.STDOUT)
-	if 'Successfully tagged' in p.communicate () [0].decode ():
+	msg=p.communicate () [0].decode ()
+	print(msg)
+	if 'Successfully tagged' in msg:
 		print ('build image succeed')
 		return '1'
 	else:

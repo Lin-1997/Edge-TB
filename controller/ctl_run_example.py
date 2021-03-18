@@ -21,7 +21,7 @@ if __name__ == '__main__':
 	# export the path through nfs.
 	ctl_utils.export_nfs (net)
 
-	# in dml, containers are named like n1, n2, and device are named like d1, d2.
+	# in dml, the node name starts with a letter, followed by numbers, e.g., n1, n2, d1.
 	# containers listen on port 4444, and map port 4444 to host port 8000+x,
 	# where x is the numeric part of the name, e.g., n1 map port 4444 to host port 8001.
 	# devices listen on port 4444.

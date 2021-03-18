@@ -93,7 +93,7 @@ def listener (app, net):
 		if log_file_path == '':
 			log_file_path = os.path.join (dirname, 'dml_file/log',
 				time.strftime ('%Y-%m-%d-%H-%M-%S', time.localtime (time.time ())))
-		conf_structure_json = ctl_utils.read_json (os.path.join (dirname, 'conf_structure.txt'))
+		conf_structure_json = ctl_utils.read_json (os.path.join (dirname, 'dml_tool/conf_structure.txt'))
 		name = conf_structure_json ['node_list'] [0] ['name']
 		print ('start training')
 		path = '/start?type=' + str (_type)
