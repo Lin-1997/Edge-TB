@@ -6,6 +6,7 @@ import numpy as np
 import worker_utils
 
 write = io.BytesIO ()
+cur_index = 0
 
 
 def load_data (path, start_index, _len, input_shape):
@@ -20,10 +21,42 @@ def load_data (path, start_index, _len, input_shape):
 	return images, labels
 
 
-def send_perf (ctl_address: str, name: str, t_time: float, size: int):
-	if ctl_address:
-		path = '/perf?node=' + name + '&time=' + str (t_time) + '&size=' + str (size)
-		worker_utils.send_data ('GET', path, ctl_address)
+def train_all (model, images, labels, epochs, batch_size):
+	h = model.fit (images, labels, epochs=epochs, batch_size=batch_size)
+	return h.history ['loss']
+
+
+def train (model, images, labels, epochs, batch_size, train_len):
+	global cur_index
+	cur_images = images [cur_index * 500: (cur_index + 1) * 500]
+	cur_labels = labels [cur_index * 500: (cur_index + 1) * 500]
+	cur_index += 1
+	if cur_index == train_len:
+		cur_index = 0
+	h = model.fit (cur_images, cur_labels, epochs=epochs, batch_size=batch_size)
+	return h.history ['loss']
+
+
+def test (model, images, labels):
+	loss, acc = model.test_on_batch (images, labels)
+	return loss, acc
+
+
+def test_on_batch (model, images, labels, batch_size):
+	sample_number = images.shape [0]
+	batch_number = sample_number // batch_size
+	last = sample_number % batch_size
+	total_loss, total_acc = 0.0, 0.0
+	for i in range (batch_number):
+		loss, acc = model.test_on_batch (images [i * batch_size:(i + 1) * batch_size],
+			labels [i * batch_size:(i + 1) * batch_size])
+		total_loss += loss * batch_size
+		total_acc += acc * batch_size
+	loss, acc = model.test_on_batch (images [batch_number * batch_size:],
+		labels [batch_number * batch_size:])
+	total_loss += loss * last
+	total_acc += acc * last
+	return total_loss / sample_number, total_acc / sample_number
 
 
 def parse_weights (weights):
@@ -31,9 +64,9 @@ def parse_weights (weights):
 	return w
 
 
-# only store the weights at received_weights[layer_index][0]
-# and accumulate as soon as new parameters are received.
-def store_weights (new_weights, received_weights, received_count):
+# only store the weights at received_weights [0]
+# and accumulate as soon as new weights are received to save space :-)
+def store_weights (received_weights, new_weights, received_count):
 	if received_count == 1:
 		received_weights.append (new_weights)
 	else:
@@ -48,22 +81,24 @@ def assign_weights (model, weights):
 	model.set_weights (weights)
 
 
-def send_weights (weights, index, node_list, connect, forward, path, layer=2):
+def send_weights (weights, path, node_list, connect, forward=None, layer=-1):
 	self = 0
 	np.save (write, weights)
 	write.seek (0)
-	for i in index:
-		if node_list [i] == 'self':
+	for node in node_list:
+		if node == 'self':
 			self = 1
 			continue
-		if node_list [i] in connect:
-			addr = connect [node_list [i]]
+		if node in connect:
+			addr = connect [node]
 			data = {'path': path, 'layer': str (layer)}
 			send_weights_helper (write, data, addr, is_forward=False)
-		else:
-			addr = forward [node_list [i]]
-			data = {'node': node_list [i], 'path': path, 'layer': str (layer)}
+		elif forward:
+			addr = forward [node]
+			data = {'node': node, 'path': path, 'layer': str (layer)}
 			send_weights_helper (write, data, addr, is_forward=True)
+		else:
+			Exception ('has not connect to ' + node)
 		write.seek (0)
 	write.truncate ()
 	return self
@@ -80,16 +115,11 @@ def send_weights_helper (weights, data, addr, is_forward):
 	worker_utils.log ('send weights to ' + addr + ', cost=' + str (e - s))
 
 
-def index_random (worker_num, fraction):
-	return np.random.choice (worker_num, int (float (worker_num) * fraction),
-		replace=False)
+def random_selection (node_list, number):
+	return np.random.choice (node_list, number, replace=False)
 
 
-def index_full (length):
-	return range (length)
-
-
-def log_loss (loss: float, _round: int):
+def log_loss (loss, _round):
 	"""
 	we left a comma at the end for easy positioning and extending.
 	this message can be parse by controller/ctl_utils.py, parse_log ().
@@ -99,11 +129,14 @@ def log_loss (loss: float, _round: int):
 	return message
 
 
-def log_acc (acc: float, _round: int, layer: int = -1):
+def log_acc (acc, _round, layer=-1):
 	"""
 	we left a comma at the end for easy positioning and extending.
 	this message can be parsed by controller/ctl_utils.py, parse_log ().
 	"""
-	message = 'Aggregate: accuracy={}, round={}, layer={},'.format (acc, _round, layer)
+	if layer != -1:
+		message = 'Aggregate: accuracy={}, round={}, layer={},'.format (acc, _round, layer)
+	else:
+		message = 'Aggregate: accuracy={}, round={},'.format (acc, _round)
 	worker_utils.log (message)
 	return message

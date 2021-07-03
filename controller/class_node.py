@@ -3,11 +3,13 @@ import json
 import os
 from typing import List, Dict
 
+dirname = os.path.abspath (os.path.dirname (__file__))
+
 
 class Node (object):
 	"""
 	superclass of network nodes.
-	make sure your docker image and device have the
+	make sure your computing device and docker image have the
 	Linux Traffic Control installed.
 	it may be named iproute2 on apt or iproute on yum.
 	we also recommend to install some useful tools,
@@ -39,8 +41,8 @@ class Node (object):
 		self.tcPort [name] = port
 
 
-class Device (Node):
-	"""a node that represented by a physical device (e.g, Raspberry Pi)."""
+class PhysicalNode (Node):
+	"""a physical node that represented by a computing device."""
 
 	def __init__ (self, name: str, nic: str, ip: str, net):
 		super ().__init__ (name, nic, ip)
@@ -64,58 +66,58 @@ class Device (Node):
 		self.cmd.extend (cmd)
 
 
-class Container (Node):
-	"""a node that emulated by a docker container."""
+class EmulatedNode (Node):
+	"""a emulated node that represented by a docker container."""
 
-	def __init__ (self, name: str, nic: str, server, image: str, working_dir: str,
+	def __init__ (self, name: str, nic: str, emulator, image: str, working_dir: str,
 			cmd: List [str], cpu: int, memory: str):
 		"""
 		:param name: container_name and environment:NET_NODE_NAME in yml.
 		:param nic: network interface card's name used in Linux Traffic Control.
-		:param server: the container server object it deployed on.
+		:param emulator: the emulator it deployed on.
 		:param image: image in yml.
 		:param working_dir: working_dir in yml.
 		:param cmd: command in yml.
 		:param cpu: number of cpu used in cpuset in yml.
 		:param memory: mem_limit in yml.
 		"""
-		super ().__init__ (name, nic, server.ip)
-		self.server: ContainerServer = server
+		super ().__init__ (name, nic, emulator.ip)
+		self.emulator: Emulator = emulator
 		self.image: str = image
 		self.workingDir: str = working_dir
 		self.cmd: List [str] = cmd
 		self.cpu: int = cpu
 		self.memory: str = memory
-		self.volume: Dict [str, str] = {}  # host path to container path.
-		self.port: Dict [int, int] = {}  # container port to host port.
+		self.volume: Dict [str, str] = {}  # host path to node path.
+		self.port: Dict [int, int] = {}  # node port to host port.
 
-	def add_volume (self, host_path: str, container_path: str):
-		assert container_path [0] == '/', Exception (container_path + ' is not an absolute path')
-		self.volume [host_path] = container_path
+	def add_volume (self, host_path: str, node_path: str):
+		assert node_path [0] == '/', Exception (node_path + ' is not an absolute path')
+		self.volume [host_path] = node_path
 
-	def add_nfs (self, tag: str, container_path: str):
-		assert tag in self.server.nfsPath, Exception (tag + ' is not mounted by server')
-		assert container_path [0] == '/', Exception (container_path + ' is not an absolute path')
-		self.volume [tag] = container_path
+	def add_nfs (self, tag: str, node_path: str):
+		assert tag in self.emulator.nfsPath, Exception (tag + ' is not mounted by emulator')
+		assert node_path [0] == '/', Exception (node_path + ' is not an absolute path')
+		self.volume [tag] = node_path + '/:ro'
 
 	def add_port (self, port: int, host_port: int):
 		assert port not in self.port, Exception (str (port) + ' has been used')
 		assert 4000 <= host_port <= 30000, Exception (
 			str (host_port) + ' is not in [4000, 30000]')
-		self.server.add_port (host_port, self.name)
+		self.emulator.add_port (host_port, self.name)
 		self.port [port] = host_port
 
 
-class ContainerServer (object):
-	"""a computer that can deploy multiple docker containers."""
+class Emulator (object):
+	"""a computing device that can deploy multiple emulated nodes."""
 
 	def __init__ (self, name: str, ip: str, net):
 		self.name: str = name
 		self.ip: str = ip
 		self.net: Net = net
 		self.nfsPath: List [str] = []  # mounted nfs tags.
-		self.container: Dict [str, Container] = {}  # container's name to container object.
-		self.hostPort: Dict [int, str] = {}  # host port to container's name.
+		self.eNode: Dict [str, EmulatedNode] = {}  # emulated node's name to emulated node object.
+		self.hostPort: Dict [int, str] = {}  # host port to emulated node's name.
 
 	def mount_nfs (self, tag: str):
 		assert tag in self.net.nfsClient, Exception (tag + ' is not shared by net')
@@ -126,22 +128,23 @@ class ContainerServer (object):
 			self.ip + ' is not in the subnet of ' + self.net.nfsClient [tag])
 		self.nfsPath.append (tag)
 
-	def add_container (self, name: str, nic: str, working_dir: str, cmd: List [str], image: str,
-			cpu: int = 0, memory: int = 0, unit: str = 'G') -> Container:
-		assert name not in self.container, Exception (name + ' has been used')
+	def add_node (self, name: str, nic: str, working_dir: str, cmd: List [str], image: str,
+			cpu: int = 0, memory: int = 0, unit: str = 'G') -> EmulatedNode:
+		assert name not in self.eNode, Exception (name + ' has been used')
 		assert unit in ['M', 'G'], Exception (unit + ' is not in ["M", "G"]')
-		self.net.add_container (name, self)
-		c = Container (name, nic, self, image, working_dir, cmd, cpu, str (memory) + unit)
-		self.container [name] = c
-		return c
+		self.net.try_add_emulated_node (name)
+		en = EmulatedNode (name, nic, self, image, working_dir, cmd, cpu, str (memory) + unit)
+		self.net.add_emulated_node (name, en)
+		self.eNode [name] = en
+		return en
 
 	def add_port (self, host_port: int, name: str):
 		assert host_port not in self.hostPort, Exception (
 			str (host_port) + ' has been used by ' + self.hostPort [host_port])
 		self.hostPort [host_port] = name
 
-	def save_yml (self, path):
-		if not self.container:
+	def save_yml (self):
+		if not self.eNode:
 			return
 		str_yml = 'version: "2.1"\n'
 		if self.nfsPath:
@@ -150,17 +153,17 @@ class ContainerServer (object):
 				str_yml = str_yml \
 				          + '  ' + tag + ':\n' \
 				          + '    driver_opts:\n' \
-				          + '      type: nfs\n' \
-				          + '      o: addr=' + self.net.ip + ',ro\n' \
+				          + '      type: "nfs"\n' \
+				          + '      o: "addr=' + self.net.ip + ',ro"\n' \
 				          + '      device: ":' + self.net.nfsPath [tag] + '"\n'
 		cpu_start = 0
 		str_yml += 'services:\n'
-		for c in self.container.values ():
+		for en in self.eNode.values ():
 			str_yml = str_yml \
-			          + '  ' + c.name + ':\n' \
-			          + '    container_name: ' + c.name + '\n' \
-			          + '    image: ' + c.image + '\n' \
-			          + '    working_dir: ' + c.workingDir + '\n' \
+			          + '  ' + en.name + ':\n' \
+			          + '    container_name: ' + en.name + '\n' \
+			          + '    image: ' + en.image + '\n' \
+			          + '    working_dir: ' + en.workingDir + '\n' \
 			          + '    stdin_open: true\n' \
 			          + '    tty: true\n' \
 			          + '    cap_add:\n' \
@@ -168,34 +171,34 @@ class ContainerServer (object):
 			# agent will change the 0xffff in NET_AGENT_ADDRESS to it's port.
 			str_yml = str_yml \
 			          + '    environment:\n' \
-			          + '      - NET_NODE_NAME=' + c.name + '\n' \
+			          + '      - NET_NODE_NAME=' + en.name + '\n' \
 			          + '      - NET_AGENT_ADDRESS=' + self.ip + ':0xffff\n' \
 			          + '      - NET_CTL_ADDRESS=' + self.net.address + '\n'
-			for key in c.env:
-				str_yml += '      - ' + key + '=' + c.env [key] + '\n'
+			for key in en.env:
+				str_yml += '      - ' + key + '=' + en.env [key] + '\n'
 			# see controller/ctrl_run_example.py to get why it is :4444,
-			# and controller/dml_app/etree_learning.py to get why it is /hi.
+			# and controller/dml_app/el_peer.py to get why it is /hi.
 			str_yml = str_yml \
 			          + '    healthcheck:\n' \
 			          + '      test: curl -f http://localhost:4444/hi\n'
-			if c.volume:
+			if en.volume:
 				str_yml += '    volumes:\n'
-				for v in c.volume:
-					str_yml += '      - ' + v + ':' + c.volume [v] + '\n'
-			if c.port:
+				for v in en.volume:
+					str_yml += '      - ' + v + ':' + en.volume [v] + '\n'
+			if en.port:
 				str_yml += '    ports:\n'
-				for p in c.port:
-					str_yml += '      - "' + str (c.port [p]) + ':' + str (p) + '"\n'
-			if c.cpu != 0:
-				str_yml += '    cpuset: ' + str (cpu_start) + '-' + str (cpu_start + c.cpu - 1) + '\n'
-				cpu_start += c.cpu
-			if c.memory != '0G':
-				str_yml += '    mem_limit: ' + c.memory + '\n'
-			if c.cmd:
-				str_yml += '    command: ' + ' '.join (c.cmd) + '\n'
+				for p in en.port:
+					str_yml += '      - "' + str (en.port [p]) + ':' + str (p) + '"\n'
+			if en.cpu != 0:
+				str_yml += '    cpuset: ' + str (cpu_start) + '-' + str (cpu_start + en.cpu - 1) + '\n'
+				cpu_start += en.cpu
+			if en.memory != '0G':
+				str_yml += '    mem_limit: ' + en.memory + '\n'
+			if en.cmd:
+				str_yml += '    command: ' + ' '.join (en.cmd) + '\n'
 
 		# save as yml file
-		yml_name = os.path.abspath (os.path.join (path, self.name + '.yml'))
+		yml_name = os.path.join (dirname, self.name + '.yml')
 		with open (yml_name, 'w')as f:
 			f.writelines (str_yml)
 
@@ -207,9 +210,9 @@ class Net (object):
 		self.address = ip + ':' + str (port)
 		self.nfsClient: Dict [str, str] = {}  # nfs tag to nfs client ip/mask.
 		self.nfsPath: Dict [str, str] = {}  # nfs tag to nfs path.
-		self.device: Dict [str, Device] = {}  # device's name to device object.
-		self.containerServer: Dict [str, ContainerServer] = {}  # server's name to server object.
-		self.container: Dict [str, ContainerServer] = {}  # container's name to the server object it belong to.
+		self.pNode: Dict [str, PhysicalNode] = {}  # physical node's name to physical node object.
+		self.emulator: Dict [str, Emulator] = {}  # emulator's name to emulator object.
+		self.eNode: Dict [str, EmulatedNode] = {}  # emulated node's name to emulated node object.
 		self.tcLinkNumber = 0
 
 	def add_nfs (self, tag: str, ip: str, mask: int, path: str):
@@ -219,53 +222,46 @@ class Net (object):
 		self.nfsClient [tag] = ip + '/' + str (mask)
 		self.nfsPath [tag] = path
 
-	def add_container_server (self, name: str, ip: str) -> ContainerServer:
-		assert name not in self.containerServer, Exception (name + ' has been used')
-		cs = ContainerServer (name, ip, self)
-		self.containerServer [name] = cs
-		return cs
+	def add_emulator (self, name: str, ip: str) -> Emulator:
+		assert name not in self.emulator, Exception (name + ' has been used')
+		e = Emulator (name, ip, self)
+		self.emulator [name] = e
+		return e
 
-	def add_device (self, name: str, nic: str, ip: str) -> Device:
-		assert name not in self.device, Exception (name + ' has been used')
-		d = Device (name, nic, ip, self)
-		self.device [name] = d
-		return d
+	def add_physical_node (self, name: str, nic: str, ip: str) -> PhysicalNode:
+		assert name not in self.pNode, Exception (name + ' has been used')
+		self.pNode [name] = PhysicalNode (name, nic, ip, self)
+		return self.pNode [name]
 
-	def add_container (self, name: str, server: ContainerServer):
+	def try_add_emulated_node (self, name: str):
 		"""
-		even if two containers are on different container servers, they cannot have the same name.
+		even if two emulated nodes are on different emulators, they cannot have the same name.
 		"""
-		assert name not in self.container, Exception (name + ' is in ' + self.container [name].name)
-		self.container [name] = server
+		assert name not in self.eNode, Exception (name + ' is in ' + self.eNode [name].emulator.name)
 
-	def save_node_ip (self, path=None):
-		"""
-		save the node's ip address as txt file in json format.
-		an example:
-		{
-		"server" = {"server-1":"192.168.1.11", "server-2":"192.168.1.12"},
-		"container" = {"server-1":["n1"], "server-2":["n2", "n3"]},
-		"device" = {"d1":"192.168.1.13"}
-		}
-		:param path: a directory without file name.
-		"""
-		server = {}
-		container = {}
-		device = {}
-		for s in self.containerServer.values ():
-			server [s.name] = s.ip
-			container [s.name] = list (s.container.keys ())
-		for d in self.device.values ():
-			device [d.name] = d.ip
-		if not path:
-			txt_name = os.path.abspath (os.path.join (os.path.dirname (__file__), 'node_ip.txt'))
-		else:
-			txt_name = os.path.abspath (os.path.join (path, 'node_ip.txt'))
-		data = {'server': server, 'container': container, 'device': device}
-		with open (txt_name, 'w') as f:
-			f.writelines (json.dumps (data).replace ('}, ', '},\n'))
+	def add_emulated_node (self, name: str, en: EmulatedNode):
+		self.eNode [name] = en
 
-	def single_link_limit (self, n1, n2, bw: int, unit: str):
+	def save_node_ip (self):
+		"""
+		save the node's ip address as json file.
+		we use the name "node_ip.json" in controller/dml_tool/*_structure_conf.py,
+		so please do not change it.
+		"""
+		emulator = {}
+		e_node = {}
+		p_node = {}
+		for e in self.emulator.values ():
+			emulator [e.name] = e.ip
+			e_node [e.name] = list (e.eNode.keys ())
+		for pn in self.pNode.values ():
+			p_node [pn.name] = pn.ip
+		file_name = (os.path.join (dirname, 'node_ip.json'))
+		data = {'emulator': emulator, 'emulated_node': e_node, 'physical_node': p_node}
+		with open (file_name, 'w') as f:
+			f.writelines (json.dumps (data, indent=2))
+
+	def asymmetrical_link (self, n1, n2, bw: int, unit: str):
 		"""
 		parameters will be passed to Linux Traffic Control.
 		n1-----bw----->>n2
@@ -273,98 +269,76 @@ class Net (object):
 		:param n1: the first Node.
 		:param n2: the second Node.
 		:param bw: bandwidth.
-		:param unit: one of [bit, kbit, mbit, gbit, bps, kbps, mbps, gbps], i.e.,
-			[Bits, Kilobits, Megabits, Gigabits, Bytes, Kilobytes, Megabytes, Gigabytes] per second.
+		:param unit: one of [kbit, mbit, gbit, kbps, mbps, gbps], i.e.,
+			[Kilobits, Megabits, Gigabits, Kilobytes, Megabytes, Gigabytes] per second.
 		"""
-		assert unit in ['bit', 'kbit', 'mbit', 'gbit', 'bps', 'kbps', 'mbps', 'gbps'], Exception (
-			unit + ' is not in ["bit", "kbit", "mbit", "gbit", "bps",  "kbps", "mbps", "gbps"]')
+		assert unit in ['kbit', 'mbit', 'gbit', 'kbps', 'mbps', 'gbps'], Exception (
+			unit + ' is not in ["kbit", "mbit", "gbit", "kbps", "mbps", "gbps"]')
 		self.tcLinkNumber += 1
 		n1.limit_link (n2.name, str (bw) + unit, n2.ip)
-		if not n2.name in self.device:  # n2 is container
+		if not n2.name in self.pNode:  # n2 is emulated node
 			n1.limit_link_port (n2.name, list (n2.port.values ()))
 
-	def dual_link_limit (self, n1, n2, bw: int, unit: str):
+	def symmetrical_link (self, n1, n2, bw: int, unit: str):
 		"""
 		n1-----bw----->>n2
 		n1<<-----bw-----n2
 		they are NOT sharing a network bandwidth.
 		they just happen to have the same network bandwidth.
 		"""
-		self.single_link_limit (n1, n2, bw, unit)
-		self.single_link_limit (n2, n1, bw, unit)
+		self.asymmetrical_link (n1, n2, bw, unit)
+		self.asymmetrical_link (n2, n1, bw, unit)
 
-	def name_to_node (self, name) -> Node:
+	def name_to_node (self, name) -> PhysicalNode or EmulatedNode:
 		"""
 		get node by name.
 		"""
-		assert name in self.device or name in self.container, Exception (
-			'no such node called ' + name)
-		if name in self.device:
-			return self.device [name]
+		if name in self.pNode:
+			return self.pNode [name]
+		elif name in self.eNode:
+			return self.eNode [name]
 		else:
-			server = self.container [name]
-			return server.container [name]
+			Exception ('no such node called ' + name)
 
-	def save_bw (self, path=None):
+	def save_bw (self):
 		"""
-		save the tc settings as txt file in json format.
+		save the tc settings as json file in json format.
 		the json content can be read by the following load_bw ().
-		:param path: a directory without file name.
+		we use the name "links.json" in controller/dml_tool/*_structure_conf.py,
+		so please do not change it.
 		"""
-		order = list (self.container.keys ()) + list (self.device.keys ())
-		bw = {}
-		for name1 in order:
-			node = self.name_to_node (name1)
-			bw [name1] = []
-			for name2 in order:
-				if name1 == name2:
-					bw [name1].append ('inf')
-				elif name2 in node.tc:
-					bw [name1].append (node.tc [name2])
-				else:
-					bw [name1].append ('None')
-		if not path:
-			txt_name = os.path.abspath (os.path.join (os.path.dirname (__file__), 'bw.txt'))
-		else:
-			txt_name = os.path.abspath (os.path.join (path, 'bw.txt'))
-		data = {'order': order, 'bw': bw}
-		with open (txt_name, 'w') as f:
-			f.writelines (json.dumps (data).replace ('], ', '],\n'))
+		links = {}
+		for pn in self.pNode.values ():
+			if not pn.tc:
+				continue
+			links [pn.name] = []
+			for dest in pn.tc:
+				links [pn.name].append ({"dest": dest, "bw": pn.tc [dest]})
 
-	def load_bw (self, order: List [str], bw: Dict [str, List [str]]):
-		"""
-		:param order: what node's name does the column represent.
-		:param bw: bandwidth between nodes.
-		an example:
-		order = ['n1, 'd1', 'n2']
-		bw = {"n1": ['inf', '2mbps', '3mbps'],
-		"n2": ['2mbps', 'inf', 'None'],
-		"d1": ['2mbps', '2mbps', 'inf']}
-		"""
-		for name1 in bw:
-			n1 = self.name_to_node (name1)
-			for j in range (len (order)):
-				if name1 == order [j]: continue
-				if bw [name1] [j] [-4:] == 'None':  # no connection.
-					unit = 'bps'
-					_bw = 1
-				elif bw [name1] [j] [-4].isdigit ():
-					unit = bw [name1] [j] [-3:]
-					_bw = int (bw [name1] [j] [:-3])
-				else:
-					unit = bw [name1] [j] [-4:]
-					_bw = int (bw [name1] [j] [:-4])
-				n2 = self.name_to_node (order [j])
-				self.single_link_limit (n1, n2, _bw, unit)
+		for e in self.emulator.values ():
+			for en in e.eNode.values ():
+				if not en.tc:
+					continue
+				links [en.name] = []
+				for dest in en.tc:
+					links [en.name].append ({"dest": dest, "bw": en.tc [dest]})
 
-	def save_yml (self, path=None):
+		filename = (os.path.join (dirname, 'links.json'))
+		with open (filename, 'w') as f:
+			f.writelines (json.dumps (links, indent=2))
+
+	def load_bw (self, links_json):
+		for name in links_json:
+			src = self.name_to_node (name)
+			for dest_json in links_json [name]:
+				dest = self.name_to_node (dest_json ['dest'])
+				unit = dest_json ['bw'] [-4:]
+				_bw = int (dest_json ['bw'] [:-4])
+				self.asymmetrical_link (src, dest, _bw, unit)
+
+	def save_yml (self):
 		"""
-		save the deployment of containers as yml files.
-		:param path: a directory without file name.
+		save the deployment of emulated nodes as yml files.
 		"""
-		if not path:
-			path = os.path.dirname (__file__)
-		if not os.path.exists (path):
-			os.makedirs (path)
-		for cs in self.containerServer.values ():
-			cs.save_yml (path)
+		for cs in self.emulator.values ():
+			cs.save_yml ()

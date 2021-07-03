@@ -1,6 +1,0 @@
-{"order": ["n1", "n2", "n3", "n4", "d1"],
-"bw": {"n1": ["inf", "4mbps", "512kbps", "3mbps", "512kbps"],
-"n2": ["3mbps", "inf", "4mbps", "None", "512kbps"],
-"n3": ["512kbps", "3mbps", "inf", "1mbps", "None"],
-"n4": ["2mbps", "None", "1mbps", "inf", "2mbps"],
-"d1": ["256kbps", "256kbps", "None", "1mbps", "inf"]}}

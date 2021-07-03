@@ -1,8 +1,10 @@
+import atexit
 import json
 import os
 import socket
 import subprocess as sp
 import time
+from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 from typing import Dict, List
 
 import requests
@@ -11,6 +13,7 @@ from flask import Flask, request
 # we do not recommend changing this port number, but if you really want to change it,
 # you need to change controller/ctl_utils.py together.
 agent_port = 3333
+executor = ThreadPoolExecutor ()
 app = Flask (__name__)
 dirname = os.path.abspath (os.path.dirname (__file__))
 hostname = socket.gethostname ()
@@ -36,7 +39,7 @@ def route_heartbeat ():
 	name = request.args.get ('name')
 	t_time = time.time ()
 	# deploy the container's tc settings.
-	if name not in heartbeat:
+	if name not in heartbeat and name in tc_data:
 		ret = deploy_docker_tc (name)
 		if ret:
 			ret ['name'] = hostname + ': ' + name
@@ -54,14 +57,17 @@ def deploy_docker_tc (name: str) -> Dict:
 	if tc:
 		tc_ip = data ['NET_NODE_TC_IP']
 		tc_port = data ['NET_NODE_TC_PORT']
-		flag, msg = deploy_tc_helper (prefix, nic, tc, tc_ip, tc_port)
-		if flag:
-			print (name + ' tc succeed')
-			return {'number': str (len (tc))}
-		else:
-			print (name + 'tc failed, err:')
+		cmd = deploy_tc_helper (prefix, nic, tc, tc_ip, tc_port)
+		p = sp.Popen (' && '.join (cmd), stdout=sp.PIPE, stderr=sp.STDOUT, shell=True, close_fds=True)
+		msg = p.communicate () [0].decode ()
+		if msg != '':
+			print (name + ' tc failed, err:')
 			print (msg)
 			return {'number': '-1', 'msg': msg}
+		else:
+			print (name + ' tc succeed')
+			return {'number': str (len (tc))}
+
 	return {}
 
 
@@ -132,8 +138,8 @@ def route_docker_build ():
 	cmd = 'sudo docker build -t ' + tag + ' -f ' + path + ' .'
 	print (cmd)
 	p = sp.Popen (cmd, shell=True, stdout=sp.PIPE, stderr=sp.STDOUT)
-	msg=p.communicate () [0].decode ()
-	print(msg)
+	msg = p.communicate () [0].decode ()
+	print (msg)
 	if 'Successfully tagged' in msg:
 		print ('build image succeed')
 		return '1'
@@ -214,7 +220,7 @@ def route_device_nfs ():
 	this function can listen nfs settings from controller/ctl_utils.py, send_device_nfs ().
 	it will mount the nfs path.
 	"""
-	unmount_nfs_helper ()
+	route_device_clear_nfs ()
 	mounted = ''
 	data = json.loads (request.form ['data'])
 	print (data)
@@ -246,17 +252,6 @@ def route_device_nfs ():
 	return json.dumps (err)
 
 
-def unmount_nfs_helper ():
-	# umount previous nfs.
-	path = os.path.join (dirname, 'mounted.txt')
-	if os.path.exists (path):
-		with open (path, 'r') as f:
-			for line in f:
-				cmd = 'sudo umount -t nfs -l ' + line
-				print (cmd)
-				sp.Popen (cmd, shell=True, stdout=sp.DEVNULL, stderr=sp.STDOUT).wait ()
-
-
 @app.route ('/device/tc', methods=['POST'])
 def route_device_tc ():
 	"""
@@ -265,7 +260,6 @@ def route_device_tc ():
 	"""
 	data = json.loads (request.form ['data'])
 	print (data)
-	tc_data ['NET_NODE_NIC'] = data ['NET_NODE_NIC']
 	tc = data ['NET_NODE_TC']
 	nic = tc_data ['NET_NODE_NIC']
 	prefix = 'sudo '
@@ -273,11 +267,14 @@ def route_device_tc ():
 	if tc:
 		tc_ip = data ['NET_NODE_TC_IP']
 		tc_port = data ['NET_NODE_TC_PORT']
-		flag, msg = deploy_tc_helper (prefix, nic, tc, tc_ip, tc_port)
-		if not flag:
+		cmd = deploy_tc_helper (prefix, nic, tc, tc_ip, tc_port)
+		p = sp.Popen (' && '.join (cmd), stdout=sp.PIPE, stderr=sp.STDOUT, shell=True, close_fds=True)
+		msg = p.communicate () [0].decode ()
+		if msg != '':
 			print ('tc failed, err:')
 			print (msg)
 			return msg
+
 	print ('tc succeed')
 	return '1'
 
@@ -293,32 +290,26 @@ def clear_tc_helper (prefix: str, nic: str):
 
 def deploy_tc_helper (prefix: str, nic: str, tc: Dict [str, str], tc_ip: Dict [str, str],
 		tc_port: Dict [str, List [int]]):
-	cmd = [' tc qdisc add dev %s root handle 1: htb default 1',
-	       ' tc class add dev %s parent 1: classid 1:1 htb rate 10gbps ceil 10gbps burst 15k']
+	cmd = ['%s tc qdisc add dev %s root handle 1: htb default 1' % (prefix, nic),
+	       '%s tc class add dev %s parent 1: classid 1:1 htb rate 10gbps ceil 10gbps burst 15k' % (prefix, nic)]
 	i = 10
 	for name in tc.keys ():
 		ip = tc_ip [name]
 		bw = tc [name]
-		cmd.append (' tc class add dev %s parent 1:1 classid '
+		cmd.append ('%s tc class add dev %s parent 1:1 classid ' % (prefix, nic)
 		            + '1:%d htb rate %s ceil %s burst 15k' % (i, bw, bw))
 		if name in tc_port:
 			# is a container.
 			# all ports of this container share the same limit.
 			for port in tc_port [name]:
-				cmd.append (' tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip dst '
+				cmd.append ('%s tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip dst ' % (prefix, nic)
 				            + '%s/32 match ip dport %d 0xffff flowid 1:%d' % (ip, port, i))
 		else:
 			# is a device.
-			cmd.append (' tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip dst '
+			cmd.append ('%s tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip dst ' % (prefix, nic)
 			            + '%s/32 flowid 1:%d' % (ip, i))
 		i += 1
-		for c in cmd:
-			p = sp.Popen (prefix + c % nic, stdout=sp.PIPE, stderr=sp.STDOUT, shell=True)
-			msg = p.communicate () [0].decode ()
-			if msg != '':
-				return False, msg
-		cmd.clear ()
-	return True, ''
+	return cmd
 
 
 @app.route ('/device/env', methods=['POST'])
@@ -327,11 +318,13 @@ def route_device_env ():
 	this function can listen env from controller/ctl_utils.py, send_device_env ().
 	it will save the env.
 	"""
+	atexit.register (route_device_reset)
 	global ctl_addr
 	data = json.loads (request.form ['data'])
 	print (data)
 	env = data ['NET_NODE_ENV']
 	ctl_addr = env ['NET_CTL_ADDRESS'] = data ['NET_CTL_ADDRESS']
+	tc_data ['NET_NODE_NIC'] = data ['NET_NODE_NIC']
 	env ['NET_AGENT_ADDRESS'] = data ['NET_AGENT_IP'] + ':' + str (agent_port)
 	env ['NET_NODE_NAME'] = data ['NET_NODE_NAME']
 	for k in env:
@@ -363,6 +356,8 @@ def route_device_req ():
 	err = []
 	with open (path, 'r')as f:
 		for line in f:
+			if line.rfind ('=') != -1:
+				line = line [:line.rfind ('=') - 1]
 			req.append (line.replace ('\r', '').replace ('\n', '').upper ())
 	for r in req:
 		if r not in msg:
@@ -400,11 +395,6 @@ def route_device_stop ():
 	this function can listen message from controller/ctl_utils.py, stop_device ().
 	it will kill the process started by above route_device_start ().
 	"""
-	stop_device_helper ()
-	return ''
-
-
-def stop_device_helper ():
 	try:
 		if dml_p.poll () is None:
 			# ${dml_p.pid} is the pid of the shell process,
@@ -415,6 +405,8 @@ def stop_device_helper ():
 			os.kill (dml_p.pid + 1, 3)
 	except  NameError:
 		pass
+	finally:
+		return ''
 
 
 @app.route ('/device/clear/tc', methods=['GET'])
@@ -423,7 +415,8 @@ def route_device_clear_tc ():
 	this function can listen message from controller/ctl_utils.py, clear_device_tc ().
 	it will reset tc settings.
 	"""
-	clear_tc_helper ('sudo ', tc_data ['NET_NODE_NIC'])
+	if 'NET_NODE_NIC' in tc_data:
+		clear_tc_helper ('sudo ', tc_data ['NET_NODE_NIC'])
 	return ''
 
 
@@ -433,7 +426,13 @@ def route_device_clear_nfs ():
 	this function can listen message from controller/ctl_utils.py, clear_device_nfs ().
 	it will reset nfs.
 	"""
-	unmount_nfs_helper ()
+	path = os.path.join (dirname, 'mounted.txt')
+	if os.path.exists (path):
+		with open (path, 'r') as f:
+			for line in f:
+				cmd = 'sudo umount -t nfs -l ' + line
+				print (cmd)
+				sp.Popen (cmd, shell=True, stdout=sp.DEVNULL, stderr=sp.STDOUT).wait ()
 	return ''
 
 
@@ -444,9 +443,10 @@ def route_device_reset ():
 	it will kill the process started by above route_device_start (),
 	reset tc settings and reset nfs.
 	"""
-	stop_device_helper ()
-	clear_tc_helper ('sudo ', tc_data ['NET_NODE_NIC'])
-	unmount_nfs_helper ()
+	route_device_stop ()
+	if 'NET_NODE_NIC' in tc_data:
+		clear_tc_helper ('sudo ', tc_data ['NET_NODE_NIC'])
+	route_device_clear_nfs ()
 	return ''
 
 
@@ -458,6 +458,7 @@ def route_docker_tc_update ():
 	"""
 	data = json.loads (request.form ['data'])
 	ret = {}
+	tasks = []
 	for name in data:
 		tc = data [name] ['NET_NODE_TC']
 		nic = data [name] ['NET_NODE_NIC']
@@ -466,17 +467,24 @@ def route_docker_tc_update ():
 		if tc:
 			tc_ip = data [name] ['NET_NODE_TC_IP']
 			tc_port = data [name] ['NET_NODE_TC_PORT']
-			flag, msg = deploy_tc_helper (prefix, nic, tc, tc_ip, tc_port)
-			if flag:
-				print (name + ' tc succeed')
-				ret [name] = {'number': str (len (tc))}
-			else:
-				print (name + 'tc failed, err:')
-				print (msg)
-				ret [name] = {'number': '-1', 'msg': msg}
+			cmd = deploy_tc_helper (prefix, nic, tc, tc_ip, tc_port)
+			tasks.append (executor.submit (docker_tc_update_helper, ret, cmd, name, len (tc)))
 		else:
 			ret [name] = {}
+	wait (tasks, return_when=ALL_COMPLETED)
 	return json.dumps (ret)
+
+
+def docker_tc_update_helper (ret, cmd, name, number):
+	p = sp.Popen (' && '.join (cmd), stdout=sp.PIPE, stderr=sp.STDOUT, shell=True, close_fds=True)
+	msg = p.communicate () [0].decode ()
+	if msg != '':
+		print (name + ' update tc failed, err:')
+		print (msg)
+		ret [name] = {'number': '-1', 'msg': msg}
+	else:
+		print (name + ' update tc succeed')
+		ret [name] = {'number': str (number)}
 
 
 @app.route ('/device/tc/update', methods=['POST'])
@@ -486,7 +494,6 @@ def route_device_tc_update ():
 	it will clear the old tc settings and apply the new one.
 	"""
 	data = json.loads (request.form ['data'])
-	print (data)
 	tc = data ['NET_NODE_TC']
 	nic = tc_data ['NET_NODE_NIC']
 	prefix = 'sudo '
@@ -494,12 +501,13 @@ def route_device_tc_update ():
 	if tc:
 		tc_ip = data ['NET_NODE_TC_IP']
 		tc_port = data ['NET_NODE_TC_PORT']
-		flag, msg = deploy_tc_helper (prefix, nic, tc, tc_ip, tc_port)
-		if not flag:
-			print ('tc failed, err:')
-			print (msg)
+		cmd = deploy_tc_helper (prefix, nic, tc, tc_ip, tc_port)
+		p = sp.Popen (' && '.join (cmd), stdout=sp.PIPE, stderr=sp.STDOUT, shell=True, close_fds=True)
+		msg = p.communicate () [0].decode ()
+		if msg != '':
 			return msg
-	print ('tc succeed')
+
+	print (' update tc succeed')
 	return '1'
 
 

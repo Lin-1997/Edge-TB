@@ -9,20 +9,17 @@ from flask import request
 
 import ctl_utils
 
-# configurable parameter.
-_type = 0  # 0: EL, 1: FL.
-# this port number should be the same as the one defined in controller/dml_app/etree_learning.py.
+# this port number should be the same as the one defined in controller/dml_app/el_peer.py.
 dml_port = 4444
 
-executor = ThreadPoolExecutor (1)
+executor = ThreadPoolExecutor ()
 dirname = os.path.abspath (os.path.dirname (__file__))
 
 node_ip_json = {}
-device_ip = {}  # device's name to device's ip.
-c_ip = {}  # container's name to container's ip.
-c_port = {}  # container's name to container's mapped host port.
+pn_to_ip = {}  # physical node's name to physical node's ip.
+en_to_ip = {}  # emulated node's name to emulated node's ip.
+en_to_port = {}  # emulated node's name to emulated node's mapped host port.
 
-initial_acc: float
 log_file_path = ''
 node_number = 0
 perf = {}
@@ -31,78 +28,86 @@ log_name = []
 log_lock = threading.Lock ()
 
 
-def listener (app, net):
+def manager (app, net):
 	global node_number
-	node_ip_json.update (ctl_utils.read_json (os.path.join (dirname, 'node_ip.txt')))
-	server = node_ip_json ['server']  # server's name to server's ip.
-	container = node_ip_json ['container']  # server's name to containers' name inside this server.
-	device_ip.update (node_ip_json ['device'])
-	node_number = len (device_ip)
-	for s_name in container:
-		node_number += len (container [s_name])
-		for c_name in container [s_name]:
+
+	with open (os.path.join (dirname, 'node_ip.json'), 'r') as f_node_ip:
+		node_ip_json.update (json.loads (f_node_ip.read ()))
+
+	emulator_to_ip = node_ip_json ['emulator']  # emulator's name to emulator's ip.
+	emulator_to_node = node_ip_json ['emulated_node']  # emulator's name to node's name inside this emulator.
+	pn_to_ip.update (node_ip_json ['physical_node'])
+	node_number = len (pn_to_ip)
+	for emulator_name in emulator_to_node:
+		node_number += len (emulator_to_node [emulator_name])
+		for node_name in emulator_to_node [emulator_name]:
 			# we assume that you followed the rules stated in controller/ctl_run_example.py.
-			# containers map port 4444 to host port 8000+x.
-			c_ip [c_name] = server [s_name]
-			c_port [c_name] = 8000 + int (c_name [1:])
+			# emulated nodes map port 4444 to host port 8000+x.
+			en_to_ip [node_name] = emulator_to_ip [emulator_name]
+			en_to_port [node_name] = 8000 + int (node_name [1:])
 
 	# collect the time required for 1 epoch training for each trainer in 1 layer.
-	# they may help you decide how often trainers upload weights.
+	# they may help you decide how often trainers upload weights in el.
 	@app.route ('/perf', methods=['GET'])
 	def route_perf ():
 		node = request.args.get ('node')
 		total_time = request.args.get ('time', type=float)
 		print (node + ' use ' + str (total_time))
 		perf [node] = total_time
-		perf_lock.acquire ()
 		if len (perf) == node_number:
-			perf ['size'] = request.args.get ('size', type=float)
-			file_path = os.path.join (dirname, 'dml_tool/perf.txt')
-			with open (file_path, 'w') as f:
-				f.write (json.dumps (perf))
-			print ('performance collection completed, saved on ' + file_path)
-		perf_lock.release ()
-		# TODO write controller/dml_tool/conf_structure.txt to define the dml structure,
-		#  use controller/dml_tool/conf_generator.py to generate conf files,
-		#  and call on_route_conf () by sending a HTTP GET to /conf.
+			perf_lock.acquire ()
+			if len (perf) == node_number:
+				perf ['size'] = request.args.get ('size', type=float)
+				file_path = os.path.join (dirname, 'dml_tool/perf.txt')
+				with open (file_path, 'w') as f:
+					f.write (json.dumps (perf))
+				print ('performance collection completed, saved on ' + file_path)
+			perf_lock.release ()
 		return ''
 
 	# send the conf file to the corresponding node.
 	@app.route ('/conf', methods=['GET'])
 	def route_conf ():
-		start = request.args.get ('start', type=int, default=0)
-		executor.submit (on_route_conf, start)
-		return ''
+		conf_type = request.args.get ('type', type=int)
+		if conf_type == 1:
+			executor.submit (on_route_conf, 'dataset')
+			return ''
+		elif conf_type == 2:
+			executor.submit (on_route_conf, 'structure')
+			return ''
+		else:
+			return 'error type'
 
-	def on_route_conf (start):
-		global log_file_path, initial_acc
-		for node in device_ip:
-			file_path = os.path.join (dirname, 'dml_file/conf', node + '.conf')
+	def on_route_conf (conf_type):
+		for name in pn_to_ip:
+			file_path = os.path.join (dirname, 'dml_file/conf', name + '_' + conf_type + '.conf')
 			with open (file_path, 'r') as f:
-				print ('sent conf to ' + node)
-				ctl_utils.send_data ('POST', '/conf', device_ip [node], dml_port, files={'conf': f})
-		for node in c_ip:
-			file_path = os.path.join (dirname, 'dml_file/conf', node + '.conf')
+				print ('sent ' + conf_type + ' conf to ' + name)
+				ctl_utils.send_data ('POST', '/conf/' + conf_type,
+					pn_to_ip [name], dml_port, files={'conf': f})
+		for name in en_to_ip:
+			file_path = os.path.join (dirname, 'dml_file/conf', name + '_' + conf_type + '.conf')
 			with open (file_path, 'r') as f:
-				print ('sent conf to ' + node)
-				ctl_utils.send_data ('POST', '/conf', c_ip [node], c_port [node], files={'conf': f})
+				print ('sent ' + conf_type + ' conf to ' + name)
+				ctl_utils.send_data ('POST', '/conf/' + conf_type,
+					en_to_ip [name], en_to_port [name], files={'conf': f})
 
-		if start != 1:
-			return
+	@app.route ('/start', methods=['GET'])
+	def route_start ():
+		root = request.args.get ('root', type=str, default='')
+		if root == '':
+			return 'error root node name'
+
+		global log_file_path
 		# create a folder to save the log files of nodes when finish.
 		if log_file_path == '':
 			log_file_path = os.path.join (dirname, 'dml_file/log',
 				time.strftime ('%Y-%m-%d-%H-%M-%S', time.localtime (time.time ())))
-		conf_structure_json = ctl_utils.read_json (os.path.join (dirname, 'dml_tool/conf_structure.txt'))
-		name = conf_structure_json ['node_list'] [0] ['name']
-		print ('start training')
-		path = '/start?type=' + str (_type)
-		if name in device_ip:
-			initial_acc = float (ctl_utils.send_data ('GET', path, device_ip [name], dml_port))
+		if root in pn_to_ip:
+			ctl_utils.send_data ('GET', '/start', pn_to_ip [root], dml_port)
 		else:
-			initial_acc = float (
-				ctl_utils.send_data ('GET', path, c_ip [name], c_port [name]))
-		print ('initial acc = ' + str (initial_acc))
+			ctl_utils.send_data ('GET', '/start', en_to_ip [root], en_to_port [root])
+		print ('start training')
 		return ''
 
 	# when training is complete, ask for log files.
@@ -111,10 +116,10 @@ def listener (app, net):
 		# create a folder to save the log files of nodes.
 		os.makedirs (log_file_path)
 		print ('training completed')
-		for _ip in device_ip.values ():
-			ctl_utils.send_data ('GET', '/log', _ip, dml_port)
-		for name in c_ip:
-			ctl_utils.send_data ('GET', '/log', c_ip [name], c_port [name])
+		for name in pn_to_ip:
+			ctl_utils.send_data ('GET', '/log', pn_to_ip [name], dml_port)
+		for name in en_to_ip:
+			ctl_utils.send_data ('GET', '/log', en_to_ip [name], en_to_port [name])
 		return ''
 
 	@app.route ('/log', methods=['POST'])
@@ -124,7 +129,6 @@ def listener (app, net):
 		log files will be saved on ${log_file_path}.
 		when total_number files are received, it will parse these files into pictures
 		and save them on ${log_file_path}/png.
-		if a log file contains accuracy, it will start from initial_acc.
 		"""
 		name = request.args.get ('name')
 		print ('get ' + name + '\'s log')
@@ -146,10 +150,10 @@ def listener (app, net):
 
 	def after_log ():
 		time.sleep (5)
-		print ('try to stop all devices')
+		print ('try to stop all physical nodes')
 		ctl_utils.stop_all_device (net)
-		print ('try to clear all containers')
-		ctl_utils.clear_all_docker (net)
+		print ('try to clear all emulated nodes')
+		ctl_utils.stop_all_docker (net)
 
 	def parse_log (path: str, filename: str):
 		"""
@@ -173,7 +177,7 @@ def listener (app, net):
 					layer_start_i = line.find (layer_str) + len (layer_str)
 					layer_end_i = line.find (',', layer_start_i)
 					layer = int (line [layer_start_i:layer_end_i])
-					acc_map.setdefault (layer, [initial_acc]).append (acc)
+					acc_map.setdefault (layer, []).append (acc)
 				elif line.find ('Train') != -1:
 					loss_start_i = line.find (loss_str) + len (loss_str)
 					loss_end_i = line.find (',', loss_start_i)

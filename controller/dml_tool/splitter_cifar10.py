@@ -1,10 +1,10 @@
 """
-this file loads mnist from keras and cut the data into several pieces in sequence.
+this file loads cifar10 from keras and cut the data into several pieces in sequence.
 """
 import os
 
 import numpy as np
-from tensorflow.keras.datasets import mnist
+from tensorflow.keras.datasets import cifar10
 
 from splitter_utils import split_data, save_data
 
@@ -18,14 +18,14 @@ if __name__ == '__main__':
 	# all configurable parameters.
 
 	# load data from keras.
-	(train_images, train_labels), (test_images, test_labels) = mnist.load_data ()
+	(train_images, train_labels), (test_images, test_labels) = cifar10.load_data ()
 	# normalize.
 	train_images, test_images = train_images / 255.0, test_images / 255.0
 	# convert to float32.
 	train_images, test_images = train_images.astype (np.float32), test_images.astype (np.float32)
 
 	# save in here.
-	path = os.path.abspath (os.path.join (os.path.dirname (__file__), '../dml_app/datasets/MNIST'))
+	path = os.path.abspath (os.path.join (os.path.dirname (__file__), '../dataset/CIFAR10'))
 	train_path = os.path.join (path, 'train_data')
 	test_path = os.path.join (path, 'test_data')
 

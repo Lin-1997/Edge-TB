@@ -1,0 +1,56 @@
+{
+"node_list": [
+{"name": "n1", "layer": 4, "sync": 10, "child_num": 3},
+
+{"name": "p1", "layer": 3, "sync": 5, "child_num": 3},
+{"name": "n2", "layer": 3, "sync": 5, "child_num": 3},
+{"name": "n6", "layer": 3, "sync": 5, "child_num": 3},
+
+{"name": "n3", "layer": 2, "sync": 2, "child_num": 3},
+{"name": "n7", "layer": 2, "sync": 2, "child_num": 3},
+{"name": "n8", "layer": 2, "sync": 2, "child_num": 3},
+
+{"name": "p2", "layer": 2, "sync": 2, "child_num": 3},
+{"name": "n4", "layer": 2, "sync": 2, "child_num": 3},
+{"name": "n9", "layer": 2, "sync": 2, "child_num": 3},
+
+{"name": "n5", "layer": 2, "sync": 2, "child_num": 3},
+{"name": "n10", "layer": 2, "sync": 2, "child_num": 3},
+{"name": "n11", "layer": 2, "sync": 2, "child_num": 3},
+
+{"name": "n12", "layer": 1, "epoch": 1},
+{"name": "n13", "layer": 1, "epoch": 1},
+{"name": "n14", "layer": 1, "epoch": 1},
+
+{"name": "n15", "layer": 1, "epoch": 1},
+{"name": "n16", "layer": 1, "epoch": 1},
+{"name": "n17", "layer": 1, "epoch": 1},
+
+{"name": "n18", "layer": 1, "epoch": 1},
+{"name": "n19", "layer": 1, "epoch": 1},
+{"name": "n20", "layer": 1, "epoch": 1},
+
+{"name": "n21", "layer": 1, "epoch": 1},
+{"name": "n22", "layer": 1, "epoch": 1},
+{"name": "n23", "layer": 1, "epoch": 1},
+
+{"name": "n24", "layer": 1, "epoch": 1},
+{"name": "n25", "layer": 1, "epoch": 1},
+{"name": "n26", "layer": 1, "epoch": 1},
+
+{"name": "n27", "layer": 1, "epoch": 1},
+{"name": "n28", "layer": 1, "epoch": 1},
+{"name": "n29", "layer": 1, "epoch": 1},
+
+{"name": "n30", "layer": 1, "epoch": 1},
+{"name": "n31", "layer": 1, "epoch": 1},
+{"name": "n32", "layer": 1, "epoch": 1},
+
+{"name": "n33", "layer": 1, "epoch": 1},
+{"name": "n34", "layer": 1, "epoch": 1},
+{"name": "n35", "layer": 1, "epoch": 1},
+
+{"name": "n36", "layer": 1, "epoch": 1},
+{"name": "n37", "layer": 1, "epoch": 1},
+{"name": "p3", "layer": 1, "epoch": 1}]
+}

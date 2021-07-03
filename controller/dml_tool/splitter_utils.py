@@ -16,7 +16,7 @@ def split_data (images, labels, batch, drop_last):
 	:return: list of ndarrays.
 	"""
 	if drop_last:
-		end_index = int (len (labels) / batch) * batch
+		end_index = len (labels) // batch * batch
 	else:
 		end_index = len (labels)
 	images_loader = np.array_split (images [:end_index], batch)

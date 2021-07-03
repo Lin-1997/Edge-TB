@@ -2,4 +2,3 @@ flask
 numpy
 requests
 matplotlib
-tensorflow>=2

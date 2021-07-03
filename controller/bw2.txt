@@ -1,3 +1,0 @@
-{"order": ["n1", "n2", "n3", "n4", "d1"],
-"bw": {"n1": ["inf", "2mbps", "2mbps", "3mbps", "1mbps"],
-"d1": ["1mbps", "1mbps", "None", "2mbps", "inf"]}}

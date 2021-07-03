@@ -1,6 +1,6 @@
 __pycache__/
-**/datasets/*
-!**/datasets/.keep
+**/dataset/*
+!**/dataset/.keep
 **/conf/*
 !**/conf/.keep
 !**/conf/README.md
@@ -10,4 +10,3 @@ __pycache__/
 *.conf
 *.log
 *.yml
-perf.txt
