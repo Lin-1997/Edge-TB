@@ -67,27 +67,6 @@ class Conf:
 		}
 
 
-"""
-	"node_list": [
-	{"name": "n1", "layer": 3, "sync": 5, "child_num": 2},
-	{"name": "n2", "layer": 2, "sync": 2, "child_num": 2},
-	{"name": "n4", "layer": 2, "sync": 2, "child_num": 2},
-	{"name": "n2", "layer": 1, "epoch": 4},
-	{"name": "n3", "layer": 1, "epoch": 4},
-	{"name": "n4", "layer": 1, "epoch": 4},
-	{"name": "d1", "layer": 1, "epoch": 1}]
-	
-  breadth first traversal of layered structures.
-  Line 1: when n1 ("name": "n1") acts in the 3rd layer ("layer": 3), it uploads weights (actually completes training
-  because it's the top node) after 5 aggregations ("sync": 5).
-  n1 has 2 child nodes ("child_num": 2) in the 3rd layer including the nodes in the following two lines (n2 and n4).
-  Line 2: when n2 acts in the 2nd layer, it uploads weights after 2 aggregations, and it has 2 child nodes.
-  Line 4: when n2 acts in the 1st layer as trainer, it uploads weights after 4 local epoch trainings.
-  
-  
-"""
-
-
 # Generate structure conf for each node according to the above rules.
 def gen_conf ():
 	for node in _node_list:

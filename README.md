@@ -34,10 +34,10 @@ controller
       └─ log  >>  Received from each node
    ├─ dataset  >>  Splitted dataset, static files, shared by NFS
    ├─ dml_tool
-      ├─ gl_dataset.json  >>  Dataset definition of all nodes, an example
+      ├─ gl_dataset.json  >>  Dataset definition of all Gossip peer nodes, an example
       ├─ dataset_conf.py  >>  Used to generate dataset conf file for each node
-      ├─ gl_structure.json  >>  Structure definition of all nodes, an example
-      ├─ gl_structure_conf.py  >>  Used to generate structure conf file for each node
+      ├─ gl_structure.json  >>  Structure definition of all Gossip peer nodes, an example
+      ├─ gl_structure_conf.py  >>  Used to generate structure conf file for each Gossip peer  node
       ├─ splitter_fashion_mnist.py  >>  Used to split dataset
       └─ splitter_utils.py
    ├─ gl_manager.py  >>  Runtime manager, an example
@@ -88,11 +88,60 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
 6. In path ```controller/dml_tool```, type ```python3 dataset_conf.py -f gl_dataset.json``` in terminal to generate
    dataset conf files and type ```python3 gl_structure_conf.py -f gl_structure.json```  generate DML structure conf
    files.
-7. Type ```curl localhost:3333/conf?type=1``` in a terminal to send those dataset conf files to each node and
-   type ```curl localhost:3333/conf?type=2``` to send those DML structure conf files to each node. This function is
-   defined in ```controller/gl_manager.py```.
-8. Wait until Term displays ```tc finish```.
-9. Type ```curl localhost:3333/start``` in a terminal to start all nodes. This function is defined
-   in ```controller/gl_manager.py```.
-10. When there is no node _Gossip_, type ```curl localhost:3333/finish``` in a terminal to stop all nodes and collect
+7. Type ```curl localhost:3333/conf?type=1``` in a terminal to send those dataset conf files to each node. Wait until
+   all nodes have received the dataset conf file.
+8. Type ```curl localhost:3333/conf?type=2``` to send those DML structure conf files to each node. Wait until all nodes
+   have received the structure conf file. This function is defined in ```controller/gl_manager.py```.
+9. Wait until Term displays ```tc finish```.
+10. Type ```curl localhost:3333/start``` in a terminal to start all nodes. This function is defined
+    in ```controller/gl_manager.py```.
+11. When there is no node _Gossip_, type ```curl localhost:3333/finish``` in a terminal to stop all nodes and collect
     result files. This function is defined in ```controller/gl_manager.py```.
+
+### Example: Federated Learning
+
+1. Same with above 1-4.
+2. Just use the ```controller/dml_app/fl_trainer.py```, ```controller/dml_app/fl_aggregator.py```,
+   ```controller/dml_app/Dockerfile``` and ```controller/dml_app/dml_req.txt```
+3. Modify ```controller/fl_run.py```  to define the test environment.
+4. Modify ```controller/dml_tool/fl_dataset.json``` to define the data used by each node and
+   modify ```controller/dml_tool/fl_structure.json``` to define the DML structure of each node,
+   see ```controller/dml_tool/README.md``` for more.
+5. Run ```controller/fl_run.py``` with python3 with root privileges and keep it running on a terminal (called Term).
+6. In path ```controller/dml_tool```, type ```python3 dataset_conf.py -f fl_dataset.json``` in terminal to generate
+   dataset conf files and type ```python3 fl_structure_conf.py -f fl_structure.json```  generate DML structure conf
+   files.
+7. Type ```curl localhost:3333/conf?type=1``` in a terminal to send those dataset conf files to each node. Wait until
+   all nodes have received the dataset conf file.
+8. Type ```curl localhost:3333/conf?type=2``` to send those DML structure conf files to each node. Wait until all nodes
+   have received the structure conf file. This function is defined in ```controller/fl_manager.py```.
+9. Wait until Term displays ```tc finish```.
+10. Type ```curl localhost:3333/start?root=p4``` in a terminal to start all nodes. This function is defined
+    in ```controller/fl_manager.py```. The root should be the first node defined
+    in ```controller/dml_tool/fl_structure.json```.
+11. When the pre-set training round is met, it will automatically stop all nodes and collect result files. This function
+    is defined in ```controller/fl_manager.py```.
+
+### Example: E-Tree Learning
+
+1. Same with above 1-4.
+2. Just use the ```controller/dml_app/el_peer.py```, ```controller/dml_app/Dockerfile```,
+   and ```controller/dml_app/dml_req.txt```
+3. Modify ```controller/el_run.py```  to define the test environment.
+4. Modify ```controller/dml_tool/el_dataset.json``` to define the data used by each node and
+   modify ```controller/dml_tool/el3_structure.json``` to define the DML structure of each node,
+   see ```controller/dml_tool/README.md``` for more.
+5. Run ```controller/el_run.py``` with python3 with root privileges and keep it running on a terminal (called Term).
+6. In path ```controller/dml_tool```, type ```python3 dataset_conf.py -f el_dataset.json``` in terminal to generate
+   dataset conf files and type ```python3 el_structure_conf.py -f el3_structure.json```  generate DML structure conf
+   files.
+7. Type ```curl localhost:3333/conf?type=1``` in a terminal to send those dataset conf files to each node. Wait until
+   all nodes have received the dataset conf file.
+8. Type ```curl localhost:3333/conf?type=2``` to send those DML structure conf files to each node. Wait until all nodes
+   have received the structure conf file. This function is defined in ```controller/el_manager.py```.
+9. Wait until Term displays ```tc finish```.
+10. Type ```curl localhost:3333/start?root=p1``` in a terminal to start all nodes. This function is defined
+    in ```controller/el_manager.py```. The root should be the first node defined
+    in ```controller/dml_tool/el3_structure.json```.
+11. When the pre-set training round is met, it will automatically stop all nodes and collect result files. This function
+    is defined in ```controller/el_manager.py```.
