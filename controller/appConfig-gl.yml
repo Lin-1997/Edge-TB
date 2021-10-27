@@ -1,0 +1,81 @@
+# See `appConfig-template.yml` for more detail
+appConfig:
+  general:
+    localIP: 192.168.2.25
+    port: 3333
+    dmlPort: 4444
+    agentPort: 3333
+  nfs:
+    subnet: 192.168.2.0/24
+  emulator:
+    images:
+      dml:1.0:
+        dockerfile: dml_app/Dockerfile
+        requirements: dml_app/dml_req.txt
+  physical:
+    requirements: dml_app/dml_req.txt
+  hosts:
+    3700x-1:
+      ip: 192.168.2.4
+      nic: wlp69s0
+    3700x-2:
+      ip: 192.168.2.5
+      nic: wlp69s0
+    3700x-3:
+      ip: 192.168.2.6
+      nic: eth0
+    3990x-1:
+      ip: 192.168.2.7
+    3990x-2:
+      ip: 192.168.2.8
+  nodes:
+    p1:
+      type: physical
+      cmd: python3 gl_peer_new.py -p $dmlPort
+      host: 3700x-1
+    p2:
+      type: physical
+      cmd: python3 gl_peer_new.py -p $dmlPort
+      host: 3700x-2
+    p3:
+      type: physical
+      cmd: python3 gl_peer_new.py -p $dmlPort
+      host: 3700x-3
+    n1:
+      type: emulator
+      cmd: python3 gl_peer_new.py -p $dmlPort
+      host: 3990x-1
+      docker:
+        containers: 128   # nodes named n1-1, n1-2, etc.
+        memory: 1G        # each
+        cpu: 1            # each
+        image: dml:1.0
+        nic: eth0
+        volumes:
+          dml_file:
+            hostPath: ./dml_file
+            nodePath: /home/worker/dml_file
+        ports:
+          rule: sequential
+          begin: 8001
+    n2:
+      type: emulator
+      cmd: python3 gl_peer_new.py -p $dmlPort
+      host: 3990x-2
+      docker:
+        containers: 16    # nodes named n2-1, n2-2, etc.
+        memory: 1G        # each
+        cpu: 1            # each
+        image: dml:1.0
+        nic: eth0
+        volumes:
+          dml_file:
+            hostPath: ./dml_file
+            nodePath: /home/worker/dml_file
+        ports:
+          rule: sequential
+          begin: 8129
+  links:
+    # for each node named n1* (regexp), connect to a maximum of 5 nodes named n1* (regexp)
+    # (randomly chosen)
+    - n1* n1* random 200 500 mbps max 5
