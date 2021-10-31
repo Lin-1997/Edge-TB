@@ -1,0 +1,50 @@
+# See `appConfig-template.yml` for more detail
+appConfig:
+  general:
+    localIP: 192.168.2.25
+    port: 3333
+    dmlPort: 4444
+    agentPort: 3333
+  nfs:
+    subnet: 192.168.2.0/24
+  emulator:
+    images:
+      dml:1.0:
+        dockerfile: dml_app/Dockerfile
+        requirements: dml_app/dml_req.txt
+  physical:
+    requirements: dml_app/dml_req.txt
+  hosts:  # define hosts and computing power
+    3700x:
+      ip: 192.168.2.3
+      nic: wlp69s0
+    3990x:
+      ip: 192.168.2.4
+  nodes:
+    # If you have physical nodes, try to replace some emulated nodes in the structure.
+#    p1:
+#      type: physical
+#      cmd: python3 el_peer_new.py -p $dmlPort
+#      host: 3700x
+    n1:
+      type: emulator
+      cmd: python3 el_peer_new.py -p $dmlPort
+      host: 3990x
+      docker:
+        containers: 40  # nodes named n1-1, n1-2, etc.
+        memory: 2G      # each
+        cpu: 1          # each
+        nic: eth0
+        image: dml:1.0
+        volumes:
+          dml_file:
+            hostPath: ./dml_file
+            nodePath: /home/worker/dml_file
+        ports:
+          rule: sequential
+          begin: 8001
+  links:
+    # This part is re-defined from appConfig-template.yml
+    min: 200
+    max: 500
+    unit: kbps

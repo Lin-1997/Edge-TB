@@ -1,20 +1,22 @@
 {
-"node_list": [
-{"name": "p4", "trainer_fraction": 0.2, "sync": 75},
-
-{"name": "p1", "epoch": 1},
-{"name": "p2", "epoch": 1},
-{"name": "p3", "epoch": 1},
-{"name": "n1", "epoch": 1},
-{"name": "n2", "epoch": 1},
-{"name": "n3", "epoch": 1},
-{"name": "n4", "epoch": 1},
-{"name": "n5", "epoch": 1},
-{"name": "n6", "epoch": 1},
-{"name": "n7", "epoch": 1},
-{"name": "n8", "epoch": 1},
-{"name": "n9", "epoch": 1},
-{"name": "n10", "epoch": 1},
-{"name": "n11", "epoch": 1},
-{"name": "n12", "epoch": 1}]
+    "nodes": [
+        {"name": "n1-aggregator-1", "trainer_fraction": 0.25, "sync": 20},
+        
+        {"name": "n1-trainer-1", "epoch": 1},
+        {"name": "n1-trainer-2", "epoch": 1},
+        {"name": "n1-trainer-3", "epoch": 1},
+        {"name": "n1-trainer-4", "epoch": 1},
+        {"name": "n1-trainer-5", "epoch": 1},
+        {"name": "n1-trainer-6", "epoch": 1},
+        {"name": "n1-trainer-7", "epoch": 1},
+        {"name": "n1-trainer-8", "epoch": 1},
+        {"name": "n1-trainer-9", "epoch": 1},
+        {"name": "n1-trainer-10", "epoch": 1},
+        {"name": "n1-trainer-11", "epoch": 1},
+        {"name": "n1-trainer-12", "epoch": 1},
+        {"name": "n1-trainer-13", "epoch": 1},
+        {"name": "n1-trainer-14", "epoch": 1},
+        {"name": "n1-trainer-15", "epoch": 1},
+        {"name": "n1-trainer-16", "epoch": 1}
+    ]
 }
