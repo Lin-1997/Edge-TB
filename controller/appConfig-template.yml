@@ -1,0 +1,139 @@
+# This appConfig can be split into multiple parts, i.e. each of the appConfig items can
+# be saved in an individual file (all need to be rooted by appConfig).
+# For example, use one file for common configuration (such as IP and port of all hosts)
+# and another file for network topology, tc, etc., so that we can handle situations like
+# IP changes or experiment with different topologies more easily.
+# [Please prefix all your appConfig filename with `appConfig` just like this template to
+# get them included in the VCS.]
+appConfig:
+
+  # General configurations, such as IP and port of all hosts.
+  general:
+    localIP: 192.168.2.15
+    # the port that Controller will be run on.
+    port: 3333
+    # the port that DML application will be run on in the worker.
+    # note that you need a way to tell the worker about the port specified. See the nodes
+    # part for example.
+    dmlPort: 4444
+    # the port that the worker's agent will be run on. Make sure that it is consistent
+    # with the `agent_port` in worker/agent.py.
+    agentPort: 3333
+
+  # NFS settings.
+  nfs:
+    # the subnet we will mount the shared folders on.
+    subnet: 192.168.2.0/24
+
+  # Specific settings for emulators.
+  emulator:
+    # specify the docker images that will be used. The worker agent will try to build the
+    # images every time you start an experiment. It won't make duplicate builds thanks to
+    # the cache mechanism of Docker.
+    images:
+      dml:1.0:  # tag
+        dockerfile: dml_app/Dockerfile      # prepare in advance
+        requirements: dml_app/dml_req.txt   # prepare in advance
+
+  # Specific settings for physical nodes.
+  physical:
+    # this requirements-txt-file will be used by worker pip every time you start an
+    # experiment. For subsequent runs using the same requirements, pip should prompt that
+    # requirements are satisfied and will not re-install packages.
+    requirements: dml_app/dml_req.txt
+
+  # Defining hosts (and computing power in the future)
+  hosts:
+    3700x:  # tag
+      ip: 192.168.2.6
+      # nic is not necessary if this host is emulator.
+      nic: wlp69s0
+      # cpus: 64       # future features
+    3900x:
+      ip: 192.168.2.7
+      # docker: true   # future features
+
+  # Defining nodes in the topology.
+  nodes:
+    p1:   # tag, also physical node's name
+      type: physical
+      # command example ($dmlPort -> appConfig.general.dmlPort), working dir auto set
+      cmd: python3 el_peer.py -p $dmlPort
+      host: 3700x
+    n1:   # tag
+      type: emulator
+      # top-level cmd for this emulator.
+      cmd: python3 el_peer.py -p $dmlPort
+      host: 3900x
+      # specify Docker configurations.
+      docker:   # (do not specify dockerGroups if this is provided)
+        containers: 64  # nodes named n1-1, n1-2, etc.
+        memory: 1G      # each
+        cpu: 4          # each
+        image: dml:1.0
+        # define volumes. A `dml_file` volume is used to share the log files, etc. with
+        # the agent.
+        volumes:
+          dml_file:
+            hostPath: ./dml_file
+            nodePath: /home/worker/dml_file
+        # host port(s) to be mapped to internal DML port.
+        ports:
+          rule: sequential
+          begin: 8001
+      # alternatively, you can run multiple groups of Docker containers on one emulator.
+      # This can be useful for advanced customization or when the computing resource is
+      # limited.
+      dockerGroups:    # (do not specify docker if this is provided)
+        aggregator:
+          containers: 1   # node named n1-aggregator-1
+          memory: 2G
+          cpu: 2
+          nic: eth0
+          image: dml:1.0
+          # you can set the cmd for each group of containers. It will have higher priority
+          # than the top-level cmd for emulator.
+          cmd: python3 fl_aggregator_new.py -p $dmlPort
+          volumes:
+            dml_file:
+              hostPath: ./dml_file
+              nodePath: /home/worker/dml_file
+          # make sure the ports won't conflict.
+          ports:
+            rule: sequential
+            begin: 8001
+        trainer:
+          containers: 8   # nodes named n1-trainer-1, n1-trainer-2, etc.
+          memory: 2G      # each
+          cpu: 2          # each
+          nic: eth0
+          image: dml:1.0
+          cmd: python3 fl_trainer_new.py -p $dmlPort
+          volumes:
+            dml_file:
+              hostPath: ./dml_file
+              nodePath: /home/worker/dml_file
+          # make sure the ports won't conflict.
+          ports:
+            rule: sequential
+            begin: 8002
+
+  # Defining links in the topology.
+  links:
+    # the following provides examples for the default links definition parser. If
+    # you want to customize the links' generation, you can define this part on your
+    # demand, then override `Controller._init_link()`.
+    # format: from to bandwidth unit options
+    - p4 p1 10 mbps
+    - p1 p4 random 200 500 mbps symmetrical   # default is asymmetrical
+    - p4 n1* 10 mbps max 30    # connect to a maximum of 30 nodes named n1* (regexp)
+    - p4 n1* 10 mbps   # if max not specified, create link for all matches
+    # alternatively, you can set this part to be a string corresponding to the filename
+    # of a links json file containing tc settings for each link. This is useful when
+    # you have a large number of densely connected nodes, and/or you want the connection
+    # settings to remain constant across experiments. See `links_example.json` for an
+    # example.
+    # Note: you can also change the tc settings on the fly using the pre-defined listener
+    # of controller `/update/tc?file=<filename>` where <filename> is your links json file.
+    # This will re-configure ALL nodes accordingly w/o stopping them (so even if some of 
+    # the links remain unchanged, they will need to be re-specified).

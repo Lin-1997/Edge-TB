@@ -1,0 +1,60 @@
+# See `appConfig-template.yml` for more detail
+appConfig:
+  general:
+    localIP: 192.168.2.25
+    port: 3333
+    dmlPort: 4444
+    agentPort: 3333
+  nfs:
+    subnet: 192.168.2.0/24
+  emulator:
+    images:
+      dml:1.0:
+        dockerfile: dml_app/Dockerfile
+        requirements: dml_app/dml_req.txt
+  physical:
+    requirements: dml_app/dml_req.txt
+  hosts:
+    3990x:
+      ip: 192.168.2.4
+      nic: eth0
+    3700x:
+      ip: 192.168.2.2
+      nic: enp2s1
+  nodes:
+    n1:
+      type: emulator
+      host: 3990x
+      dockerGroups:
+        aggregator:
+          containers: 1     # node named n1-aggregator
+          memory: 2G
+          cpu: 2
+          nic: eth0
+          image: dml:1.0
+          cmd: python3 fl_aggregator_new.py -p $dmlPort
+          volumes:
+            dml_file:
+              hostPath: ./dml_file
+              nodePath: /home/worker/dml_file
+          ports:
+            rule: sequential
+            begin: 8001
+        trainer:
+          containers: 16    # nodes named n1-trainer-1, n1-trainer-2, etc.
+          memory: 2G        # each
+          cpu: 2            # each
+          nic: eth0
+          image: dml:1.0
+          cmd: python3 fl_trainer_new.py -p $dmlPort
+          volumes:
+            dml_file:
+              hostPath: ./dml_file
+              nodePath: /home/worker/dml_file
+          ports:
+            rule: sequential
+            begin: 8002
+
+  links:
+    - n1-aggregator n1-trainer* 10 mbps
+    - n1-trainer* n1-aggregator random 200 500 kbps

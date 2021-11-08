@@ -1,5 +1,0 @@
-{
-"emulator": {"server-1": "192.168.1.11", "server-2": "192.168.1.12"},
-"emulated_node": {"server-1": ["n1"], "server-2": ["n2", "n3", "n4"]},
-"physical_node": {"p1": "192.168.1.13"}
-}
