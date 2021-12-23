@@ -74,7 +74,7 @@ def store_weights (received_weights, new_weights, received_count):
 
 
 def avg_weights (received_weights, received_count):
-	return received_weights [0] / received_count
+	return np.divide (received_weights [0], received_count)
 
 
 def assign_weights (model, weights):
