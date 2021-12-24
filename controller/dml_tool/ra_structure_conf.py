@@ -57,8 +57,8 @@ def gen_conf():
         assert name not in node_conf_map, Exception('duplicate node: ' + name)
         conf = node_conf_map[name] = Conf(name, len(node_list), i, sync, node['epoch'])
 
-        if name in links_json:
-            link_list = links_json[name]
+        if name in link_json:
+            link_list = link_json[name]
             for link in link_list:
                 dest = link['dest']
                 assert dest not in conf.connect, Exception(
@@ -66,7 +66,7 @@ def gen_conf():
                 conf.connect[dest] = node_to_path(dest)
 
     for name in node_conf_map:
-        conf_path = os.path.join(dirname, '../dml_file/conf', name + '_structure.conf')
+        conf_path = os.path.join(dirname, args.output, name + '_structure.conf')
         with open(conf_path, 'w') as f:
             f.writelines(json.dumps(node_conf_map[name].to_json(), indent=2))
 
@@ -74,11 +74,17 @@ def gen_conf():
 if __name__ == '__main__':
     dirname = os.path.abspath(os.path.dirname(__file__))
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', dest='file', required=True, type=str,
-                        help='path and filename')
+    parser.add_argument('-s', '--structure', dest='structure', required=True, type=str,
+                        help='./relative/path/to/structure/json/file')
+    parser.add_argument('-l', '--link', dest='link', required=True, type=str,
+                        help='./relative/path/to/link/json/file')
+    parser.add_argument('-n', '--node', dest='node', required=True, type=str,
+                        help='./relative/path/to/node/ip/json/file')
+    parser.add_argument('-o', '--output', dest='output', required=False, type=str,
+                        default='../dml_file/conf', help='default folder = ../dml_file/conf/')
     args = parser.parse_args()
 
-    node_ip_json = read_json('../node_ip.json')
+    node_ip_json = read_json(args.node)
     # Dict [str, str], emulator's name to emulator's ip.
     _emulator = node_ip_json['emulator']
     # Dict [str, List], emulator's name to emulated node' name in this emulator.
@@ -86,11 +92,11 @@ if __name__ == '__main__':
     # Dict [str, str], physical node's name to physical node's ip.
     _p_node = node_ip_json['physical_node']
 
-    conf_structure_json = read_json(args.file)
-    node_list = conf_structure_json['node_list']
-    sync = conf_structure_json['sync']
+    conf_json = read_json(args.structure)
+    node_list = conf_json['node_list']
+    sync = conf_json['sync']
 
-    links_json = read_json('../links.json')
+    link_json = read_json(args.link)
 
     node_conf_map = {}
 
