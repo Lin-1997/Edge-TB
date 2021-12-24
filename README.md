@@ -38,10 +38,11 @@ controller
       ├─ dataset_conf.py  >>  Used to generate dataset conf file for each node
       ├─ gl_structure.json  >>  Structure definition of all Gossip peer nodes, an example
       ├─ gl_structure_conf.py  >>  Used to generate structure conf file for each Gossip peer  node
-      ├─ splitter_fashion_mnist.py  >>  Used to split dataset
+      ├─ splitter_fashion_mnist.py  >>  Used to download and/or split dataset
       └─ splitter_utils.py
    ├─ gl_manager.py  >>  Runtime manager, an example
    ├─ gl_run.py  >>  Test environment definition, an example
+   ├─ ctl_run_example.py >> Test environment definition with detailed annotations 
    └─ links.json  >>  Network links definition
    
 worker

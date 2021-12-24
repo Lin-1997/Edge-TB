@@ -121,10 +121,10 @@ def gen_conf ():
 			conf.curr_child_num.append (0)
 			conf.child_num.append (node ['child_num'])
 
-	for src in links_json:
+	for src in link_json:
 		conf = node_conf_map [src]
 		conf.n_hop [src] = 0  # to itself.
-		link_list = links_json [src]
+		link_list = link_json [src]
 		for link in link_list:
 			dest = link ['dest']
 			assert dest not in conf.connect, Exception (
@@ -151,7 +151,7 @@ def gen_conf ():
 						node_j.n_hop [dest] = node_i.n_hop [dest] + hop_num
 
 	for name in node_conf_map:
-		file_path = os.path.join (dirname, '../dml_file/conf', name + '_structure.conf')
+		file_path = os.path.join (dirname, args.output, name + '_structure.conf')
 		with open (file_path, 'w') as file:
 			file.writelines (json.dumps (node_conf_map [name].to_json (), indent=2))
 
@@ -159,11 +159,17 @@ def gen_conf ():
 if __name__ == '__main__':
 	dirname = os.path.abspath (os.path.dirname (__file__))
 	parser = argparse.ArgumentParser ()
-	parser.add_argument ('-f', '--file', dest='file', required=True, type=str,
-		help='./relative/path/to/conf/file')
+	parser.add_argument ('-s', '--structure', dest='structure', required=True, type=str,
+		help='./relative/path/to/structure/json/file')
+	parser.add_argument ('-l', '--link', dest='link', required=True, type=str,
+		help='./relative/path/to/link/json/file')
+	parser.add_argument ('-n', '--node', dest='node', required=True, type=str,
+		help='./relative/path/to/node/ip/json/file')
+	parser.add_argument ('-o', '--output', dest='output', required=False, type=str,
+		default='../dml_file/conf', help='default folder = ../dml_file/conf/')
 	args = parser.parse_args ()
 
-	node_ip_json = read_json ('../node_ip.json')
+	node_ip_json = read_json (args.node)
 	# Dict [str, str], emulator's name to emulator's ip.
 	_emulator = node_ip_json ['emulator']
 	# Dict [str, List], emulator's name to emulated node' name in this emulator.
@@ -171,10 +177,10 @@ if __name__ == '__main__':
 	# Dict [str, str], physical node's name to physical node's ip.
 	_p_node = node_ip_json ['physical_node']
 
-	conf_structure_json = read_json (args.file)
+	conf_structure_json = read_json (args.structure)
 	_node_list = conf_structure_json ['node_list']
 
-	links_json = read_json ('../links.json')
+	link_json = read_json (args.link)
 
 	node_conf_map = {}
 	father_queue = deque (['top'])
