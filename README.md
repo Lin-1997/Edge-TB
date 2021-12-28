@@ -75,6 +75,7 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
 10. It takes a while to deploy the tc settings, so please set your DML to start running after receiving a certain
     message, such as receiving a ```GET``` request for ```/start```.
 11. Wait until Term displays ```tc finish```, and then start your DML.
+12. Clear the test environment.
 
 ### Example: Gossip Learning
 
@@ -86,8 +87,8 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
    modify ```controller/dml_tool/gl_structure.json``` to define the DML structure of each node,
    see ```controller/dml_tool/README.md``` for more.
 5. Run ```controller/gl_run.py``` with python3 with root privileges and keep it running on a terminal (called Term).
-6. In path ```controller/dml_tool```, type ```python3 dataset_conf.py -f gl_dataset.json``` in terminal to generate
-   dataset conf files and type ```python3 gl_structure_conf.py -f gl_structure.json```  generate DML structure conf
+6. In path ```controller/dml_tool```, type ```python3 dataset_conf.py -d gl_dataset.json``` in terminal to generate
+   dataset conf files and type ```python3 gl_structure_conf.py -s gl_structure.json```  generate DML structure conf
    files.
 7. Type ```curl localhost:3333/conf?type=1``` in a terminal to send those dataset conf files to each node. Wait until
    all nodes have received the dataset conf file.
@@ -98,6 +99,10 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
     in ```controller/gl_manager.py```.
 11. When there is no node _Gossip_, type ```curl localhost:3333/finish``` in a terminal to stop all nodes and collect
     result files. This function is defined in ```controller/gl_manager.py```.
+12. Commands such as ```curl localhost:3333/docker/reset``` and ```curl localhost:3333/device/reset```are used to remove
+    all the emulated nodes and physical nodes. These functions are defined
+    in ```controller/ctl_utils.py/docker_controller_listener```
+    , ```controller/ctl_utils.py/device_controller_listener```, and ```worker/agent.py```.
 
 ### Example: Federated Learning
 
@@ -109,8 +114,8 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
    modify ```controller/dml_tool/fl_structure.json``` to define the DML structure of each node,
    see ```controller/dml_tool/README.md``` for more.
 5. Run ```controller/fl_run.py``` with python3 with root privileges and keep it running on a terminal (called Term).
-6. In path ```controller/dml_tool```, type ```python3 dataset_conf.py -f fl_dataset.json``` in terminal to generate
-   dataset conf files and type ```python3 fl_structure_conf.py -f fl_structure.json```  generate DML structure conf
+6. In path ```controller/dml_tool```, type ```python3 dataset_conf.py -d fl_dataset.json``` in terminal to generate
+   dataset conf files and type ```python3 fl_structure_conf.py -s fl_structure.json```  generate DML structure conf
    files.
 7. Type ```curl localhost:3333/conf?type=1``` in a terminal to send those dataset conf files to each node. Wait until
    all nodes have received the dataset conf file.
@@ -122,6 +127,10 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
     in ```controller/dml_tool/fl_structure.json```.
 11. When the pre-set training round is met, it will automatically stop all nodes and collect result files. This function
     is defined in ```controller/fl_manager.py```.
+12. Commands such as ```curl localhost:3333/docker/reset``` and ```curl localhost:3333/device/reset```are used to remove
+    all the emulated nodes and physical nodes. These functions are defined
+    in ```controller/ctl_utils.py/docker_controller_listener```
+    , ```controller/ctl_utils.py/device_controller_listener```, and ```worker/agent.py```.
 
 ### Example: E-Tree Learning
 
@@ -133,8 +142,8 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
    modify ```controller/dml_tool/el3_structure.json``` to define the DML structure of each node,
    see ```controller/dml_tool/README.md``` for more.
 5. Run ```controller/el_run.py``` with python3 with root privileges and keep it running on a terminal (called Term).
-6. In path ```controller/dml_tool```, type ```python3 dataset_conf.py -f el_dataset.json``` in terminal to generate
-   dataset conf files and type ```python3 el_structure_conf.py -f el3_structure.json```  generate DML structure conf
+6. In path ```controller/dml_tool```, type ```python3 dataset_conf.py -d el_dataset.json``` in terminal to generate
+   dataset conf files and type ```python3 el_structure_conf.py -s el3_structure.json```  generate DML structure conf
    files.
 7. Type ```curl localhost:3333/conf?type=1``` in a terminal to send those dataset conf files to each node. Wait until
    all nodes have received the dataset conf file.
@@ -146,3 +155,7 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
     in ```controller/dml_tool/el3_structure.json```.
 11. When the pre-set training round is met, it will automatically stop all nodes and collect result files. This function
     is defined in ```controller/el_manager.py```.
+12. Commands such as ```curl localhost:3333/docker/reset``` and ```curl localhost:3333/device/reset```are used to remove
+    all the emulated nodes and physical nodes. These functions are defined
+    in ```controller/ctl_utils.py/docker_controller_listener```
+    , ```controller/ctl_utils.py/device_controller_listener```, and ```worker/agent.py```.

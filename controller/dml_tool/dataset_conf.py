@@ -14,7 +14,7 @@ if __name__ == '__main__':
 	parser.add_argument ('-d', '--dataset', dest='dataset', required=True, type=str,
 		help='./relative/path/to/dataset/json/file')
 	parser.add_argument ('-o', '--output', dest='output', required=False, type=str,
-		default='../dml_file/conf', help='default folder = ../dml_file/conf/')
+		default='../dml_file/conf', help='./relative/path/to/output/folder/, default = ../dml_file/conf/')
 	args = parser.parse_args ()
 
 	conf_json = read_json (args.dataset)

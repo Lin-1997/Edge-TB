@@ -164,7 +164,7 @@ def route_docker_start ():
 				# change the 0xffff in NET_AGENT_ADDRESS to port.
 				line = line.replace ('0xffff', str (agent_port))
 			s += line
-	with open (filename, 'w')as f:
+	with open (filename, 'w') as f:
 		f.write (s)
 	cmd = 'sudo docker-compose -f ' + filename + ' up'
 	print (cmd)
@@ -354,7 +354,7 @@ def route_device_req ():
 	msg = msg [:msg.find ('#')].upper ()
 	req = []
 	err = []
-	with open (path, 'r')as f:
+	with open (path, 'r') as f:
 		for line in f:
 			if line.rfind ('=') != -1:
 				line = line [:line.rfind ('=') - 1]
