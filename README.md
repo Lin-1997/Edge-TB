@@ -86,9 +86,10 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
    modify ```controller/dml_tool/gl_structure.json``` to define the DML structure of each node,
    see ```controller/dml_tool/README.md``` for more.
 5. Run ```controller/gl_run.py``` with python3 with root privileges and keep it running on a terminal (called Term).
-6. In path ```controller/dml_tool```, type ```python3 dataset_conf.py -f gl_dataset.json``` in terminal to generate
-   dataset conf files and type ```python3 gl_structure_conf.py -f gl_structure.json```  generate DML structure conf
-   files.
+6. In path ```controller/dml_tool```,
+   type ```python3 dataset_conf.py -d gl_dataset.json``` in terminal to generate dataset conf files
+   and type ```python3 gl_structure_conf.py -s gl_structure.json -l ../links.json -n ../node_ip.json``` to generate DML
+   structure conf files.
 7. Type ```curl localhost:3333/conf?type=1``` in a terminal to send those dataset conf files to each node. Wait until
    all nodes have received the dataset conf file.
 8. Type ```curl localhost:3333/conf?type=2``` to send those DML structure conf files to each node. Wait until all nodes
@@ -109,9 +110,10 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
    modify ```controller/dml_tool/fl_structure.json``` to define the DML structure of each node,
    see ```controller/dml_tool/README.md``` for more.
 5. Run ```controller/fl_run.py``` with python3 with root privileges and keep it running on a terminal (called Term).
-6. In path ```controller/dml_tool```, type ```python3 dataset_conf.py -f fl_dataset.json``` in terminal to generate
-   dataset conf files and type ```python3 fl_structure_conf.py -f fl_structure.json```  generate DML structure conf
-   files.
+6. In path ```controller/dml_tool```,
+   type ```python3 dataset_conf.py -d fl_dataset.json``` in terminal to generate dataset conf files
+   and type ```python3 fl_structure_conf.py -s fl_structure.json -l ../links.json -n ../node_ip.json``` to generate DML 
+   structure conf files.
 7. Type ```curl localhost:3333/conf?type=1``` in a terminal to send those dataset conf files to each node. Wait until
    all nodes have received the dataset conf file.
 8. Type ```curl localhost:3333/conf?type=2``` to send those DML structure conf files to each node. Wait until all nodes
@@ -133,9 +135,10 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
    modify ```controller/dml_tool/el3_structure.json``` to define the DML structure of each node,
    see ```controller/dml_tool/README.md``` for more.
 5. Run ```controller/el_run.py``` with python3 with root privileges and keep it running on a terminal (called Term).
-6. In path ```controller/dml_tool```, type ```python3 dataset_conf.py -f el_dataset.json``` in terminal to generate
-   dataset conf files and type ```python3 el_structure_conf.py -f el3_structure.json```  generate DML structure conf
-   files.
+6. In path ```controller/dml_tool```,
+   type ```python3 dataset_conf.py -f el_dataset.json``` in terminal to generate dataset conf files 
+   and type ```python3 el_structure_conf.py -s el3_structure.json -l ../links.json -n ../node_ip.json``` to generate DML
+   structure conf files.
 7. Type ```curl localhost:3333/conf?type=1``` in a terminal to send those dataset conf files to each node. Wait until
    all nodes have received the dataset conf file.
 8. Type ```curl localhost:3333/conf?type=2``` to send those DML structure conf files to each node. Wait until all nodes
@@ -146,3 +149,27 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
     in ```controller/dml_tool/el3_structure.json```.
 11. When the pre-set training round is met, it will automatically stop all nodes and collect result files. This function
     is defined in ```controller/el_manager.py```.
+
+### Example: Ring All-Reduce
+
+1. Same with above 1-4.
+2. Just use the ```controller/dml_app/ra_peer.py```, ```controller/dml_app/Dockerfile```,
+   and ```controller/dml_app/dml_req.txt```
+3. Modify ```controller/ra_run.py```  to define the test environment.
+4. Modify ```controller/dml_tool/ra_dataset.json``` to define the data used by each node and
+   modify ```controller/dml_tool/ra_structure.json``` to define the DML structure of each node,
+   see ```controller/dml_tool/README.md``` for more.
+5. Run ```controller/ra_run.py``` with python3 with root privileges and keep it running on a terminal (called Term).
+6. In path ```controller/dml_tool```,
+   type ```python3 dataset_conf.py -f ra_dataset.json``` in terminal to generate dataset conf files
+   and type ```python3 ra_structure_conf.py -s ra_structure.json -l ../links.json -n ../node_ip.json``` to generate DML
+   structure conf files.
+7. Type ```curl localhost:3333/conf?type=1``` in a terminal to send those dataset conf files to each node. Wait until
+   all nodes have received the dataset conf file.
+8. Type ```curl localhost:3333/conf?type=2``` to send those DML structure conf files to each node. Wait until all nodes
+   have received the structure conf file. This function is defined in ```controller/ra_manager.py```.
+9. Wait until Term displays ```tc finish```.
+10. Type ```curl localhost:3333/start``` in a terminal to start all nodes. This function is defined
+    in ```controller/ra_manager.py```.
+11. When the pre-set training round is met, it will automatically stop all nodes and collect result files. This function
+    is defined in ```controller/ra_manager.py```.
