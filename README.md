@@ -159,3 +159,30 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
     all the emulated nodes and physical nodes. These functions are defined
     in ```controller/ctl_utils.py/docker_controller_listener```
     , ```controller/ctl_utils.py/device_controller_listener```, and ```worker/agent.py```.
+
+### Example: Ring All-Reduce
+
+1. Same with above 1-4.
+2. Just use the ```controller/dml_app/ra_peer.py```, ```controller/dml_app/Dockerfile```,
+   and ```controller/dml_app/dml_req.txt```
+3. Modify ```controller/ra_run.py```  to define the test environment.
+4. Modify ```controller/dml_tool/ra_dataset.json``` to define the data used by each node and
+   modify ```controller/dml_tool/ra_structure.json``` to define the DML structure of each node,
+   see ```controller/dml_tool/README.md``` for more.
+5. Run ```controller/ra_run.py``` with python3 with root privileges and keep it running on a terminal (called Term).
+6. In path ```controller/dml_tool```, type ```python3 dataset_conf.py -d ra_dataset.json``` in terminal to generate
+   dataset conf files and type ```python3 ra_structure_conf.py -s ra_structure.json``` to generate DML structure conf
+   files.
+7. Type ```curl localhost:3333/conf?type=1``` in a terminal to send those dataset conf files to each node. Wait until
+   all nodes have received the dataset conf file.
+8. Type ```curl localhost:3333/conf?type=2``` to send those DML structure conf files to each node. Wait until all nodes
+   have received the structure conf file. This function is defined in ```controller/ra_manager.py```.
+9. Wait until Term displays ```tc finish```.
+10. Type ```curl localhost:3333/start``` in a terminal to start all nodes. This function is defined
+    in ```controller/ra_manager.py```.
+11. When the pre-set training round is met, it will automatically stop all nodes and collect result files. This function
+    is defined in ```controller/ra_manager.py```.
+12. Commands such as ```curl localhost:3333/docker/reset``` and ```curl localhost:3333/device/reset```are used to remove
+    all the emulated nodes and physical nodes. These functions are defined
+    in ```controller/ctl_utils.py/docker_controller_listener```
+    , ```controller/ctl_utils.py/device_controller_listener```, and ```worker/agent.py```.
