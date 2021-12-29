@@ -161,12 +161,12 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser ()
 	parser.add_argument ('-s', '--structure', dest='structure', required=True, type=str,
 		help='./relative/path/to/structure/json/file')
-	parser.add_argument ('-l', '--link', dest='link', required=True, type=str,
-		help='./relative/path/to/link/json/file')
-	parser.add_argument ('-n', '--node', dest='node', required=True, type=str,
-		help='./relative/path/to/node/ip/json/file')
+	parser.add_argument ('-l', '--link', dest='link', required=False, type=str,
+		default='../links.json', help='./relative/path/to/link/json/file, default = ../links.json')
+	parser.add_argument ('-n', '--node', dest='node', required=False, type=str,
+		default='../node_ip.json', help='./relative/path/to/node/ip/json/file, default = ../node_ip.json')
 	parser.add_argument ('-o', '--output', dest='output', required=False, type=str,
-		default='../dml_file/conf', help='default folder = ../dml_file/conf/')
+		default='../dml_file/conf', help='./relative/path/to/output/folder/, default = ../dml_file/conf/')
 	args = parser.parse_args ()
 
 	node_ip_json = read_json (args.node)
