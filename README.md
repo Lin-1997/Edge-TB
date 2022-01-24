@@ -56,11 +56,11 @@ worker
 
 ### Usage
 
-##### Workflow overview
+#### Workflow overview
 
 Prepare roles, neural networks, dataset >> Define test environment >> Run it >>  Collect result.
 
-##### Workflow detail
+#### Workflow detail
 
 1. The only things you need to do in Worker is to run ```worker/agent.py``` with python3 with root privileges. We need
    to mount NFS and install python packages via ```python3-pip```, which require root privileges.
@@ -77,7 +77,9 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
 11. Wait until Term displays ```tc finish```, and then start your DML.
 12. Clear the test environment.
 
-### Example: Gossip Learning
+### Examples
+
+#### Gossip Learning
 
 1. Same with above 1-4.
 2. Just use the ```controller/dml_app/gl_peer.py```, ```controller/dml_app/Dockerfile```,
@@ -104,7 +106,7 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
     in ```controller/ctl_utils.py/docker_controller_listener```
     , ```controller/ctl_utils.py/device_controller_listener```, and ```worker/agent.py```.
 
-### Example: Federated Learning
+#### Federated Learning
 
 1. Same with above 1-4.
 2. Just use the ```controller/dml_app/fl_trainer.py```, ```controller/dml_app/fl_aggregator.py```,
@@ -132,7 +134,7 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
     in ```controller/ctl_utils.py/docker_controller_listener```
     , ```controller/ctl_utils.py/device_controller_listener```, and ```worker/agent.py```.
 
-### Example: E-Tree Learning
+#### E-Tree Learning
 
 1. Same with above 1-4.
 2. Just use the ```controller/dml_app/el_peer.py```, ```controller/dml_app/Dockerfile```,
@@ -160,7 +162,7 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
     in ```controller/ctl_utils.py/docker_controller_listener```
     , ```controller/ctl_utils.py/device_controller_listener```, and ```worker/agent.py```.
 
-### Example: Ring All-Reduce
+#### Ring All-Reduce
 
 1. Same with above 1-4.
 2. Just use the ```controller/dml_app/ra_peer.py```, ```controller/dml_app/Dockerfile```,
@@ -186,3 +188,15 @@ Prepare roles, neural networks, dataset >> Define test environment >> Run it >> 
     all the emulated nodes and physical nodes. These functions are defined
     in ```controller/ctl_utils.py/docker_controller_listener```
     , ```controller/ctl_utils.py/device_controller_listener```, and ```worker/agent.py```.
+
+### Citing
+
+Please cite our paper if you find *EdgeTB* is useful in your research.  
+Lei Yang, Fulin Wen, Jiannong Cao, Zhenyu Wang. "EdgeTB: a Hybrid Testbed for Distributed Machine Learning at the Edge
+with High Fidelity." IEEE Transactions on Parallel and Distributed Systems. DOI: 10.1109/TPDS.2022.3144994.
+
+### Contact
+
+EdgeTB is designed and developed by the joint research team at School of Software Engineering, South China University of
+Technology, and the Department of Computing, The Hong Kong Polytechnic University. If you have any question, please
+contact with us: Fulin Wen [201921043987@mail.scut.edu.cn] and Lei Yang [sely@scut.edu.cn].
