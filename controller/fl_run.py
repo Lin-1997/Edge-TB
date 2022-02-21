@@ -1,107 +1,133 @@
 import os
-import random
 
-from flask import Flask
+from base import default_testbed
+from base.utils import read_json
+from fl_manager import FlManager
 
-import ctl_utils
-import fl_manager
-from class_node import Net
+# path of this file.
+dirName = os.path.abspath (os.path.dirname (__file__))
 
+# we made up the following physical hardware so this example is NOT runnable.
 if __name__ == '__main__':
-	dirname = os.path.abspath (os.path.dirname (__file__))
-	ip = '192.168.2.31'
-	port = 3333
-	net = Net (ip, port)
-	net.add_nfs (tag='dml_app', ip='192.168.2.0', mask=24,
-		path=os.path.join (dirname, 'dml_app'))
-	net.add_nfs (tag='dataset', ip='192.168.2.0', mask=24,
-		path=os.path.join (dirname, 'dataset'))
-	ctl_utils.restore_nfs ()
-	ctl_utils.export_nfs (net)
+	testbed = default_testbed (ip='192.168.1.10', dir_name=dirName, manager_class=FlManager)
 
-	dml_port = 4444
+	# export a nfs read-only absolute path in this ctl so that
+	# emulated nodes and physical nodes can mount it.
+	# Please note that the success of exporting the path also depends on
+	# your firewall policy, the rwx mode of the path, etc.
+	nfsApp = testbed.add_nfs (tag='dml_app', path=os.path.join (dirName, 'dml_app'))
+	nfsDataset = testbed.add_nfs (tag='dataset', path=os.path.join (dirName, 'dataset'))
 
-	p4 = net.add_physical_node ('p4', 'enp5s0', '192.168.2.5')
-	p4.mount_nfs (tag='dml_app', mount_point='./dml_app')
-	p4.mount_nfs (tag='dataset', mount_point='./dataset')
-	p4.set_cmd (working_dir='dml_app', cmd=['python3', 'fl_aggregator.py'])
+	# define your network >>>
 
-	p1 = net.add_physical_node (name='p1', nic='eth0', ip='192.168.2.23')
-	p1.mount_nfs (tag='dml_app', mount_point='./dml_app')
-	p1.mount_nfs (tag='dataset', mount_point='./dataset')
+	# declare an emulator, which should run the worker/agent.py in advance.
+	emu1 = testbed.add_emulator (name='emulator-1', ip='192.168.1.11', cpu=16, ram=64, unit='G')
+
+	# add an emulated node to an emulator, which will be done after you run this python code.
+	# the total cpu and memory resources can not exceed the resources owned by the emulator.
+	# the emulated node uses at most ${cpu} CPU threads.
+	# if the emulated node asks for more than ${memory unit} memory, it will be killed.
+	en = testbed.add_emulated_node (name='n1', working_dir='/home/worker/dml_app',
+		cmd=['python3', 'fl_aggregator.py'], image='dml:v1.0', cpu=4, ram=4, unit='G', emulator=emu1)
+	# ${local_path} can use absolute path starting from / or
+	# relative path starting from the directory of the worker/.
+	# ${node_path} can only use absolute path starting from /.
+	en.mount_local_path (local_path='/path/in/emulator-1/to/worker/dml_file',
+		node_path='/home/worker/dml_file')
+	# ${node_path} can only use absolute path starting from /.
+	en.mount_nfs (nfs=nfsApp, node_path='/home/worker/dml_app')
+	en.mount_nfs (nfsDataset, '/home/worker/dataset')
+
+	# add many emulated nodes.
+	emu2 = testbed.add_emulator ('emulator-2', '192.168.1.12', cpu=128, ram=256, unit='G')
+	for i in range (2, 5):
+		en = testbed.add_emulated_node ('n' + str (i), '/home/worker/dml_app',
+			['python3', 'fl_trainer.py'], 'dml:v1.0', cpu=1, ram=2, unit='G', emulator=emu2)
+		# ${host_path} means /path/in/emulator-2/to/worker/dml_file in this example.
+		en.mount_local_path ('./dml_file', '/home/worker/dml_file')
+		en.mount_nfs (nfsApp, '/home/worker/dml_app')
+		en.mount_nfs (nfsDataset, '/home/worker/dataset')
+
+	# declare a physical node,
+	# which should run the worker/agent.py in advance.
+	p1 = testbed.add_physical_node (name='p1', nic='eth0', ip='192.168.1.13')
+	# ${mount_point} can use absolute path starting from / or
+	# relative path starting from the directory of the worker/agent.py file.
+	# ${mount_point} means /path/in/p1/to/worker/dml_app in this example.
+	p1.mount_nfs (nfs=nfsApp, mount_point='./dml_app')
+	p1.mount_nfs (nfsDataset, './dataset')
+	# set physical node's role.
+	# ${working_dir} can use absolute path or relative path as above mount_nfs ().
 	p1.set_cmd (working_dir='dml_app', cmd=['python3', 'fl_trainer.py'])
-	net.asymmetrical_link (p4, p1, bw=10, unit='mbps')
-	net.asymmetrical_link (p1, p4, bw=random.randint (200, 500), unit='kbps')
 
-	p2 = net.add_physical_node (name='p2', nic='eth0', ip='192.168.2.24')
-	p2.mount_nfs (tag='dml_app', mount_point='./dml_app')
-	p2.mount_nfs (tag='dataset', mount_point='./dataset')
-	p2.set_cmd (working_dir='dml_app', cmd=['python3', 'fl_trainer.py'])
-	net.asymmetrical_link (p4, p2, bw=10, unit='mbps')
-	net.asymmetrical_link (p2, p4, bw=random.randint (200, 500), unit='kbps')
+	# load tc settings from links.json.
+	links_json = read_json (os.path.join (dirName, 'links.json'))
+	testbed.load_link (links_json)
+	"""
+	the contents in this example links.json are:
 
-	p3 = net.add_physical_node (name='p3', nic='eth0', ip='192.168.2.27')
-	p3.mount_nfs (tag='dml_app', mount_point='./dml_app')
-	p3.mount_nfs (tag='dataset', mount_point='./dataset')
-	p3.set_cmd (working_dir='dml_app', cmd=['python3', 'fl_trainer.py'])
-	net.asymmetrical_link (p4, p3, bw=10, unit='mbps')
-	net.asymmetrical_link (p3, p4, bw=random.randint (200, 500), unit='kbps')
+	{
+	  "p1": [
+	    {"dest": "n1", "bw": "5mbps"},
+	    {"dest": "n4", "bw": "3mbps"}
+	  ],
+	  "n1": [
+	    {"dest": "p1", "bw": "3mbps"},
+	    {"dest": "n2", "bw": "3mbps"},
+	    {"dest": "n3", "bw": "3mbps"},
+	    {"dest": "n4", "bw": "3mbps"}
+	  ],
+	  "n2": [
+	    {"dest": "n1", "bw": "1mbps"},
+	    {"dest": "n3", "bw": "2mbps"},
+	    {"dest": "n4", "bw": "3mbps"}
+	  ],
+	  "n3": [
+	    {"dest": "n1", "bw": "4mbps"},
+	    {"dest": "n2", "bw": "1mbps"}
+	  ],
+	  "n4": [
+	    {"dest": "n1", "bw": "1mbps"},
+	    {"dest": "n2", "bw": "5mbps"},
+	    {"dest": "p1", "bw": "2mbps"}
+	  ]
+	}
 
-	emu = net.add_emulator ('3990x', '192.168.2.10')
-	emu.mount_nfs ('dml_app')
-	emu.mount_nfs ('dataset')
-	for i in range (12):
-		cpu = (i % 4) * 2
-		if cpu == 0:
-			cpu = 1
-		n = emu.add_node ('n' + str (i + 1), 'eth0', '/home/worker/dml_app',
-			['python3', 'fl_trainer.py'], 'dml:v1.0', cpu=cpu, memory=5, unit='G')
-		n.add_volume ('./dml_file', '/home/worker/dml_file')
-		n.add_nfs ('dml_app', '/home/worker/dml_app')
-		n.add_nfs ('dataset', '/home/worker/dataset')
-		n.add_port (dml_port, 8001 + i)
-		net.asymmetrical_link (p4, n, bw=10, unit='mbps')
-		net.asymmetrical_link (n, p4, bw=random.randint (200, 500), unit='kbps')
+	it takes a while to deploy the tc settings.
+	when the terminal prints "tc finish", tc settings of all emulated and physical nodes are deployed.
+	please make sure your node communicate with other nodes after "tc finish".
 
-	net.save_node_ip ()
+	you can send a GET request to ctl's /update/tc at any time
+	to update the tc settings of emulated and/or physical nodes. 
 
-	net.save_bw ()
+	for example, curl http://192.168.1.10:3333/update/tc?file=links2.json
+	the contents in this example links2.json are:
 
-	# links_json = ctl_utils.read_json (os.path.join (dirname, 'links.json'))
-	# net.load_bw (links_json)
+	{
+	  "n1": [
+	    {"dest": "p1", "bw": "1mbps"},
+	    {"dest": "n2", "bw": "3mbps"},
+	    {"dest": "n3", "bw": "3mbps"},
+	    {"dest": "n4", "bw": "3mbps"}
+	  ],
+	  "n4": [
+	    {"dest": "n1", "bw": "3mbps"},
+	    {"dest": "n2", "bw": "5mbps"},
+	    {"dest": "n3", "bw": "1mbps"},
+	    {"dest": "p1", "bw": "2mbps"}
+	  ]
+	}
 
-	net.save_yml ()
+	we will clear the tc settings of n1 and n4 and deploy the new one dynamically
+	without stop nodes.
+	for the above reasons, even if the bw from n1 to n2, n3 and n4 does not change,
+	they need to be specified.
+	"""
 
-	app = Flask (__name__)
+	# <<< define your network
 
-	ctl_utils.print_listener (app)
-
-	ctl_utils.docker_tc_listener (app, net)
-	ctl_utils.send_docker_address (net)
-	# path_dockerfile = os.path.join (dirname, 'dml_app/Dockerfile')
-	# path_req = os.path.join (dirname, 'dml_app/dml_req.txt')
-	# ctl_utils.deploy_dockerfile (net, 'dml:v1.0', path_dockerfile, path_req)
-
-	ctl_utils.send_device_nfs (net)
-	ctl_utils.send_device_env (net)
-	# path_req = os.path.join (dirname, 'dml_app/dml_req.txt')
-	# ctl_utils.sent_device_req (net, path_req)
-
-	if net.tcLinkNumber > 0:
-		ctl_utils.send_docker_tc (net)
-		ctl_utils.send_device_tc (net)
-	else:
-		print ('tc finish')
-
-	ctl_utils.update_tc_listener (app, net)
-
-	ctl_utils.docker_controller_listener (app, net)
-	ctl_utils.device_controller_listener (app, net)
-	ctl_utils.clear_nfs_listener (app)
-
-	fl_manager.manager (app, net)
-
-	ctl_utils.deploy_all_device (net)
-	ctl_utils.deploy_all_yml (net)
-
-	app.run (host='0.0.0.0', port=port, threaded=True)
+	# when you finish your experiments, you should restore your emulators and physical nodes.
+	# GET at '/emulated/stop', '/emulated/clear' and '/emulated/reset',
+	# these requests can be received by controller/base/manager.py, route_emulated_stop (), ect.
+	# GET at '/physical/stop', '/physical/clear/tc', '/physical/clear/nfs' and 'physical/reset',
+	testbed.start ()

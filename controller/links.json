@@ -1,13 +1,26 @@
 {
-"p1":[{"dest":"n1","bw":"5mbps"},
-    {"dest":"n3","bw":"3mbps"}],
-"n1":[{"dest":"p1","bw":"5mbps"},
-    {"dest":"n2","bw":"3mbps"},
-    {"dest":"n3","bw":"3mbps"},
-    {"dest":"n4","bw":"3mbps"}],
-"n2":[{"dest":"n1","bw":"1mbps"},
-    {"dest":"n4","bw":"3mbps"}],
-"n3":[{"dest":"n1","bw":"1mbps"}],
-"n4":[{"dest":"n1","bw":"1mbps"},
-    {"dest":"p1","bw":"5mbps"}]
+  "p1": [
+    {"dest": "n1", "bw": "5mbps"},
+    {"dest": "n4", "bw": "3mbps"}
+  ],
+  "n1": [
+    {"dest": "p1", "bw": "3mbps"},
+    {"dest": "n2", "bw": "3mbps"},
+    {"dest": "n3", "bw": "3mbps"},
+    {"dest": "n4", "bw": "3mbps"}
+  ],
+  "n2": [
+    {"dest": "n1", "bw": "1mbps"},
+    {"dest": "n3", "bw": "2mbps"},
+    {"dest": "n4", "bw": "3mbps"}
+  ],
+  "n3": [
+    {"dest": "n1", "bw": "4mbps"},
+    {"dest": "n2", "bw": "1mbps"}
+  ],
+  "n4": [
+    {"dest": "n1", "bw": "1mbps"},
+    {"dest": "n2", "bw": "5mbps"},
+    {"dest": "p1", "bw": "2mbps"}
+  ]
 }

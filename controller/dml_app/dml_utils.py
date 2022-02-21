@@ -6,7 +6,6 @@ import numpy as np
 import worker_utils
 
 write = io.BytesIO ()
-cur_index = 0
 
 
 def load_data (path, start_index, _len, input_shape):
@@ -21,19 +20,8 @@ def load_data (path, start_index, _len, input_shape):
 	return images, labels
 
 
-def train_all (model, images, labels, epochs, batch_size):
+def train (model, images, labels, epochs, batch_size):
 	h = model.fit (images, labels, epochs=epochs, batch_size=batch_size)
-	return h.history ['loss']
-
-
-def train (model, images, labels, epochs, batch_size, train_len):
-	global cur_index
-	cur_images = images [cur_index * 500: (cur_index + 1) * 500]
-	cur_labels = labels [cur_index * 500: (cur_index + 1) * 500]
-	cur_index += 1
-	if cur_index == train_len:
-		cur_index = 0
-	h = model.fit (cur_images, cur_labels, epochs=epochs, batch_size=batch_size)
 	return h.history ['loss']
 
 
@@ -122,7 +110,7 @@ def random_selection (node_list, number):
 def log_loss (loss, _round):
 	"""
 	we left a comma at the end for easy positioning and extending.
-	this message can be parse by controller/ctl_utils.py, parse_log ().
+	this message can be parse by controller/ctl_utils.py, parse_log_file ().
 	"""
 	message = 'Train: loss={}, round={},'.format (loss, _round)
 	worker_utils.log (message)
@@ -132,7 +120,7 @@ def log_loss (loss, _round):
 def log_acc (acc, _round, layer=-1):
 	"""
 	we left a comma at the end for easy positioning and extending.
-	this message can be parsed by controller/ctl_utils.py, parse_log ().
+	this message can be parsed by controller/ctl_utils.py, parse_log_file ().
 	"""
 	if layer != -1:
 		message = 'Aggregate: accuracy={}, round={}, layer={},'.format (acc, _round, layer)

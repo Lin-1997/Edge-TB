@@ -1,6 +1,5 @@
 import json
 import os
-import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -13,17 +12,13 @@ from nns.nn_fashion_mnist import nn  # configurable parameter, from nns.whatever
 
 dirname = os.path.abspath (os.path.dirname (__file__))
 
-# listen on port 4444.
-# we do not recommend changing this port number.
-dml_port = 4444
-
+dml_port = os.getenv ('DML_PORT')
 ctl_addr = os.getenv ('NET_CTL_ADDRESS')
 agent_addr = os.getenv ('NET_AGENT_ADDRESS')
 node_name = os.getenv ('NET_NODE_NAME')
 
 input_shape = nn.input_shape
-log_file = os.path.abspath (os.path.join (dirname, '../dml_file/log/',
-	node_name + '.log'))
+log_file = os.path.abspath (os.path.join (dirname, '../dml_file/log/', node_name + '.log'))
 worker_utils.set_log (log_file)
 conf = {}
 # configurable parameter, specify the dataset path.
@@ -32,12 +27,11 @@ train_images: np.ndarray
 train_labels: np.ndarray
 
 app = Flask (__name__)
-weights_lock = threading.Lock ()
 executor = ThreadPoolExecutor (1)
 
 
 # if this is container, docker will send a GET to here every 30s
-# this ability is defined in controller/class_node.py, Emulator.save_yml (), healthcheck.
+# this ability is defined in controller/base/node.py, Class Emulator, save_yml (), healthcheck.
 @app.route ('/hi', methods=['GET'])
 def route_hi ():
 	# send a heartbeat to the agent.
@@ -69,12 +63,13 @@ def route_conf_d ():
 def route_conf_s ():
 	f = request.files.get ('conf').read ()
 	conf.update (json.loads (f))
-	conf ['current_round'] = 0
 	print ('POST at /conf/structure')
 
 	filename = os.path.join (dirname, '../dml_file/conf', node_name + '_structure.conf')
 	with open (filename, 'w') as fw:
 		fw.writelines (json.dumps (conf, indent=2))
+
+	conf ['current_round'] = 0
 
 	# for customized selection >>>
 	executor.submit (perf_eval)
@@ -86,17 +81,19 @@ def route_conf_s ():
 
 def perf_eval ():
 	s = time.time ()
-	dml_utils.train (nn.model, train_images, train_labels, 1, conf ['batch_size'], conf ['train_len'])
+	dml_utils.train (nn.model, train_images, train_labels, 1, conf ['batch_size'])
 	e = time.time () - s
-	addr = conf ['connect'] [conf ['father_node'] [0]]
-	path = '/ttime?node=' + node_name + '&time=' + str (e)
+	addr = conf ['connect'] [conf ['father_node']]
+	path = '/time/train?node=' + node_name + '&time=' + str (e)
 	worker_utils.log (node_name + ': train time=' + str (e))
 	worker_utils.send_data ('GET', path, addr)
 
 	s = time.time ()
-	dml_utils.send_weights (nn.model.get_weights (), '/stest', conf ['father_node'], conf ['connect'])
+	path = '/time/test'
+	dml_utils.send_weights (nn.model.get_weights (), path, [conf ['father_node']],
+		conf ['connect'])
 	e = time.time () - s
-	path = '/stime?node=' + node_name + '&time=' + str (e)
+	path = '/time/send?node=' + node_name + '&time=' + str (e)
 	worker_utils.log (node_name + ': send time=' + str (e))
 	worker_utils.send_data ('GET', path, addr)
 
@@ -123,14 +120,15 @@ def route_train ():
 
 def on_route_train (received_weights):
 	dml_utils.assign_weights (nn.model, received_weights)
-	loss_list = dml_utils.train (nn.model, train_images, train_labels,
-		conf ['epoch'], conf ['batch_size'], conf ['train_len'])
+	loss_list = dml_utils.train (nn.model, train_images, train_labels, conf ['epoch'],
+		conf ['batch_size'])
 	conf ['current_round'] += 1
 
 	last_epoch_loss = loss_list [-1]
 	msg = dml_utils.log_loss (last_epoch_loss, conf ['current_round'])
 	worker_utils.send_print (ctl_addr, node_name + ': ' + msg)
-	dml_utils.send_weights (nn.model.get_weights (), '/combine', conf ['father_node'], conf ['connect'])
+	dml_utils.send_weights (nn.model.get_weights (), '/combine', [conf ['father_node']],
+		conf ['connect'])
 
 
 app.run (host='0.0.0.0', port=dml_port, threaded=True)

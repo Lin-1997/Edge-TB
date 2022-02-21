@@ -12,18 +12,14 @@ from nns.nn_fashion_mnist import nn  # configurable parameter, from nns.whatever
 
 dirname = os.path.abspath (os.path.dirname (__file__))
 
-# listen on port 4444.
-# we do not recommend changing this port number.
-dml_port = 4444
-
+dml_port = os.getenv ('DML_PORT')
 ctl_addr = os.getenv ('NET_CTL_ADDRESS')
 agent_addr = os.getenv ('NET_AGENT_ADDRESS')
 node_name = os.getenv ('NET_NODE_NAME')
 
 initial_weights = nn.model.get_weights ()
 input_shape = nn.input_shape
-log_file = os.path.abspath (os.path.join (dirname, '../dml_file/log/',
-	node_name + '.log'))
+log_file = os.path.abspath (os.path.join (dirname, '../dml_file/log/', node_name + '.log'))
 worker_utils.set_log (log_file)
 conf = {}
 trainer_list = []
@@ -34,12 +30,12 @@ test_images: np.ndarray
 test_labels: np.ndarray
 
 app = Flask (__name__)
-weights_lock = threading.Lock ()
+lock = threading.RLock ()
 executor = ThreadPoolExecutor (1)
 
 
 # if this is container, docker will send a GET to here every 30s
-# this ability is defined in controller/class_node.py, Emulator.save_yml (), healthcheck.
+# this ability is defined in controller/base/node.py, Class Emulator, save_yml (), healthcheck.
 @app.route ('/hi', methods=['GET'])
 def route_hi ():
 	# send a heartbeat to the agent.
@@ -69,19 +65,20 @@ def route_conf_d ():
 
 @app.route ('/conf/structure', methods=['POST'])
 def route_conf_s ():
-	global trainer_per_round
 	f = request.files.get ('conf').read ()
 	conf.update (json.loads (f))
-	conf ['current_round'] = 0
-	conf ['received_number'] = 0
-	conf ['received_weights'] = []
-	trainer_list.extend (conf ['child_node'])
-	trainer_per_round = int (len (trainer_list) * conf ['trainer_fraction'])
 	print ('POST at /conf/structure')
 
 	filename = os.path.join (dirname, '../dml_file/conf', node_name + '_structure.conf')
 	with open (filename, 'w') as fw:
 		fw.writelines (json.dumps (conf, indent=2))
+
+	global trainer_per_round
+	conf ['current_round'] = 0
+	conf ['received_number'] = 0
+	conf ['received_weights'] = []
+	trainer_list.extend (conf ['child_node'])
+	trainer_per_round = int (len (trainer_list) * conf ['trainer_fraction'])
 	return ''
 
 
@@ -91,59 +88,53 @@ total_time = {}
 send_time = {}
 name_list = []
 prob_list = []
-prob_lock = threading.Lock ()
 
 
-@app.route ('/ttime', methods=['GET'])
-def route_ttime ():
-	print ('GET at /ttime')
+@app.route ('/time/train', methods=['GET'])
+def route_time_train ():
+	print ('GET at /time/train')
 	node = request.args.get ('node')
 	_time = request.args.get ('time', type=float)
 	print ('train: ' + node + ' use ' + str (_time))
-	total_time [node] = _time
-
-	if len (total_time) == len (trainer_list):
-		prob_lock.acquire ()
+	with lock:
+		total_time [node] = _time
 		if len (total_time) == len (trainer_list):
-			file_path = os.path.join (dirname, '../dml_file/ttime.txt')
+			file_path = os.path.join (dirname, '../dml_file/train_time.txt')
 			with open (file_path, 'w') as f:
 				f.write (json.dumps (total_time))
-				print ('ttime collection completed, saved on ' + file_path)
-		prob_lock.release ()
+				print ('train time collection completed, saved on ' + file_path)
 	return ''
 
 
-@app.route ('/stest', methods=['POST'])
+@app.route ('/time/test', methods=['POST'])
 def route_stest ():
-	print ('POST at /stest')
-	# just get the weights to test the time.
+	print ('POST at /time/test')
+	# trainer sends weights to here, so it can get the time for sending.
 	_ = dml_utils.parse_weights (request.files.get ('weights'))
 	return ''
 
 
-@app.route ('/stime', methods=['GET'])
-def route_stime ():
-	print ('GET at /stime')
+@app.route ('/time/send', methods=['GET'])
+def route_time_send ():
+	print ('GET at /time/send')
 	node = request.args.get ('node')
 	_time = request.args.get ('time', type=float)
 	print ('send: ' + node + ' use ' + str (_time))
-	send_time [node] = _time
-
-	if len (send_time) == len (trainer_list):
-		prob_lock.acquire ()
+	with lock:
+		send_time [node] = _time
 		if len (send_time) == len (trainer_list):
-			file_path = os.path.join (dirname, '../dml_file/stime.txt')
+			file_path = os.path.join (dirname, '../dml_file/send_time.txt')
 			with open (file_path, 'w') as f:
 				f.write (json.dumps (send_time))
-				print ('stime collection completed, saved on ' + file_path)
+				print ('send time collection completed, saved on ' + file_path)
 
 			count = 0
 			for node in total_time:
 				total_time [node] += send_time [node]
-			file_path = os.path.join (dirname, '../dml_file/totaltime.txt')
+			file_path = os.path.join (dirname, '../dml_file/total_time.txt')
 			with open (file_path, 'w') as f:
 				f.write (json.dumps (total_time))
-				print ('totaltime collection completed, saved on ' + file_path)
+				print ('total time collection completed, saved on ' + file_path)
 			for node in total_time:
 				total_time [node] = 1 / (total_time [node] ** 0.5)
 				count += total_time [node]
@@ -158,7 +149,6 @@ def route_stime ():
 				prob_list [i] /= 1000
 			print ('prob_list = ')
 			print (prob_list)
-		prob_lock.release ()
 	return ''
 
 
@@ -180,14 +170,16 @@ def on_route_log ():
 
 @app.route ('/start', methods=['GET'])
 def route_start ():
-	_, initial_acc = dml_utils.test (nn.model, test_images, test_labels)
-	msg = dml_utils.log_acc (initial_acc, 0)
-	worker_utils.send_print (ctl_addr, node_name + ': ' + msg)
+	print ('GET at /start')
 	executor.submit (on_route_start)
 	return ''
 
 
 def on_route_start ():
+	_, init_acc = dml_utils.test_on_batch (nn.model, test_images, test_labels, conf ['batch_size'])
+	msg = dml_utils.log_acc (init_acc, 0, conf ['layer'] [-1])
+	worker_utils.send_print (ctl_addr, node_name + ': ' + msg)
+
 	# trainers = dml_utils.random_selection (trainer_list, trainer_per_round)
 	trainers = customized_selection (trainer_per_round)
 	dml_utils.send_weights (initial_weights, '/train', trainers, conf ['connect'])
@@ -204,19 +196,17 @@ def route_combine ():
 
 
 def on_route_combine (weights):
-	weights_lock.acquire ()
-	conf ['received_number'] += 1
-	dml_utils.store_weights (conf ['received_weights'], weights,
-		conf ['received_number'])
-	weights_lock.release ()
+	with lock:
+		conf ['received_number'] += 1
+		dml_utils.store_weights (conf ['received_weights'], weights,
+			conf ['received_number'])
 
-	if conf ['received_number'] == trainer_per_round:
-		combine_weights ()
+		if conf ['received_number'] == trainer_per_round:
+			combine_weights ()
 
 
 def combine_weights ():
-	weights = dml_utils.avg_weights (conf ['received_weights'],
-		conf ['received_number'])
+	weights = dml_utils.avg_weights (conf ['received_weights'], conf ['received_number'])
 	dml_utils.assign_weights (nn.model, weights)
 	conf ['received_weights'].clear ()
 	conf ['received_number'] = 0
@@ -229,8 +219,7 @@ def combine_weights ():
 	if conf ['current_round'] == conf ['sync']:
 		worker_utils.log ('>>>>>training ended<<<<<')
 		worker_utils.send_data ('GET', '/finish', ctl_addr)
-	# send down to train.
-	else:
+	else:  # send down to train.
 		# trainers = dml_utils.random_selection (trainer_list, trainer_per_round)
 		trainers = customized_selection (trainer_per_round)
 		dml_utils.send_weights (weights, '/train', trainers, conf ['connect'])

@@ -3,23 +3,25 @@ import json
 import os
 import socket
 import subprocess as sp
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
-from typing import Dict, List
+from typing import Dict
 
 import requests
 from flask import Flask, request
 
-# we do not recommend changing this port number, but if you really want to change it,
-# you need to change controller/ctl_utils.py together.
+# DO NOT change this port number.
 agent_port = 3333
 executor = ThreadPoolExecutor ()
+lock = threading.RLock ()
 app = Flask (__name__)
 dirname = os.path.abspath (os.path.dirname (__file__))
 hostname = socket.gethostname ()
 heartbeat = {}
 tc_data = {}
-ctl_addr: str
+physical_nic = ''
+ctl_addr = ''
 dml_p: sp.Popen
 
 
@@ -31,44 +33,70 @@ def route_hi ():
 @app.route ('/heartbeat', methods=['GET'])
 def route_heartbeat ():
 	"""
-	this function can listen message from worker/worker_utils.py, heartbeat ().
+	listen message from worker/worker_utils.py, heartbeat ().
 	it will store the time of nodes heartbeat.
-	when it receives the heartbeat of a container for the first time,
+	when it receives the heartbeat of an emulated node for the first time,
 	it will deploy the container's tc settings.
 	"""
 	name = request.args.get ('name')
 	t_time = time.time ()
-	# deploy the container's tc settings.
-	if name not in heartbeat and name in tc_data:
-		ret = deploy_docker_tc (name)
-		if ret:
-			ret ['name'] = hostname + ': ' + name
-			requests.post ('http://' + ctl_addr + '/docker/tc', data={'data': json.dumps (ret)})
-	heartbeat [name] = t_time
+	with lock:
+		# deploy the emulated node's tc settings.
+		if name not in heartbeat and name in tc_data:
+			ret = {}
+			deploy_emulated_tc (name, ret)
+			# this request can be received by controller/base/node.py, route_emulated_tc ().
+			requests.post ('http://' + ctl_addr + '/emulated/tc', data={'data': json.dumps (ret)})
+		heartbeat [name] = t_time
 	return ''
 
 
-def deploy_docker_tc (name: str) -> Dict:
+def deploy_emulated_tc (name: str, ret: Dict):
 	data = tc_data [name]
-	tc = data ['NET_NODE_TC']
-	nic = data ['NET_NODE_NIC']
 	prefix = 'sudo docker exec ' + name + ' '
-	clear_tc_helper (prefix, nic)
-	if tc:
-		tc_ip = data ['NET_NODE_TC_IP']
-		tc_port = data ['NET_NODE_TC_PORT']
-		cmd = deploy_tc_helper (prefix, nic, tc, tc_ip, tc_port)
-		p = sp.Popen (' && '.join (cmd), stdout=sp.PIPE, stderr=sp.STDOUT, shell=True, close_fds=True)
-		msg = p.communicate () [0].decode ()
-		if msg != '':
-			print (name + ' tc failed, err:')
-			print (msg)
-			return {'number': '-1', 'msg': msg}
-		else:
-			print (name + ' tc succeed')
-			return {'number': str (len (tc))}
+	clear_old_tc (prefix, data ['NET_NODE_NIC'])
+	msg = create_new_tc (prefix, data ['NET_NODE_NIC'], data ['NET_NODE_TC'],
+		data ['NET_NODE_TC_IP'], data ['NET_NODE_TC_PORT'])
+	if msg == '':
+		print (name + ' tc succeed')
+		with lock:
+			ret [name] = {'number': len (data ['NET_NODE_TC'])}
+	else:
+		print (name + ' tc failed, err:')
+		print (msg)
+		with lock:
+			ret [name] = {'msg': msg}
 
-	return {}
+
+def clear_old_tc (prefix: str, nic: str):
+	cmd = prefix + ' tc qdisc show dev %s' % nic
+	p = sp.Popen (cmd, stdout=sp.PIPE, stderr=sp.STDOUT, shell=True)
+	msg = p.communicate () [0].decode ()
+	if "priomap" not in msg and "noqueue" not in msg:
+		cmd = prefix + ' tc qdisc del dev %s root' % nic
+		sp.Popen (cmd, stdout=sp.PIPE, stderr=sp.STDOUT, shell=True).wait ()
+
+
+def create_new_tc (prefix: str, nic: str, tc: Dict [str, str], tc_ip: Dict [str, str],
+		tc_port: Dict [str, int]):
+	if not tc:
+		return ''
+
+	cmd = ['%s tc qdisc add dev %s root handle 1: htb default 1' % (prefix, nic),
+	       '%s tc class add dev %s parent 1: classid 1:1 htb rate 10gbps ceil 10gbps burst 15k' % (prefix, nic)]
+	i = 10
+	for name in tc.keys ():
+		bw = tc [name]
+		ip = tc_ip [name]
+		port = tc_port [name]
+		cmd.append ('%s tc class add dev %s parent 1:1 classid ' % (prefix, nic)
+		            + '1:%d htb rate %s ceil %s burst 15k' % (i, bw, bw))
+		cmd.append ('%s tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip dst ' % (prefix, nic)
+		            + '%s/32 match ip dport %d 0xffff flowid 1:%d' % (ip, port, i))
+		i += 1
+	p = sp.Popen (' && '.join (cmd), stdout=sp.PIPE, stderr=sp.STDOUT, shell=True, close_fds=True)
+	msg = p.communicate () [0].decode ()
+	return msg
 
 
 @app.route ('/heartbeat/all', methods=['GET'])
@@ -102,22 +130,23 @@ def route_abnormal_heartbeat ():
 	return s
 
 
-@app.route ('/docker/address', methods=['GET'])
-def route_docker_address ():
+@app.route ('/emulator/info', methods=['GET'])
+def route_emulator_info ():
 	"""
-	this function can listen tc settings from controller/ctl_utils.py, send_docker_address ().
-	save ip of ctl..
+	listen message from controller/base/node.py, send_emulator_info ().
+	save the ${ip:port} of ctl and emulator's name.
 	"""
-	global ctl_addr
+	global ctl_addr, hostname
 	ctl_addr = request.args.get ('address')
+	hostname = request.args.get ('name')
 	return ''
 
 
-@app.route ('/docker/tc', methods=['POST'])
-def route_docker_tc ():
+@app.route ('/emulated/tc', methods=['POST'])
+def route_emulated_tc ():
 	"""
-	this function can listen tc settings from controller/ctl_utils.py, send_docker_tc ().
-	after containers are ready, it will deploy containers' tc settings.
+	listen message from controller/base/node.py, send_emulated_tc ().
+	after emulated nodes are ready, it will deploy emulated nodes' tc settings.
 	"""
 	data = json.loads (request.form ['data'])
 	print (data)
@@ -125,10 +154,28 @@ def route_docker_tc ():
 	return ''
 
 
-@app.route ('/docker/build', methods=['POST'])
-def route_docker_build ():
+@app.route ('/emulated/tc/update', methods=['POST'])
+def route_emulated_tc_update ():
 	"""
-	this function can listen files from controller/ctl_utils.py, deploy_dockerfile ().
+	listen message from controller/base/manager.py, update_emulated_tc ().
+	after emulated nodes are ready, it will deploy emulated nodes' tc settings.
+	"""
+	data = json.loads (request.form ['data'])
+	print (data)
+	tc_data.update (data)
+
+	ret = {}
+	tasks = []
+	for name in data:
+		tasks.append (executor.submit (deploy_emulated_tc, name, ret))
+	wait (tasks, return_when=ALL_COMPLETED)
+	return json.dumps (ret)
+
+
+@app.route ('/emulated/build', methods=['POST'])
+def route_emulated_build ():
+	"""
+	listen file from controller/base/node.py, build_emulated_env ().
 	it will use these files to build a docker image.
 	"""
 	path = os.path.join (dirname, 'Dockerfile')
@@ -148,34 +195,25 @@ def route_docker_build ():
 		return '-1'
 
 
-@app.route ('/docker/start', methods=['POST'])
-def route_docker_start ():
+@app.route ('/emulated/launch', methods=['POST'])
+def route_emulated_launch ():
 	"""
-	this function can listen message from controller/ctl_utils.py, deploy_yml ().
-	it will deploy the yml file.
+	listen file from controller/base/node.py, launch_emulated ().
+	it will launch the yml file.
 	"""
 	heartbeat.clear ()
 	filename = os.path.join (dirname, hostname + '.yml')
 	request.files.get ('yml').save (filename)
-	s = ''
-	with open (filename, 'r') as f:
-		for line in f:
-			if '0xffff' in line:
-				# change the 0xffff in NET_AGENT_ADDRESS to port.
-				line = line.replace ('0xffff', str (agent_port))
-			s += line
-	with open (filename, 'w') as f:
-		f.write (s)
 	cmd = 'sudo docker-compose -f ' + filename + ' up'
 	print (cmd)
 	sp.Popen (cmd, shell=True, stderr=sp.STDOUT)
 	return ''
 
 
-@app.route ('/docker/stop', methods=['GET'])
-def route_docker_stop ():
+@app.route ('/emulated/stop', methods=['GET'])
+def route_emulated_stop ():
 	"""
-	this function can listen message from controller/ctl_utils.py, stop_yml ().
+	listen message from controller/base/manager.py, stop_emulated ().
 	it will stop the above yml file.
 	"""
 	cmd = 'sudo docker-compose -f ' + hostname + '.yml stop'
@@ -185,10 +223,10 @@ def route_docker_stop ():
 	return ''
 
 
-@app.route ('/docker/clear', methods=['GET'])
-def route_docker_clear ():
+@app.route ('/emulated/clear', methods=['GET'])
+def route_emulated_clear ():
 	"""
-	this function can listen message from controller/ctl_utils.py, clear_yml ().
+	listen message from controller/base/manager.py, clear_emulated ().
 	it will clear the above yml file.
 	"""
 	cmd = 'sudo docker-compose -f ' + hostname + '.yml down -v'
@@ -198,10 +236,10 @@ def route_docker_clear ():
 	return ''
 
 
-@app.route ('/docker/reset', methods=['GET'])
-def route_docker_reset ():
+@app.route ('/emulated/reset', methods=['GET'])
+def route_emulated_reset ():
 	"""
-	this function can listen message from controller/ctl_utils.py, reset_docker ().
+	listen message from controller/base/manager.py, reset_emulated ().
 	it will remove all docker containers, networks and volumes.
 	"""
 	cmd = ['sudo docker rm -f $(docker ps -aq)',
@@ -214,13 +252,13 @@ def route_docker_reset ():
 	return ''
 
 
-@app.route ('/device/nfs', methods=['POST'])
-def route_device_nfs ():
+@app.route ('/physical/nfs', methods=['POST'])
+def route_physical_nfs ():
 	"""
-	this function can listen nfs settings from controller/ctl_utils.py, send_device_nfs ().
+	listen message from controller/base/node.py, send_physical_nfs ().
 	it will mount the nfs path.
 	"""
-	route_device_clear_nfs ()
+	route_physical_clear_nfs ()
 	mounted = ''
 	data = json.loads (request.form ['data'])
 	print (data)
@@ -252,90 +290,48 @@ def route_device_nfs ():
 	return json.dumps (err)
 
 
-@app.route ('/device/tc', methods=['POST'])
-def route_device_tc ():
+@app.route ('/physical/tc', methods=['POST'])
+def route_physical_tc ():
 	"""
-	this function can listen tc settings from controller/ctl_utils.py, send_device_tc ().
-	it will apply the tc settings.
+	listen message from controller/base/node.py, send_physical_tc ()
+	and controller/base/manager.py, update_physical_tc ().
+	it will clear the old tc settings and apply the new one.
 	"""
 	data = json.loads (request.form ['data'])
-	print (data)
-	tc = data ['NET_NODE_TC']
-	nic = tc_data ['NET_NODE_NIC']
 	prefix = 'sudo '
-	clear_tc_helper (prefix, nic)
-	if tc:
-		tc_ip = data ['NET_NODE_TC_IP']
-		tc_port = data ['NET_NODE_TC_PORT']
-		cmd = deploy_tc_helper (prefix, nic, tc, tc_ip, tc_port)
-		p = sp.Popen (' && '.join (cmd), stdout=sp.PIPE, stderr=sp.STDOUT, shell=True, close_fds=True)
-		msg = p.communicate () [0].decode ()
-		if msg != '':
-			print ('tc failed, err:')
-			print (msg)
-			return msg
-
-	print ('tc succeed')
-	return '1'
+	clear_old_tc (prefix, data ['NET_NODE_NIC'])
+	msg = create_new_tc (prefix, data ['NET_NODE_NIC'], data ['NET_NODE_TC'],
+		data ['NET_NODE_TC_IP'], data ['NET_NODE_TC_PORT'])
+	if msg == '':
+		print ('tc succeed')
+	else:
+		print ('tc failed, err:')
+		print (msg)
+	return msg
 
 
-def clear_tc_helper (prefix: str, nic: str):
-	cmd = prefix + ' tc qdisc show dev %s' % nic
-	p = sp.Popen (cmd, stdout=sp.PIPE, stderr=sp.STDOUT, shell=True)
-	msg = p.communicate () [0].decode ()
-	if "priomap" not in msg and "noqueue" not in msg:
-		cmd = prefix + ' tc qdisc del dev %s root' % nic
-		sp.Popen (cmd, stdout=sp.PIPE, stderr=sp.STDOUT, shell=True).wait ()
-
-
-def deploy_tc_helper (prefix: str, nic: str, tc: Dict [str, str], tc_ip: Dict [str, str],
-		tc_port: Dict [str, List [int]]):
-	cmd = ['%s tc qdisc add dev %s root handle 1: htb default 1' % (prefix, nic),
-	       '%s tc class add dev %s parent 1: classid 1:1 htb rate 10gbps ceil 10gbps burst 15k' % (prefix, nic)]
-	i = 10
-	for name in tc.keys ():
-		ip = tc_ip [name]
-		bw = tc [name]
-		cmd.append ('%s tc class add dev %s parent 1:1 classid ' % (prefix, nic)
-		            + '1:%d htb rate %s ceil %s burst 15k' % (i, bw, bw))
-		if name in tc_port:
-			# is a container.
-			# all ports of this container share the same limit.
-			for port in tc_port [name]:
-				cmd.append ('%s tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip dst ' % (prefix, nic)
-				            + '%s/32 match ip dport %d 0xffff flowid 1:%d' % (ip, port, i))
-		else:
-			# is a device.
-			cmd.append ('%s tc filter add dev %s protocol ip parent 1: prio 2 u32 match ip dst ' % (prefix, nic)
-			            + '%s/32 flowid 1:%d' % (ip, i))
-		i += 1
-	return cmd
-
-
-@app.route ('/device/env', methods=['POST'])
-def route_device_env ():
+@app.route ('/physical/variable', methods=['POST'])
+def route_physical_variable ():
 	"""
-	this function can listen env from controller/ctl_utils.py, send_device_env ().
-	it will save the env.
+	listen message from controller/base/node.py, send_physical_variable ().
+	it will save the variables.
 	"""
-	atexit.register (route_device_reset)
-	global ctl_addr
+	global ctl_addr, physical_nic
+	atexit.register (route_physical_reset)
 	data = json.loads (request.form ['data'])
+	ctl_addr = data ['NET_CTL_ADDRESS']
+	physical_nic = data ['NET_NODE_NIC']
 	print (data)
-	env = data ['NET_NODE_ENV']
-	ctl_addr = env ['NET_CTL_ADDRESS'] = data ['NET_CTL_ADDRESS']
-	tc_data ['NET_NODE_NIC'] = data ['NET_NODE_NIC']
-	env ['NET_AGENT_ADDRESS'] = data ['NET_AGENT_IP'] + ':' + str (agent_port)
-	env ['NET_NODE_NAME'] = data ['NET_NODE_NAME']
-	for k in env:
-		os.environ [k] = env [k]
+	for k, v in data.items ():
+		# os.putenv (k, v) # has no effect.
+		os.environ [k] = v
 	return ''
 
 
-@app.route ('/device/req', methods=['POST'])
-def route_device_req ():
+@app.route ('/physical/build', methods=['POST'])
+def route_physical_build ():
 	"""
-	this function can listen dml_req.txt from controller/ctl_utils.py, sent_device_req ().
+	listen file from controller/base/node.py, build_physical_env ().
 	it will install the dml_req.txt by pip.
 	"""
 	path = os.path.join (dirname, 'dml_req.txt')
@@ -365,17 +361,17 @@ def route_device_req ():
 	if err:
 		print ('req failed, err:')
 		print (err)
-		return json.dumps (err)
+		return '-1'
 	else:
 		print ('req succeed')
 		return '1'
 
 
-@app.route ('/device/start', methods=['POST'])
-def route_device_start ():
+@app.route ('/physical/launch', methods=['POST'])
+def route_physical_launch ():
 	"""
-	this function can listen message from controller/ctl_utils.py, deploy_device ().
-	it will start a new process to execute the ${cmd} at ${working_dir}.
+	listen message from controller/base/node.py, launch_physical ().
+	it will launch a new process to execute the ${cmd} at ${working_dir}.
 	"""
 	global dml_p
 	data = json.loads (request.form ['data'])
@@ -389,11 +385,11 @@ def route_device_start ():
 	return ''
 
 
-@app.route ('/device/stop', methods=['GET'])
-def route_device_stop ():
+@app.route ('/physical/stop', methods=['GET'])
+def route_physical_stop ():
 	"""
-	this function can listen message from controller/ctl_utils.py, stop_device ().
-	it will kill the process started by above route_device_start ().
+	listen message from controller/base/manager.py, stop_physical ().
+	it will kill the process started by above route_physical_launch ().
 	"""
 	try:
 		if dml_p.poll () is None:
@@ -409,21 +405,20 @@ def route_device_stop ():
 		return ''
 
 
-@app.route ('/device/clear/tc', methods=['GET'])
-def route_device_clear_tc ():
+@app.route ('/physical/clear/tc', methods=['GET'])
+def route_physical_clear_tc ():
 	"""
-	this function can listen message from controller/ctl_utils.py, clear_device_tc ().
+	listen message from controller/base/manager.py, clear_physical_tc ().
 	it will reset tc settings.
 	"""
-	if 'NET_NODE_NIC' in tc_data:
-		clear_tc_helper ('sudo ', tc_data ['NET_NODE_NIC'])
+	clear_old_tc ('sudo ', physical_nic)
 	return ''
 
 
-@app.route ('/device/clear/nfs', methods=['GET'])
-def route_device_clear_nfs ():
+@app.route ('/physical/clear/nfs', methods=['GET'])
+def route_physical_clear_nfs ():
 	"""
-	this function can listen message from controller/ctl_utils.py, clear_device_nfs ().
+	listen message from controller/base/manager.py, clear_physical_nfs ().
 	it will reset nfs.
 	"""
 	path = os.path.join (dirname, 'mounted.txt')
@@ -436,79 +431,17 @@ def route_device_clear_nfs ():
 	return ''
 
 
-@app.route ('/device/reset', methods=['GET'])
-def route_device_reset ():
+@app.route ('/physical/reset', methods=['GET'])
+def route_physical_reset ():
 	"""
-	this function can listen message from controller/ctl_utils.py, reset_device ().
-	it will kill the process started by above route_device_start (),
+	listen message from controller/base/manager.py, reset_physical ().
+	it will kill the process started by above route_physical_start (),
 	reset tc settings and reset nfs.
 	"""
-	route_device_stop ()
-	if 'NET_NODE_NIC' in tc_data:
-		clear_tc_helper ('sudo ', tc_data ['NET_NODE_NIC'])
-	route_device_clear_nfs ()
+	route_physical_stop ()
+	clear_old_tc ('sudo ', physical_nic)
+	route_physical_clear_nfs ()
 	return ''
-
-
-@app.route ('/docker/tc/update', methods=['POST'])
-def route_docker_tc_update ():
-	"""
-	this function can listen tc settings from controller/ctl_utils.py, send_docker_tc ().
-	after containers are ready, it will deploy containers' tc settings.
-	"""
-	data = json.loads (request.form ['data'])
-	ret = {}
-	tasks = []
-	for name in data:
-		tc = data [name] ['NET_NODE_TC']
-		nic = data [name] ['NET_NODE_NIC']
-		prefix = 'sudo docker exec ' + name + ' '
-		clear_tc_helper (prefix, nic)
-		if tc:
-			tc_ip = data [name] ['NET_NODE_TC_IP']
-			tc_port = data [name] ['NET_NODE_TC_PORT']
-			cmd = deploy_tc_helper (prefix, nic, tc, tc_ip, tc_port)
-			tasks.append (executor.submit (docker_tc_update_helper, ret, cmd, name, len (tc)))
-		else:
-			ret [name] = {}
-	wait (tasks, return_when=ALL_COMPLETED)
-	return json.dumps (ret)
-
-
-def docker_tc_update_helper (ret, cmd, name, number):
-	p = sp.Popen (' && '.join (cmd), stdout=sp.PIPE, stderr=sp.STDOUT, shell=True, close_fds=True)
-	msg = p.communicate () [0].decode ()
-	if msg != '':
-		print (name + ' update tc failed, err:')
-		print (msg)
-		ret [name] = {'number': '-1', 'msg': msg}
-	else:
-		print (name + ' update tc succeed')
-		ret [name] = {'number': str (number)}
-
-
-@app.route ('/device/tc/update', methods=['POST'])
-def route_device_tc_update ():
-	"""
-	this function can listen tc settings from controller/ctl_utils.py, update_device_tc ().
-	it will clear the old tc settings and apply the new one.
-	"""
-	data = json.loads (request.form ['data'])
-	tc = data ['NET_NODE_TC']
-	nic = tc_data ['NET_NODE_NIC']
-	prefix = 'sudo '
-	clear_tc_helper (prefix, nic)
-	if tc:
-		tc_ip = data ['NET_NODE_TC_IP']
-		tc_port = data ['NET_NODE_TC_PORT']
-		cmd = deploy_tc_helper (prefix, nic, tc, tc_ip, tc_port)
-		p = sp.Popen (' && '.join (cmd), stdout=sp.PIPE, stderr=sp.STDOUT, shell=True, close_fds=True)
-		msg = p.communicate () [0].decode ()
-		if msg != '':
-			return msg
-
-	print (' update tc succeed')
-	return '1'
 
 
 app.run (host='0.0.0.0', port=agent_port, threaded=True)

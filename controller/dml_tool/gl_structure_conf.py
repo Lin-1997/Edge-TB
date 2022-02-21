@@ -2,36 +2,14 @@ import argparse
 import json
 import os
 
-
-def read_json (filename):
-	with open (os.path.join (dirname, filename), 'r') as f:
-		return json.loads (f.read ().replace ('\'', '\"'))
-
-
-# we assume that the node name starts with a letter, followed by numbers.
-# emulated nodes map port 4444 to host port 8000+x.
-# physical nodes listen on port 4444.
-def node_to_path (dst_name):
-	# from whatever to physical nodes.
-	if dst_name in _p_node:
-		# this port number should be the same as the one defined in controller/dml_app/gl_peer.py.
-		return _p_node [dst_name] + ':4444'
-	# from whatever to emulated nodes.
-	else:
-		return node_to_emulator_ip (dst_name) + ':' + str (8000 + int (dst_name [1:]))
-
-
-def node_to_emulator_ip (_node):
-	for name in _emulator:
-		if _node in _e_node [name]:
-			return _emulator [name]
+from conf_utils import read_json, load_node_info
 
 
 class Conf:
-	def __init__ (self, _name, _sync, _epoch):
-		self.name = _name
-		self.sync = _sync
-		self.epoch = _epoch
+	def __init__ (self, name, sync, epoch):
+		self.name = name
+		self.sync = sync
+		self.epoch = epoch
 		self.connect = {}
 
 	def __hash__ (self):
@@ -45,23 +23,26 @@ class Conf:
 		}
 
 
-def gen_conf ():
-	for node in node_list:
+def gen_conf (all_node, conf_json, link_json, output_path):
+	node_conf_map = {}
+
+	for node in conf_json ['node_list']:
 		name = node ['name']
 		assert name not in node_conf_map, Exception (
 			'duplicate node: ' + name)
-		conf = node_conf_map [name] = Conf (name, sync, node ['epoch'])
+		conf = node_conf_map [name] = Conf (name, conf_json ['sync'], node ['epoch'])
 
 		if name in link_json:
 			link_list = link_json [name]
 			for link in link_list:
 				dest = link ['dest']
+				assert dest in all_node, Exception ('no such node called ' + dest)
 				assert dest not in conf.connect, Exception (
 					'duplicate link from ' + name + ' to ' + dest)
-				conf.connect [dest] = node_to_path (dest)
+				conf.connect [dest] = all_node [dest].ip + ':' + str (all_node [dest].port)
 
 	for name in node_conf_map:
-		conf_path = os.path.join (dirname, args.output, name + '_structure.conf')
+		conf_path = os.path.join (output_path, name + '_structure.conf')
 		with open (conf_path, 'w') as f:
 			f.writelines (json.dumps (node_conf_map [name].to_json (), indent=2))
 
@@ -74,25 +55,31 @@ if __name__ == '__main__':
 	parser.add_argument ('-l', '--link', dest='link', required=False, type=str,
 		default='../links.json', help='./relative/path/to/link/json/file, default = ../links.json')
 	parser.add_argument ('-n', '--node', dest='node', required=False, type=str,
-		default='../node_ip.json', help='./relative/path/to/node/ip/json/file, default = ../node_ip.json')
+		default='../node_info.json', help='./relative/path/to/node/info/json/file, default = ../node_info.json')
 	parser.add_argument ('-o', '--output', dest='output', required=False, type=str,
 		default='../dml_file/conf', help='./relative/path/to/output/folder/, default = ../dml_file/conf/')
 	args = parser.parse_args ()
 
-	node_ip_json = read_json (args.node)
-	# Dict [str, str], emulator's name to emulator's ip.
-	_emulator = node_ip_json ['emulator']
-	# Dict [str, List], emulator's name to emulated node' name in this emulator.
-	_e_node = node_ip_json ['emulated_node']
-	# Dict [str, str], physical node's name to physical node's ip.
-	_p_node = node_ip_json ['physical_node']
+	if args.node [0] != '/':
+		pathNode = os.path.join (dirname, args.node)
+	else:
+		pathNode = args.node
+	_, _, allNode = load_node_info (pathNode)
 
-	conf_json = read_json (args.structure)
-	sync = conf_json ['sync']
-	node_list = conf_json ['node_list']
+	if args.structure [0] != '/':
+		pathStructure = os.path.join (dirname, args.structure)
+	else:
+		pathStructure = args.structure
+	confJson = read_json (pathStructure)
 
-	link_json = read_json (args.link)
+	if args.link [0] != '/':
+		pathLink = os.path.join (dirname, args.link)
+	else:
+		pathLink = args.link
+	linkJson = read_json (pathLink)
 
-	node_conf_map = {}
-
-	gen_conf ()
+	if args.output [0] != '/':
+		pathOutput = os.path.join (dirname, args.output)
+	else:
+		pathOutput = args.output
+	gen_conf (allNode, confJson, linkJson, pathOutput)

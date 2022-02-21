@@ -2,62 +2,85 @@
 
 ```
 {
-"sync": 30,
-"node_list": [
-{"name": "p1", "epoch": 1},
-{"name": "p2", "epoch": 4},
-{"name": "p3", "epoch": 7},
-{"name": "n1", "epoch": 2}]
+  "sync": 75,
+  "node_list": [
+    {"name": "p1", "epoch": 1},
+    {"name": "n1", "epoch": 1},
+    {"name": "n2", "epoch": 1},
+    {"name": "n3", "epoch": 1},
+    {"name": "n4", "epoch": 1}
+  ]
 }
 ```
 
-Each node will no longer _Gossip_ after 30 rounds of training ("sync": 30), but it can still receive models from others
+Each node will no longer _Gossip_ after 75 rounds of training ("sync": 75), but it can still receive models from others
 for training.  
-p2 _Gossip_ after 4 local epoch trainings ("epoch": 4).
+p1 _Gossip_ after 1 local epoch trainings ("epoch": 1).
 
 ## fl_structure.json
 
 ```
 {
-"node_list": [
-{"name": "p4", "trainer_fraction": 0.2, "sync": 75},
-
-{"name": "p1", "epoch": 1},
-{"name": "p2", "epoch": 3},
-{"name": "p3", "epoch": 1},
-{"name": "n1", "epoch": 2},
-{"name": "n2", "epoch": 7},
-{"name": "n3", "epoch": 5}]
+  "node_list": [
+    {"name": "n1", "trainer_fraction": 0.5, "sync": 75},
+    {"name": "n2", "epoch": 1},
+    {"name": "n3", "epoch": 1},
+    {"name": "n4", "epoch": 1},
+    {"name": "p1", "epoch": 1}
+  ]
 }
 ```
 
 The first node is the aggregator and other nodes are trainers.  
-The aggregator uploads weights (actually completes training) after 75 aggregations ("sync": 75).  
-In each round, the aggregator sends weights to about 20% of trainers ("trainer_fraction": 0.2).  
-p2 uploads weights (if selected) after 3 local epoch trainings ("epoch": 3).
+The aggregator completes training after 75 aggregations ("sync": 75).  
+In each round, the aggregator sends weights to about 50% of trainers ("trainer_fraction": 0.5).  
+n2 uploads weights (if selected) after 1 local epoch trainings ("epoch": 1).
 
 ## el_structure.json
 
 ```
 {
-"node_list": [
-{"name": "n1", "layer": 3, "sync": 5, "child_num": 2},
-{"name": "n2", "layer": 2, "sync": 2, "child_num": 2},
-{"name": "n4", "layer": 2, "sync": 2, "child_num": 3},
-{"name": "n2", "layer": 1, "epoch": 4},
-{"name": "n3", "layer": 1, "epoch": 4},
-{"name": "n4", "layer": 1, "epoch": 4},,
-{"name": "d1", "layer": 1, "epoch": 1}
-{"name": "d2", "layer": 1, "epoch": 1}]
+  "node_list": [
+    {"name": "n1", "layer": 3, "sync": 25, "child_num": 2},
+    {"name": "n1", "layer": 2, "sync": 4, "child_num": 2},
+    {"name": "n2", "layer": 2, "sync": 4, "child_num": 3},
+    {"name": "n1", "layer": 1, "epoch": 1},
+    {"name": "p1", "layer": 1, "epoch": 1},
+    {"name": "n2", "layer": 1, "epoch": 1},
+    {"name": "n3", "layer": 1, "epoch": 1},
+    {"name": "n4", "layer": 1, "epoch": 1}
+  ]
 }
 ```
 
 Breadth first traversal of layered structures.  
-Line 1: when n1 ("name": "n1") acts in the 3rd layer ("layer": 3), it uploads weights (actually completes training
-because it's the top node) after 5 aggregations ("sync": 5). n1 has 2 child nodes ("child_num": 2) in the 3rd layer
-including the nodes in the following two lines (n2 and n4).  
-Line 2: when n2 acts in the 2nd layer, it uploads weights after 2 aggregations, and it has 2 child nodes.  
-Line 4: when n2 acts in the 1st layer as trainer, it uploads weights after 4 local epoch trainings.
+Line-1: when n1 ("name": "n1") acts in the 3rd layer ("layer": 3) as aggregator (abbreviated as n1-3rd), it completes
+training after 25 aggregations ("sync": 25). n1-3rd has 2 child nodes ("child_num": 2).  
+Subsequent nodes in the 2nd layer will become children of n1-3rd until the requirements of n1-3rd are met, i.e., Line-2
+and Line-3.  
+Line-2: n1-2nd uploads weights after 4 aggregations, and it has 2 child nodes, i.e., Line-4 and Line-5.  
+Line-3: n2-2nd uploads weights after 4 aggregations, and it has 2 child nodes, i.e., Line-6, Line-7, and Line-8.  
+Line-4: when n1 acts in the 1st layer as trainer, it uploads weights after 1 local epoch trainings.
+
+## ra_structure.json
+
+```
+{
+  "sync": 75,
+  "node_list": [
+    {"name": "p1", "epoch": 1},
+    {"name": "n1", "epoch": 1},
+    {"name": "n2", "epoch": 1},
+    {"name": "n3", "epoch": 1},
+    {"name": "n4", "epoch": 1}
+  ]
+}
+```
+
+Each node sends weights to the previous node, e.g., n1 sends to p1 and n2 sends to n1.  
+For the first node, it sends weights to the last node, i.e., p1 sends to n4.  
+Each node will no longer send weights after 75 rounds of training ("sync": 75).  
+p1 starts the next round after 1 local epoch trainings ("epoch": 1).
 
 ## dataset.json
 

@@ -14,37 +14,33 @@ from nns.nn_fashion_mnist import nn  # configurable parameter, from nns.whatever
 
 dirname = os.path.abspath (os.path.dirname (__file__))
 
-# listen on port 4444.
-# we do not recommend changing this port number.
-dml_port = 4444
-
+dml_port = os.getenv ('DML_PORT')
 ctl_addr = os.getenv ('NET_CTL_ADDRESS')
 agent_addr = os.getenv ('NET_AGENT_ADDRESS')
 node_name = os.getenv ('NET_NODE_NAME')
 
 initial_weights = nn.model.get_weights ()
 input_shape = nn.input_shape
-log_file = os.path.abspath (os.path.join (dirname, '../dml_file/log/',
-	node_name + '.log'))
+log_file = os.path.abspath (os.path.join (dirname, '../dml_file/log/', node_name + '.log'))
 worker_utils.set_log (log_file)
 conf = {}
-# configurable parameter, specify the dataset path.
-test_path = os.path.join (dirname, '../dataset/FASHION_MNIST/test_data')
-test_images: np.ndarray
-test_labels: np.ndarray
 # configurable parameter, specify the dataset path.
 train_path = os.path.join (dirname, '../dataset/FASHION_MNIST/train_data')
 train_images: np.ndarray
 train_labels: np.ndarray
+# configurable parameter, specify the dataset path.
+test_path = os.path.join (dirname, '../dataset/FASHION_MNIST/test_data')
+test_images: np.ndarray
+test_labels: np.ndarray
 t_time: float
 
 app = Flask (__name__)
-weights_lock = threading.Lock ()
+lock = threading.RLock ()
 executor = ThreadPoolExecutor (1)
 
 
 # if this is container, docker will send a GET to here every 30s
-# this ability is defined in controller/class_node.py, Emulator.save_yml (), healthcheck.
+# this ability is defined in controller/base/node.py, Class Emulator, save_yml (), healthcheck.
 @app.route ('/hi', methods=['GET'])
 def route_hi ():
 	# send a heartbeat to the agent.
@@ -62,18 +58,20 @@ def route_conf_d ():
 	conf.update (json.loads (f))
 	print ('POST at /conf/dataset')
 
-	global test_images, test_labels, train_images, train_labels
-	if conf ['test_len'] > 0:
-		test_images, test_labels = dml_utils.load_data (test_path, conf ['test_start_index'],
-			conf ['test_len'], input_shape)
+	global train_images, train_labels
 	if conf ['train_len'] > 0:
 		train_images, train_labels = dml_utils.load_data (train_path, conf ['train_start_index'],
 			conf ['train_len'], input_shape)
-	executor.submit (perf_eval)
+	global test_images, test_labels
+	if conf ['test_len'] > 0:
+		test_images, test_labels = dml_utils.load_data (test_path, conf ['test_start_index'],
+			conf ['test_len'], input_shape)
 
 	filename = os.path.join (dirname, '../dml_file/conf', node_name + '_dataset.conf')
 	with open (filename, 'w') as fw:
 		fw.writelines (json.dumps (conf, indent=2))
+
+	executor.submit (perf_eval)
 	return ''
 
 
@@ -82,7 +80,7 @@ def perf_eval ():
 	global t_time
 	if conf ['train_len'] > 0:
 		s_time = time.time ()
-		dml_utils.train (nn.model, train_images, train_labels, 1, conf ['batch_size'], conf ['train_len'])
+		dml_utils.train (nn.model, train_images, train_labels, 1, conf ['batch_size'])
 		t_time = time.time () - s_time
 		dml_utils.assign_weights (nn.model, initial_weights)
 	else:
@@ -118,6 +116,21 @@ def on_route_log ():
 	worker_utils.send_log (ctl_addr, log_file, node_name)
 
 
+@app.route ('/start', methods=['GET'])
+def route_start ():
+	print ('GET at /start')
+	executor.submit (on_route_start)
+	return ''
+
+
+def on_route_start ():
+	_, init_acc = dml_utils.test_on_batch (nn.model, test_images, test_labels, conf ['batch_size'])
+	msg = dml_utils.log_acc (init_acc, 0, conf ['layer'] [-1])
+	worker_utils.send_print (ctl_addr, node_name + ': ' + msg)
+
+	send_weights_down (initial_weights, conf ['child_node'] [-1], conf ['layer'] [-1])
+
+
 def send_weights_down (weights, nodes, self_layer):
 	if self_layer == 2:
 		send_self = dml_utils.send_weights (weights, '/train', nodes, conf ['connect'],
@@ -132,21 +145,6 @@ def send_weights_down (weights, nodes, self_layer):
 		if send_self == 1:
 			worker_utils.log ('send self at /replace')
 			on_route_replace (weights, self_layer)
-
-
-@app.route ('/start', methods=['GET'])
-def route_start ():
-	_, initial_acc = dml_utils.test_on_batch (nn.model, test_images, test_labels, conf ['batch_size'])
-	msg = dml_utils.log_acc (initial_acc, 0, conf ['layer'] [-1])
-	worker_utils.send_print (ctl_addr, node_name + ': ' + msg)
-	executor.submit (on_route_start)
-	return ''
-
-
-def on_route_start ():
-	self_layer = conf ['layer'] [-1]
-	nodes = conf ['child_node'] [-1]
-	send_weights_down (initial_weights, nodes, self_layer)
 
 
 # replace request from the upper layer node.
@@ -180,14 +178,13 @@ def on_route_combine (weights, from_layer):
 	self_layer = from_layer + 1
 	layer_index = conf ['layer'].index (self_layer)
 
-	weights_lock.acquire ()
-	conf ['received_number'] [layer_index] += 1
-	dml_utils.store_weights (conf ['received_weights'] [layer_index], weights,
-		conf ['received_number'] [layer_index])
-	weights_lock.release ()
+	with lock:
+		conf ['received_number'] [layer_index] += 1
+		dml_utils.store_weights (conf ['received_weights'] [layer_index], weights,
+			conf ['received_number'] [layer_index])
 
-	if conf ['received_number'] [layer_index] == len (conf ['child_node'] [layer_index]):
-		combine_weights (self_layer, layer_index)
+		if conf ['received_number'] [layer_index] == len (conf ['child_node'] [layer_index]):
+			combine_weights (self_layer, layer_index)
 
 
 def combine_weights (self_layer, layer_index):
@@ -211,13 +208,14 @@ def combine_weights (self_layer, layer_index):
 			worker_utils.send_data ('GET', '/finish', ctl_addr)
 		# isn't the top node.
 		else:
-			send_self = dml_utils.send_weights (weights, '/combine', conf ['father_node'] [layer_index:layer_index + 1],
-				conf ['connect'], forward=conf ['forward'], layer=self_layer)
+			send_self = dml_utils.send_weights (weights, '/combine',
+				conf ['father_node'] [layer_index:layer_index + 1], conf ['connect'],
+				forward=conf ['forward'], layer=self_layer)
 			if send_self == 1:
 				worker_utils.log ('send self at /combine')
 				on_route_combine (weights, self_layer)
 
-	# haven't meet the sync, send down.
+	# haven't met the sync, send down.
 	else:
 		nodes = conf ['child_node'] [layer_index]
 		send_weights_down (weights, nodes, self_layer)
@@ -234,8 +232,8 @@ def route_train ():
 
 def on_route_train (received_weights):
 	dml_utils.assign_weights (nn.model, received_weights)
-	loss_list = dml_utils.train (nn.model, train_images, train_labels,
-		conf ['epoch'], conf ['batch_size'], conf ['train_len'])
+	loss_list = dml_utils.train (nn.model, train_images, train_labels, conf ['epoch'],
+		conf ['batch_size'])
 	# must be the lowest layer, layer_index = 0.
 	conf ['current_round'] [0] += 1
 

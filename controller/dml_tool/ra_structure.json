@@ -1,13 +1,10 @@
 {
-    "sync": 75,
-    "node_list": [
-        {"name": "n1", "epoch": 1},
-        {"name": "n2", "epoch": 1},
-        {"name": "n3", "epoch": 1},
-        {"name": "n4", "epoch": 1},
-        {"name": "n5", "epoch": 1},
-        {"name": "n6", "epoch": 1},
-        {"name": "n7", "epoch": 1},
-        {"name": "n8", "epoch": 1}
-    ]
+  "sync": 75,
+  "node_list": [
+    {"name": "p1", "epoch": 1},
+    {"name": "n1", "epoch": 1},
+    {"name": "n2", "epoch": 1},
+    {"name": "n3", "epoch": 1},
+    {"name": "n4", "epoch": 1}
+  ]
 }

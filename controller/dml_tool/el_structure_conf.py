@@ -3,44 +3,12 @@ import json
 import os
 from collections import deque
 
-
-def read_json (filename):
-	with open (os.path.join (dirname, filename), 'r') as f:
-		return json.loads (f.read ().replace ('\'', '\"'))
-
-
-# we assume that you followed the rules stated in controller/ctl_run_example.py.
-# the node name starts with a letter, followed by numbers.
-# emulated nodes map port 4444 to host port 8000+x.
-# physical nodes listen on port 4444.
-def node_to_path (dst_name):
-	# from whatever to physical nodes.
-	if dst_name in _p_node:
-		# this port number should be the same as the one defined in controller/dml_app/el_peer.py.
-		return _p_node [dst_name] + ':4444'
-	# from whatever to emulated nodes.
-	else:
-		return node_to_emulator_ip (dst_name) + ':' + str (8000 + int (dst_name [1:]))
-
-
-def node_to_emulator_ip (_node):
-	for name in _emulator:
-		if _node in _e_node [name]:
-			return _emulator [name]
-
-
-def hop_between_nodes (_node1, _node2):
-	if _node1 in _p_node or _node2 in _p_node:
-		return 1
-	# try to use the emulated node from the same emulator when need the same hop for forwarding.
-	if node_to_emulator_ip (_node1) == node_to_emulator_ip (_node2):
-		return 0.99
-	return 1
+from conf_utils import read_json, load_node_info
 
 
 class Conf:
-	def __init__ (self, _name):
-		self.name = _name
+	def __init__ (self, name):
+		self.name = name
 		self.layer = []
 		self.father_node = []
 		self.child_node = []
@@ -67,9 +35,12 @@ class Conf:
 		}
 
 
-# Generate structure conf for each node according to the above rules.
-def gen_conf ():
-	for node in _node_list:
+def gen_conf (all_node, conf_json, link_json, output_path):
+	node_conf_map = {}
+	father_queue = deque (['top'])
+	queue = deque ([])
+
+	for node in conf_json ['node_list']:
 		name = node ['name']
 		if name not in node_conf_map:
 			node_conf_map [name] = Conf (name)
@@ -127,10 +98,11 @@ def gen_conf ():
 		link_list = link_json [src]
 		for link in link_list:
 			dest = link ['dest']
+			assert dest in all_node, Exception ('no such node called ' + dest)
 			assert dest not in conf.connect, Exception (
 				'duplicate link from ' + src + ' to ' + dest)
-			conf.connect [dest] = node_to_path (dest)
-			conf.n_hop [dest] = hop_between_nodes (src, dest)
+			conf.connect [dest] = all_node [dest].ip + ':' + str (all_node [dest].port)
+			conf.n_hop [dest] = 1
 
 	flag = True
 	while flag:
@@ -144,14 +116,13 @@ def gen_conf ():
 					continue
 				hop2 = node_j.n_hop
 				for dest in hop1:
-					hop_num = hop_between_nodes (i_name, j_name)
-					if dest not in hop2 or node_j.n_hop [dest] > node_i.n_hop [dest] + hop_num:
+					if dest not in hop2 or node_j.n_hop [dest] > node_i.n_hop [dest] + 1:
 						flag = True
-						node_j.forward [dest] = node_to_path (i_name)
-						node_j.n_hop [dest] = node_i.n_hop [dest] + hop_num
+						node_j.forward [dest] = all_node [i_name].ip + ':' + str (all_node [i_name].port)
+						node_j.n_hop [dest] = node_i.n_hop [dest] + 1
 
 	for name in node_conf_map:
-		file_path = os.path.join (dirname, args.output, name + '_structure.conf')
+		file_path = os.path.join (output_path, name + '_structure.conf')
 		with open (file_path, 'w') as file:
 			file.writelines (json.dumps (node_conf_map [name].to_json (), indent=2))
 
@@ -164,26 +135,31 @@ if __name__ == '__main__':
 	parser.add_argument ('-l', '--link', dest='link', required=False, type=str,
 		default='../links.json', help='./relative/path/to/link/json/file, default = ../links.json')
 	parser.add_argument ('-n', '--node', dest='node', required=False, type=str,
-		default='../node_ip.json', help='./relative/path/to/node/ip/json/file, default = ../node_ip.json')
+		default='../node_info.json', help='./relative/path/to/node/info/json/file, default = ../node_info.json')
 	parser.add_argument ('-o', '--output', dest='output', required=False, type=str,
 		default='../dml_file/conf', help='./relative/path/to/output/folder/, default = ../dml_file/conf/')
 	args = parser.parse_args ()
 
-	node_ip_json = read_json (args.node)
-	# Dict [str, str], emulator's name to emulator's ip.
-	_emulator = node_ip_json ['emulator']
-	# Dict [str, List], emulator's name to emulated node' name in this emulator.
-	_e_node = node_ip_json ['emulated_node']
-	# Dict [str, str], physical node's name to physical node's ip.
-	_p_node = node_ip_json ['physical_node']
+	if args.node [0] != '/':
+		pathNode = os.path.join (dirname, args.node)
+	else:
+		pathNode = args.node
+	_, _, allNode = load_node_info (pathNode)
 
-	conf_structure_json = read_json (args.structure)
-	_node_list = conf_structure_json ['node_list']
+	if args.structure [0] != '/':
+		pathStructure = os.path.join (dirname, args.structure)
+	else:
+		pathStructure = args.structure
+	confJson = read_json (pathStructure)
 
-	link_json = read_json (args.link)
+	if args.link [0] != '/':
+		pathLink = os.path.join (dirname, args.link)
+	else:
+		pathLink = args.link
+	linkJson = read_json (pathLink)
 
-	node_conf_map = {}
-	father_queue = deque (['top'])
-	queue = deque ([])
-
-	gen_conf ()
+	if args.output [0] != '/':
+		pathOutput = os.path.join (dirname, args.output)
+	else:
+		pathOutput = args.output
+	gen_conf (allNode, confJson, linkJson, pathOutput)
