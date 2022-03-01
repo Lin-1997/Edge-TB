@@ -203,4 +203,4 @@ with High Fidelity." IEEE Transactions on Parallel and Distributed Systems. DOI:
 
 EdgeTB is designed and developed by the joint research team at School of Software Engineering, South China University of
 Technology, and the Department of Computing, The Hong Kong Polytechnic University. If you have any question, please
-contact with us: Fulin Wen [201921043987@mail.scut.edu.cn] and Lei Yang [sely@scut.edu.cn].
+contact with us: Fulin Wen <201921043987@mail.scut.edu.cn> and Lei Yang <sely@scut.edu.cn>.
